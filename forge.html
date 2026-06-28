@@ -1,360 +1,2322 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Iron Mind">
-<meta name="theme-color" content="#0a0a0a">
-<title>Iron Mind</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Iron Forge Mk.II</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;background:#0a0a0a;overscroll-behavior:none;}
-body{font-family:'Georgia',serif;color:#c9a84c;overflow:hidden;}
-#app{display:flex;flex-direction:column;height:100vh;height:100dvh;background:#0a0a0a;max-width:500px;margin:0 auto;}
-.top-bar{background:#0f0f0f;border-bottom:1px solid #2a2000;padding:14px 16px 10px;text-align:center;flex-shrink:0;}
-.top-bar h1{font-size:20px;letter-spacing:4px;color:#c9a84c;font-weight:400;text-transform:uppercase;}
-.top-bar .subtitle{font-size:9px;letter-spacing:3px;color:#4a3a10;text-transform:uppercase;margin-top:2px;}
-.pages{flex:1;overflow:hidden;position:relative;}
-.page{position:absolute;inset:0;overflow-y:auto;padding:16px 14px 20px;display:none;-webkit-overflow-scrolling:touch;}
+/* ================================================
+   IRON FORGE MK.II — Design System
+   ================================================ */
+:root {
+  --void:       #080808;
+  --iron:       #111111;
+  --iron-lift:  #1a1a1a;
+  --iron-hi:    #222222;
+  --gold:       #C9A84C;
+  --gold-pale:  #E8D5A3;
+  --gold-deep:  #8B6914;
+  --gold-glow:  rgba(201,168,76,0.10);
+  --white:      #F0EDE6;
+  --dim:        rgba(240,237,230,0.50);
+  --dim-hi:     rgba(240,237,230,0.75);
+  --border:     rgba(201,168,76,0.14);
+  --border-hi:  rgba(201,168,76,0.40);
+  --mind:       rgba(100,150,220,0.18);
+  --body-col:   rgba(220,100,80,0.18);
+  --shadow-col: rgba(140,80,200,0.18);
+  --wealth-col: rgba(80,180,120,0.18);
+  --purpose-col:rgba(220,160,60,0.18);
+  --font-d: 'Cinzel', serif;
+  --font-b: 'Inter', sans-serif;
+  --sb-w: 248px;
+  --sb-c: 62px;
+  --top: 0px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:15px;scroll-behavior:smooth;}
+body{background:var(--void);color:var(--white);font-family:var(--font-b);display:flex;min-height:100vh;overflow-x:hidden;}
+
+/* ================================================
+   SIDEBAR
+   ================================================ */
+.sb{
+  width:var(--sb-w);flex-shrink:0;
+  background:var(--iron);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  transition:width .28s cubic-bezier(.4,0,.2,1);
+  position:fixed;top:0;left:0;bottom:0;z-index:200;
+  overflow:hidden;
+}
+.sb.collapsed{width:var(--sb-c);}
+
+.sb-toggle{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;height:52px;flex-shrink:0;
+  background:transparent;border:none;border-bottom:1px solid var(--border);
+  color:var(--gold);font-size:1.2rem;cursor:pointer;
+  transition:background .2s;
+}
+.sb-toggle:hover{background:var(--iron-lift);}
+
+.sb-logo{
+  display:flex;align-items:center;gap:0.75rem;
+  padding:1.2rem 1.1rem;border-bottom:1px solid var(--border);
+  flex-shrink:0;overflow:hidden;white-space:nowrap;
+}
+.sb-logo-mark{
+  width:34px;height:34px;flex-shrink:0;
+  border:1.5px solid var(--gold);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:0.62rem;font-weight:700;color:var(--gold);
+  letter-spacing:0.05em;
+}
+.sb-logo-text{
+  font-family:var(--font-d);font-size:0.72rem;font-weight:700;
+  letter-spacing:0.22em;color:var(--gold);white-space:nowrap;
+}
+.sb-logo-sub{
+  font-family:var(--font-d);font-size:0.48rem;letter-spacing:0.28em;
+  color:var(--dim);white-space:nowrap;display:block;margin-top:0.1rem;
+}
+
+.sb-nav{list-style:none;flex:1;overflow-y:auto;overflow-x:hidden;padding:0.5rem 0;}
+.sb-nav::-webkit-scrollbar{width:3px;}
+.sb-nav::-webkit-scrollbar-thumb{background:var(--border);}
+
+.sb-section-label{
+  font-family:var(--font-d);font-size:0.45rem;letter-spacing:0.38em;
+  color:var(--gold-deep);text-transform:uppercase;
+  padding:0.9rem 1.1rem 0.35rem;white-space:nowrap;overflow:hidden;
+}
+.sb.collapsed .sb-section-label{opacity:0;}
+
+.sb-item{
+  display:flex;align-items:center;gap:0.8rem;
+  width:100%;padding:0.72rem 1.1rem;
+  background:transparent;border:none;border-left:2px solid transparent;
+  color:var(--dim);font-family:var(--font-b);font-size:0.82rem;
+  cursor:pointer;transition:all .18s;white-space:nowrap;overflow:hidden;
+  text-align:left;
+}
+.sb-item:hover{background:var(--iron-lift);color:var(--white);}
+.sb-item.active{
+  background:var(--gold-glow);color:var(--gold);
+  border-left-color:var(--gold);
+}
+.sb-item-icon{font-size:1rem;flex-shrink:0;width:20px;text-align:center;}
+.sb-item-label{white-space:nowrap;}
+
+.sb-footer{
+  border-top:1px solid var(--border);padding:0.9rem 1.1rem;flex-shrink:0;
+  overflow:hidden;
+}
+.sb-rank-name{
+  font-family:var(--font-d);font-size:0.58rem;letter-spacing:0.22em;
+  color:var(--gold);text-transform:uppercase;white-space:nowrap;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.sb-xp-bar{
+  height:3px;background:var(--iron-hi);border-radius:2px;
+  margin-top:0.5rem;overflow:hidden;
+}
+.sb-xp-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .6s;}
+.sb-xp-label{
+  font-size:0.65rem;color:var(--dim);margin-top:0.35rem;white-space:nowrap;
+}
+
+/* ================================================
+   MAIN CONTENT AREA
+   ================================================ */
+.app-wrap{
+  flex:1;margin-left:var(--sb-w);
+  transition:margin-left .28s cubic-bezier(.4,0,.2,1);
+  min-width:0;
+}
+.app-wrap.sb-collapsed{margin-left:var(--sb-c);}
+
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(8,8,8,0.94);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0.75rem 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  min-height:52px;
+}
+.topbar-title{
+  font-family:var(--font-d);font-size:0.78rem;font-weight:600;
+  letter-spacing:0.18em;color:var(--white);text-transform:uppercase;
+}
+.topbar-meta{
+  display:flex;align-items:center;gap:1.5rem;
+  font-size:0.72rem;color:var(--dim);
+}
+.topbar-streak{
+  display:flex;align-items:center;gap:0.4rem;color:var(--gold);
+  font-family:var(--font-d);font-size:0.68rem;letter-spacing:0.12em;
+}
+.topbar-date{color:var(--dim);font-size:0.7rem;}
+
+.content{padding:2rem;}
+
+/* ================================================
+   PAGES
+   ================================================ */
+.page{display:none;animation:pgIn .3s ease;}
 .page.active{display:block;}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 0 14px;}
-.stat-card{background:#111008;border:1px solid #2a2000;border-radius:8px;padding:10px 6px;text-align:center;}
-.stat-card .val{font-size:22px;color:#c9a84c;}
-.stat-card .lbl{font-size:8px;letter-spacing:2px;color:#4a3a10;text-transform:uppercase;margin-top:3px;}
-.xp-bar-wrap{background:#111008;border:1px solid #2a2000;border-radius:4px;height:7px;margin:6px 0;overflow:hidden;}
-.xp-bar-fill{height:100%;background:#c9a84c;border-radius:4px;transition:width .4s ease;}
-.xp-bar-label{display:flex;justify-content:space-between;font-size:8px;color:#4a3a10;letter-spacing:1px;text-transform:uppercase;margin-top:3px;}
-.reset-timer{text-align:center;font-size:9px;letter-spacing:2px;color:#4a3a10;text-transform:uppercase;margin:8px 0;}
-.reset-timer span{color:#c9a84c;}
-.section-title{font-size:8px;letter-spacing:3px;color:#4a3a10;text-transform:uppercase;margin:16px 0 8px;border-bottom:1px solid #1a1400;padding-bottom:5px;}
-.rank-banner{background:#111008;border:1px solid #2a2000;border-radius:8px;padding:14px 12px;text-align:center;margin:0 0 14px;}
-.rank-banner .rank-icon{font-size:30px;margin-bottom:6px;}
-.rank-banner .rank-name{font-size:16px;letter-spacing:4px;color:#c9a84c;text-transform:uppercase;}
-.rank-banner .rank-sub{font-size:9px;letter-spacing:2px;color:#4a3a10;text-transform:uppercase;margin-top:3px;}
-.pillar-block{background:#111008;border:1px solid #2a2000;border-radius:8px;margin-bottom:8px;overflow:hidden;}
-.pillar-header{display:flex;align-items:center;justify-content:space-between;padding:12px 12px;cursor:pointer;user-select:none;-webkit-user-select:none;}
-.pillar-header:active{background:#1a1400;}
-.pillar-left{display:flex;align-items:center;gap:10px;}
-.pillar-icon{font-size:20px;}
-.pillar-name{font-size:10px;letter-spacing:2px;color:#c9a84c;text-transform:uppercase;}
-.pillar-prog{font-size:9px;color:#4a3a10;letter-spacing:1px;margin-top:2px;}
-.pillar-right{display:flex;align-items:center;gap:10px;}
-.pillar-lv{font-size:8px;background:#2a2000;color:#c9a84c;padding:2px 6px;border-radius:3px;letter-spacing:1px;}
-.pillar-chevron{font-size:12px;color:#4a3a10;transition:transform .2s;}
-.pillar-block.open .pillar-chevron{transform:rotate(180deg);}
-.pillar-tasks{display:none;border-top:1px solid #1a1400;padding:8px 12px 10px;}
-.pillar-block.open .pillar-tasks{display:block;}
-.task-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1a1400;cursor:pointer;user-select:none;-webkit-user-select:none;}
-.task-row:last-child{border-bottom:none;}
-.task-row:active{opacity:0.7;}
-.task-left{display:flex;align-items:center;gap:10px;}
-.task-check{width:18px;height:18px;border-radius:4px;border:1px solid #3a3000;background:#0a0a0a;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,border-color .15s;}
-.task-check.done{background:#c9a84c;border-color:#c9a84c;}
-.task-check.done::after{content:'✓';font-size:11px;color:#0a0a0a;font-weight:bold;}
-.task-name{font-size:11px;color:#8a7040;letter-spacing:0.5px;}
-.task-row.done-row .task-name{color:#c9a84c;}
-.task-xp{font-size:9px;color:#4a3a10;letter-spacing:1px;}
-.dash-pillar-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:0 0 14px;}
-.dash-pillar-card{background:#111008;border:1px solid #2a2000;border-radius:8px;padding:8px 4px;text-align:center;}
-.dash-pillar-card.all-done{border-color:#c9a84c;background:#1a1400;}
-.dpc-icon{font-size:18px;margin-bottom:3px;}
-.dpc-name{font-size:7px;letter-spacing:1.5px;color:#4a3a10;text-transform:uppercase;}
-.dpc-prog{font-size:11px;color:#c9a84c;margin-top:3px;}
-.dpc-lv{font-size:8px;background:#2a2000;color:#c9a84c;padding:2px 4px;border-radius:3px;display:inline-block;letter-spacing:1px;margin-top:2px;}
-.daily-complete-banner{background:#1a1400;border:1px solid #c9a84c;border-radius:8px;padding:10px;text-align:center;margin:10px 0;display:none;}
-.daily-complete-banner.show{display:block;}
-.daily-complete-banner p{font-size:9px;letter-spacing:3px;color:#c9a84c;text-transform:uppercase;}
-.heatmap-wrap{margin:0 0 16px;}
-.heat-day-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
-.heat-day-labels span{text-align:center;font-size:7px;color:#4a3a10;letter-spacing:1px;text-transform:uppercase;}
-.heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
-.heat-cell{aspect-ratio:1;border-radius:3px;background:#1a1400;border:1px solid #2a2000;}
-.heat-cell.h1{background:#2a2000;}
-.heat-cell.h2{background:#4a3800;}
-.heat-cell.h3{background:#7a5e00;}
-.heat-cell.h4{background:#c9a84c;}
-.pillar-stat-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1a1400;}
-.ps-left{display:flex;align-items:center;gap:9px;}
-.ps-icon{font-size:16px;}
-.ps-name{font-size:9px;letter-spacing:2px;color:#c9a84c;text-transform:uppercase;}
-.mini-bar-wrap{background:#1a1400;border-radius:3px;height:3px;width:70px;margin-top:4px;overflow:hidden;}
-.mini-bar-fill{height:100%;background:#c9a84c;border-radius:3px;}
-.ps-xp{font-size:12px;color:#c9a84c;}
-.ps-lv{font-size:9px;color:#4a3a10;letter-spacing:1px;text-align:right;margin-top:2px;}
-.rank-table{width:100%;border-collapse:collapse;}
-.rank-table tr{border-bottom:1px solid #1a1400;}
-.rank-table td{padding:7px 5px;font-size:11px;color:#4a3a10;letter-spacing:1px;}
-.rank-table tr.current-rank td{color:#c9a84c;}
-.rank-badge{display:inline-block;background:#1a1400;border:1px solid #2a2000;padding:2px 7px;border-radius:3px;font-size:8px;letter-spacing:2px;text-transform:uppercase;}
-.rank-table tr.current-rank .rank-badge{background:#2a2000;border-color:#c9a84c;}
-.profile-header{background:#111008;border:1px solid #2a2000;border-radius:8px;padding:18px 14px;text-align:center;margin:0 0 12px;}
-.profile-avatar{width:52px;height:52px;border-radius:50%;background:#1a1400;border:2px solid #c9a84c;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:22px;}
-.profile-name{font-size:14px;letter-spacing:3px;color:#c9a84c;text-transform:uppercase;}
-.profile-rank-label{font-size:9px;letter-spacing:3px;color:#4a3a10;text-transform:uppercase;margin-top:3px;}
-.profile-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px;}
-.profile-stat{background:#111008;border:1px solid #2a2000;border-radius:8px;padding:10px;text-align:center;}
-.pst-val{font-size:20px;color:#c9a84c;}
-.pst-lbl{font-size:8px;letter-spacing:2px;color:#4a3a10;text-transform:uppercase;margin-top:3px;}
-.bottom-nav{background:#0f0f0f;border-top:1px solid #2a2000;display:grid;grid-template-columns:repeat(4,1fr);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);}
-.nav-btn{background:transparent;border:none;padding:10px 0 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:#3a3000;transition:color .15s;}
-.nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
-.nav-btn .nav-lbl{font-size:7px;letter-spacing:2px;text-transform:uppercase;font-family:'Georgia',serif;}
-.nav-btn.active,.nav-btn:active{color:#c9a84c;}
-.level-up-toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-120px);background:#1a1400;border:1px solid #c9a84c;border-radius:8px;padding:10px 22px;text-align:center;z-index:200;transition:transform .35s ease;pointer-events:none;max-width:calc(500px - 28px);}
-.level-up-toast.show{transform:translateX(-50%) translateY(0);}
-.lt-title{font-size:8px;letter-spacing:3px;color:#c9a84c;text-transform:uppercase;}
-.lt-rank{font-size:15px;letter-spacing:2px;color:#c9a84c;margin-top:2px;}
+@keyframes pgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ================================================
+   SHARED COMPONENTS
+   ================================================ */
+.page-header{margin-bottom:2rem;}
+.page-eyebrow{
+  font-family:var(--font-d);font-size:0.55rem;letter-spacing:0.4em;
+  color:var(--gold);text-transform:uppercase;display:block;margin-bottom:0.5rem;
+}
+.page-title{
+  font-family:var(--font-d);font-size:clamp(1.4rem,2.5vw,2rem);
+  font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--white);line-height:1.15;
+}
+.page-title .g{color:var(--gold);}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
+
+.card{
+  background:var(--iron);border:1px solid var(--border);
+  padding:1.5rem;position:relative;overflow:hidden;
+}
+.card-title{
+  font-family:var(--font-d);font-size:0.62rem;letter-spacing:0.28em;
+  color:var(--gold);text-transform:uppercase;margin-bottom:1rem;display:block;
+}
+.card-large{padding:2rem;}
+
+/* BUTTONS */
+.btn{
+  font-family:var(--font-d);font-size:0.58rem;font-weight:700;
+  letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;
+  transition:all .2s;border:none;
+}
+.btn-solid{color:var(--void);background:var(--gold);padding:0.7rem 1.6rem;}
+.btn-solid:hover{background:var(--gold-pale);transform:translateY(-1px);}
+.btn-outline{
+  color:var(--gold);background:transparent;
+  border:1px solid var(--border-hi);padding:0.65rem 1.5rem;
+}
+.btn-outline:hover{background:var(--gold-glow);}
+.btn-sm{padding:0.45rem 1rem;font-size:0.52rem;}
+.btn-ghost{
+  color:var(--dim);background:transparent;border:1px solid var(--border);
+  padding:0.45rem 1rem;font-size:0.52rem;letter-spacing:0.15em;
+}
+.btn-ghost:hover{color:var(--white);border-color:var(--border-hi);}
+
+/* INPUTS */
+.input-field{
+  width:100%;background:var(--iron-hi);border:1px solid var(--border);
+  color:var(--white);font-family:var(--font-b);font-size:0.85rem;
+  padding:0.65rem 0.9rem;outline:none;transition:border-color .2s;
+}
+.input-field:focus{border-color:var(--gold);}
+.input-field::placeholder{color:rgba(240,237,230,.28);}
+textarea.input-field{resize:vertical;min-height:100px;line-height:1.7;}
+select.input-field{cursor:pointer;}
+
+.form-row{display:grid;gap:0.75rem;}
+.form-row-2{grid-template-columns:1fr 1fr;}
+.form-row-3{grid-template-columns:1fr 1fr 1fr;}
+.form-label{
+  font-family:var(--font-d);font-size:0.52rem;letter-spacing:0.22em;
+  color:var(--dim);text-transform:uppercase;display:block;margin-bottom:0.35rem;
+}
+.form-group{display:flex;flex-direction:column;}
+
+/* PROGRESS BARS */
+.prog-wrap{margin-top:0.5rem;}
+.prog-bar{height:4px;background:var(--iron-hi);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .6s;}
+.prog-label{
+  display:flex;justify-content:space-between;
+  font-size:0.68rem;color:var(--dim);margin-bottom:0.3rem;
+}
+
+/* TABS */
+.tab-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem;}
+.tab-btn{
+  font-family:var(--font-d);font-size:0.55rem;letter-spacing:0.2em;
+  color:var(--dim);background:transparent;border:none;
+  padding:0.75rem 1.2rem;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:all .2s;white-space:nowrap;
+}
+.tab-btn:hover{color:var(--gold);}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* RULE */
+.rule{width:50px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:1.2rem 0;}
+
+/* ENTRIES LIST */
+.entry-list{display:flex;flex-direction:column;gap:0.6rem;margin-top:0.75rem;}
+.entry{
+  background:var(--iron-lift);border:1px solid var(--border);
+  padding:0.75rem 1rem;display:flex;gap:0.75rem;align-items:flex-start;
+}
+.entry-date{
+  font-family:var(--font-d);font-size:0.5rem;letter-spacing:0.15em;
+  color:var(--gold-deep);white-space:nowrap;flex-shrink:0;margin-top:0.1rem;
+}
+.entry-body{font-size:0.82rem;color:var(--dim-hi);line-height:1.6;flex:1;}
+.entry-tag{
+  font-family:var(--font-d);font-size:0.48rem;letter-spacing:0.2em;
+  color:var(--void);background:var(--gold);padding:0.2rem 0.5rem;
+  white-space:nowrap;flex-shrink:0;
+}
+
+/* EMPTY STATE */
+.empty{
+  text-align:center;padding:3rem 1rem;border:1px dashed var(--border);
+  color:var(--dim);font-size:0.82rem;
+}
+.empty-icon{font-size:2rem;display:block;margin-bottom:0.75rem;opacity:.4;}
+
+/* ================================================
+   DASHBOARD — FORGE MAP
+   ================================================ */
+.forge-map-wrap{display:flex;justify-content:center;padding:0.5rem 0;}
+#forgeMapSvg{max-width:280px;width:100%;}
+
+/* ================================================
+   DASHBOARD — SOVEREIGNTY INDEX
+   ================================================ */
+.sov-index{text-align:center;padding:1.5rem;}
+.sov-score{
+  font-family:var(--font-d);font-size:4rem;font-weight:900;
+  color:var(--gold);line-height:1;
+  text-shadow:0 0 40px rgba(201,168,76,.25);
+}
+.sov-label{
+  font-family:var(--font-d);font-size:0.55rem;letter-spacing:0.32em;
+  color:var(--dim);text-transform:uppercase;margin-top:0.5rem;
+}
+
+/* ================================================
+   DASHBOARD — QUESTS
+   ================================================ */
+.quest{
+  display:flex;align-items:center;gap:0.9rem;
+  padding:0.85rem 0;border-bottom:1px solid var(--border);
+  cursor:pointer;
+}
+.quest:last-child{border-bottom:none;}
+.quest-check{
+  width:20px;height:20px;flex-shrink:0;
+  border:1.5px solid var(--border-hi);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.7rem;color:var(--gold);transition:all .2s;
+}
+.quest.done .quest-check{background:var(--gold);color:var(--void);}
+.quest-text{font-size:0.82rem;color:var(--dim-hi);flex:1;line-height:1.4;}
+.quest.done .quest-text{color:var(--dim);text-decoration:line-through;}
+.quest-xp{
+  font-family:var(--font-d);font-size:0.5rem;letter-spacing:0.15em;
+  color:var(--gold);white-space:nowrap;
+}
+
+/* ================================================
+   DASHBOARD — HEATMAP
+   ================================================ */
+.heatmap{display:flex;flex-direction:column;gap:0.35rem;}
+.heatmap-row{display:flex;align-items:center;gap:0.35rem;}
+.heatmap-label{
+  font-family:var(--font-d);font-size:0.48rem;letter-spacing:0.15em;
+  color:var(--dim);width:60px;flex-shrink:0;text-transform:uppercase;
+}
+.heatmap-cells{display:flex;gap:0.25rem;flex:1;}
+.hm-cell{
+  flex:1;height:20px;background:var(--iron-hi);
+  border:1px solid var(--border);border-radius:2px;
+  transition:background .3s;
+}
+.hm-cell.active-1{background:rgba(201,168,76,0.25);}
+.hm-cell.active-2{background:rgba(201,168,76,0.5);}
+.hm-cell.active-3{background:rgba(201,168,76,0.75);}
+.hm-cell.active-full{background:var(--gold);}
+.heatmap-days{display:flex;gap:0.25rem;padding-left:67px;margin-bottom:0.2rem;}
+.hm-day{
+  flex:1;font-size:0.48rem;color:var(--dim);text-align:center;
+  font-family:var(--font-d);letter-spacing:0.1em;
+}
+
+/* ================================================
+   STREAK
+   ================================================ */
+.streak-display{
+  display:flex;align-items:baseline;gap:0.5rem;
+  font-family:var(--font-d);
+}
+.streak-num{font-size:2.8rem;font-weight:900;color:var(--gold);line-height:1;}
+.streak-unit{font-size:0.62rem;letter-spacing:0.2em;color:var(--dim);}
+
+/* ================================================
+   BODY PAGE — HYDRATION
+   ================================================ */
+.glasses{display:flex;gap:0.5rem;flex-wrap:wrap;margin:0.75rem 0;}
+.glass{
+  width:38px;height:50px;border:1.5px solid var(--border);
+  background:var(--iron-hi);cursor:pointer;transition:all .2s;
+  display:flex;align-items:flex-end;overflow:hidden;position:relative;
+}
+.glass.full{border-color:var(--gold);}
+.glass-fill{
+  width:100%;background:rgba(201,168,76,.6);
+  transition:height .3s;position:absolute;bottom:0;left:0;right:0;
+}
+
+/* ================================================
+   BODY PAGE — WORKOUT
+   ================================================ */
+.workout-exercise{
+  background:var(--iron-lift);border:1px solid var(--border);
+  padding:0.9rem;margin-bottom:0.75rem;
+}
+.workout-ex-name{
+  font-family:var(--font-d);font-size:0.65rem;letter-spacing:0.18em;
+  color:var(--gold);text-transform:uppercase;margin-bottom:0.6rem;
+}
+.sets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.5rem;}
+.set-chip{
+  background:var(--iron-hi);border:1px solid var(--border);
+  padding:0.4rem 0.6rem;font-size:0.75rem;color:var(--dim-hi);
+  display:flex;gap:0.4rem;align-items:center;
+}
+.set-num{color:var(--gold);font-family:var(--font-d);font-size:0.52rem;}
+
+/* ================================================
+   SHADOW PAGE — MIRROR
+   ================================================ */
+.mirror-prompt{
+  font-family:var(--font-d);font-size:1rem;font-style:italic;
+  color:var(--gold-pale);line-height:1.7;
+  border-left:2px solid var(--gold);padding:1rem 1.5rem;
+  margin-bottom:1.25rem;background:rgba(201,168,76,.04);
+}
+
+/* ================================================
+   SHADOW PAGE — ARCHETYPE
+   ================================================ */
+.archetype-result{
+  text-align:center;padding:2rem;
+  background:var(--gold-glow);border:1px solid var(--border-hi);
+}
+.archetype-name{
+  font-family:var(--font-d);font-size:2rem;font-weight:900;
+  color:var(--gold);text-transform:uppercase;letter-spacing:0.15em;
+}
+.archetype-bars{display:flex;flex-direction:column;gap:0.6rem;margin-top:1.2rem;}
+.arch-bar-row{display:flex;align-items:center;gap:0.75rem;}
+.arch-bar-label{
+  font-family:var(--font-d);font-size:0.52rem;letter-spacing:0.18em;
+  color:var(--dim);width:80px;flex-shrink:0;text-transform:uppercase;
+}
+.arch-bar{flex:1;height:6px;background:var(--iron-hi);border-radius:3px;overflow:hidden;}
+.arch-bar-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .8s;}
+.arch-score{
+  font-family:var(--font-d);font-size:0.55rem;color:var(--gold);
+  width:30px;text-align:right;
+}
+
+/* ================================================
+   ARCHETYPE QUIZ
+   ================================================ */
+.quiz-q{margin-bottom:1.5rem;}
+.quiz-q-text{
+  font-size:0.88rem;color:var(--dim-hi);line-height:1.6;margin-bottom:0.75rem;
+}
+.quiz-q-num{
+  font-family:var(--font-d);font-size:0.52rem;letter-spacing:0.2em;
+  color:var(--gold-deep);display:block;margin-bottom:0.35rem;
+}
+.quiz-options{display:flex;flex-direction:column;gap:0.4rem;}
+.quiz-opt{
+  display:flex;align-items:flex-start;gap:0.75rem;
+  padding:0.7rem 0.9rem;border:1px solid var(--border);
+  background:var(--iron-lift);cursor:pointer;transition:all .18s;
+}
+.quiz-opt:hover{border-color:var(--border-hi);background:var(--iron-hi);}
+.quiz-opt.selected{border-color:var(--gold);background:var(--gold-glow);}
+.quiz-opt input[type=radio]{display:none;}
+.quiz-opt-dot{
+  width:12px;height:12px;border:1.5px solid var(--border-hi);
+  border-radius:50%;flex-shrink:0;margin-top:2px;transition:all .18s;
+}
+.quiz-opt.selected .quiz-opt-dot{background:var(--gold);border-color:var(--gold);}
+.quiz-opt-text{font-size:0.8rem;color:var(--dim-hi);line-height:1.5;}
+
+/* ================================================
+   PURPOSE — MILESTONE
+   ================================================ */
+.milestone-card{
+  background:var(--iron-lift);border:1px solid var(--border);
+  padding:1rem 1.2rem;display:flex;align-items:flex-start;gap:1rem;
+  transition:border-color .2s;
+}
+.milestone-card:hover{border-color:var(--border-hi);}
+.milestone-icon{font-size:1.4rem;flex-shrink:0;}
+.milestone-cat{
+  font-family:var(--font-d);font-size:0.48rem;letter-spacing:0.22em;
+  color:var(--void);background:var(--gold);padding:0.18rem 0.5rem;
+  display:inline-block;margin-bottom:0.35rem;text-transform:uppercase;
+}
+.milestone-title{
+  font-family:var(--font-d);font-size:0.78rem;font-weight:600;
+  color:var(--white);letter-spacing:0.08em;text-transform:uppercase;
+}
+.milestone-desc{font-size:0.78rem;color:var(--dim);margin-top:0.3rem;line-height:1.5;}
+.milestone-date{
+  font-family:var(--font-d);font-size:0.48rem;letter-spacing:0.15em;
+  color:var(--gold-deep);margin-top:0.4rem;display:block;
+}
+
+/* ================================================
+   WEALTH — DEEP WORK TIMER
+   ================================================ */
+.timer-display{
+  font-family:var(--font-d);font-size:3.5rem;font-weight:700;
+  color:var(--gold);text-align:center;letter-spacing:0.1em;
+  text-shadow:0 0 30px rgba(201,168,76,.2);
+  padding:1.5rem 0;
+}
+.timer-controls{display:flex;gap:0.75rem;justify-content:center;}
+
+/* ================================================
+   PROGRESS — RANK SYSTEM
+   ================================================ */
+.rank-list{display:flex;flex-direction:column;gap:0.6rem;}
+.rank-item{
+  display:flex;align-items:center;gap:1rem;
+  padding:0.85rem 1.1rem;border:1px solid var(--border);
+  background:var(--iron-lift);transition:all .2s;
+}
+.rank-item.current{border-color:var(--gold);background:var(--gold-glow);}
+.rank-item.locked{opacity:.4;}
+.rank-icon{font-size:1.1rem;width:28px;text-align:center;flex-shrink:0;}
+.rank-name{
+  font-family:var(--font-d);font-size:0.72rem;font-weight:600;
+  letter-spacing:0.15em;color:var(--white);text-transform:uppercase;flex:1;
+}
+.rank-item.current .rank-name{color:var(--gold);}
+.rank-xp{
+  font-family:var(--font-d);font-size:0.52rem;letter-spacing:0.12em;color:var(--dim);
+}
+.rank-badge{
+  font-family:var(--font-d);font-size:0.45rem;letter-spacing:0.2em;
+  color:var(--void);background:var(--gold);padding:0.2rem 0.55rem;
+}
+
+/* FORGE SCORE */
+.forge-score-big{
+  font-family:var(--font-d);font-size:5rem;font-weight:900;
+  color:var(--gold);line-height:1;
+  text-shadow:0 0 60px rgba(201,168,76,.2);
+}
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media(max-width:900px){
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+  .content{padding:1.2rem;}
+  .form-row-2,.form-row-3{grid-template-columns:1fr;}
+}
+@media(max-width:640px){
+  .sb{width:var(--sb-c);}
+  .app-wrap{margin-left:var(--sb-c);}
+  .sb.expanded{width:var(--sb-w);}
+  .app-wrap.sb-expanded{margin-left:var(--sb-w);}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+}
 </style>
 </head>
 <body>
-<div id="app">
-  <div class="top-bar">
-    <h1>Iron Mind</h1>
-    <div class="subtitle">Five Pillars of Mastery</div>
+
+<!-- ================================================
+     SIDEBAR
+     ================================================ -->
+<nav class="sb" id="sidebar">
+  <button class="sb-toggle" id="sbToggle" onclick="toggleSidebar()">☰</button>
+
+  <div class="sb-logo">
+    <div class="sb-logo-mark">IF</div>
+    <div>
+      <span class="sb-logo-text">IRON FORGE</span>
+      <span class="sb-logo-sub">MK.II</span>
+    </div>
   </div>
-  <div class="level-up-toast" id="lvlToast">
-    <div class="lt-title">Level Up</div>
-    <div class="lt-rank" id="lvlToastRank"></div>
+
+  <ul class="sb-nav">
+    <li><button class="sb-item active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="sb-item-icon">⬡</span><span class="sb-item-label">Dashboard</span></button></li>
+
+    <li class="sb-section-label">PILLARS</li>
+    <li><button class="sb-item" id="nav-mind" onclick="showPage('mind')"><span class="sb-item-icon">🧠</span><span class="sb-item-label">Mind</span></button></li>
+    <li><button class="sb-item" id="nav-body" onclick="showPage('body')"><span class="sb-item-icon">⚔️</span><span class="sb-item-label">Body</span></button></li>
+    <li><button class="sb-item" id="nav-shadow" onclick="showPage('shadow')"><span class="sb-item-icon">🌑</span><span class="sb-item-label">Shadow</span></button></li>
+    <li><button class="sb-item" id="nav-wealth" onclick="showPage('wealth')"><span class="sb-item-icon">💰</span><span class="sb-item-label">Wealth</span></button></li>
+    <li><button class="sb-item" id="nav-purpose" onclick="showPage('purpose')"><span class="sb-item-icon">🎯</span><span class="sb-item-label">Purpose</span></button></li>
+
+    <li class="sb-section-label">FORGE</li>
+    <li><button class="sb-item" id="nav-progress" onclick="showPage('progress')"><span class="sb-item-icon">📊</span><span class="sb-item-label">Progress</span></button></li>
+  </ul>
+
+  <div class="sb-footer">
+    <div class="sb-rank-name" id="sbRankName">◦ Initiate</div>
+    <div class="sb-xp-bar"><div class="sb-xp-fill" id="sbXpFill" style="width:0%"></div></div>
+    <div class="sb-xp-label" id="sbXpLabel">0 XP</div>
   </div>
-  <div class="pages">
+</nav>
+
+<!-- ================================================
+     MAIN APP
+     ================================================ -->
+<div class="app-wrap" id="appWrap">
+
+  <header class="topbar">
+    <span class="topbar-title" id="topbarTitle">Dashboard</span>
+    <div class="topbar-meta">
+      <span class="topbar-streak" id="topbarStreak">🔥 0 Day Streak</span>
+      <span class="topbar-date" id="topbarDate"></span>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ============ DASHBOARD ============ -->
     <div class="page active" id="page-dashboard">
-      <div class="stat-grid">
-        <div class="stat-card"><div class="val" id="dash-streak">0</div><div class="lbl">Day Streak</div></div>
-        <div class="stat-card"><div class="val" id="dash-xp">0</div><div class="lbl">Total XP</div></div>
-        <div class="stat-card"><div class="val" id="dash-today">0/10</div><div class="lbl">Today</div></div>
+      <div class="page-header">
+        <span class="page-eyebrow">Iron Forge Mk.II</span>
+        <h1 class="page-title">The <span class="g">Forge</span> Map</h1>
       </div>
-      <div class="rank-banner">
-        <div class="rank-icon" id="dash-rank-icon">🌑</div>
-        <div class="rank-name" id="dash-rank-name">Initiate</div>
-        <div class="rank-sub" id="dash-rank-level">Level 1</div>
+
+      <div class="grid-2" style="margin-bottom:1.5rem;">
+        <!-- Forge Map -->
+        <div class="card card-large">
+          <span class="card-title">⬡ Forge Map — Pillar Mastery</span>
+          <div class="forge-map-wrap">
+            <svg id="forgeMapSvg" viewBox="0 0 320 310" xmlns="http://www.w3.org/2000/svg">
+              <!-- Grid pentagons -->
+              <polygon id="grid25" fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="1"/>
+              <polygon id="grid50" fill="none" stroke="rgba(201,168,76,0.10)" stroke-width="1"/>
+              <polygon id="grid75" fill="none" stroke="rgba(201,168,76,0.12)" stroke-width="1"/>
+              <polygon id="gridOuter" fill="none" stroke="rgba(201,168,76,0.20)" stroke-width="1.5"/>
+              <!-- Axis lines -->
+              <g id="axisLines" stroke="rgba(201,168,76,0.12)" stroke-width="1"/>
+              <!-- Filled shape -->
+              <polygon id="forgeShape" fill="rgba(201,168,76,0.18)" stroke="var(--gold)" stroke-width="1.5"/>
+              <!-- Vertex dots -->
+              <g id="vertexDots"/>
+              <!-- Labels -->
+              <g id="pillarLabels" font-family="Cinzel,serif" font-size="10" fill="rgba(201,168,76,0.8)" text-anchor="middle"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+          <!-- Sovereignty Index -->
+          <div class="card">
+            <span class="card-title">◈ Sovereignty Index</span>
+            <div class="sov-index">
+              <div class="sov-score" id="sovScore">0</div>
+              <div class="sov-label">Of 100 — Weekly Score</div>
+            </div>
+          </div>
+
+          <!-- Streak -->
+          <div class="card">
+            <span class="card-title">🔥 Current Streak</span>
+            <div class="streak-display" style="padding:0.5rem 0;">
+              <span class="streak-num" id="streakNum">0</span>
+              <span class="streak-unit">DAYS</span>
+            </div>
+            <div style="font-size:0.75rem;color:var(--dim);margin-top:0.25rem;">Check in daily to maintain your streak.</div>
+            <button class="btn btn-outline btn-sm" style="margin-top:1rem;" onclick="doCheckin()">Check In Today</button>
+          </div>
+        </div>
       </div>
-      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="dash-xp-bar" style="width:0%"></div></div>
-      <div class="xp-bar-label"><span id="dash-xp-label">XP · 0</span><span>50 XP</span></div>
-      <div class="reset-timer" id="dash-timer">Resets in <span>--:--:--</span></div>
-      <div class="section-title">Pillars Today</div>
-      <div class="dash-pillar-grid" id="dash-pillars"></div>
-      <div class="daily-complete-banner" id="completeBanner"><p>⚔ All Pillars Complete ⚔</p></div>
-    </div>
-    <div class="page" id="page-daily">
-      <div class="stat-grid">
-        <div class="stat-card"><div class="val" id="daily-streak">0</div><div class="lbl">Day Streak</div></div>
-        <div class="stat-card"><div class="val" id="daily-xp">0</div><div class="lbl">Total XP</div></div>
-        <div class="stat-card"><div class="val" id="daily-today">0/10</div><div class="lbl">Today</div></div>
+
+      <div class="grid-2">
+        <!-- Daily Quests -->
+        <div class="card">
+          <span class="card-title">⚡ Daily Quests</span>
+          <div id="questsList"></div>
+          <div style="margin-top:1rem;font-size:0.7rem;color:var(--dim);">Quests reset at midnight. Complete all 3 for bonus XP.</div>
+        </div>
+
+        <!-- Weekly Heatmap -->
+        <div class="card">
+          <span class="card-title">◈ Weekly Activity</span>
+          <div class="heatmap" id="weeklyHeatmap"></div>
+        </div>
       </div>
-      <div class="section-title">Daily Trials</div>
-      <div id="daily-pillars"></div>
-      <div class="xp-bar-wrap" style="margin-top:14px"><div class="xp-bar-fill" id="daily-xp-bar" style="width:0%"></div></div>
-      <div class="xp-bar-label"><span id="daily-xp-label">XP · 0</span><span>50 XP</span></div>
-      <div class="reset-timer" id="daily-timer">Resets in <span>--:--:--</span></div>
-      <div class="daily-complete-banner" id="completeBanner2"><p>⚔ All Pillars Complete ⚔</p></div>
-    </div>
-    <div class="page" id="page-stats">
-      <div class="section-title">7-Day Activity</div>
-      <div class="heatmap-wrap">
-        <div class="heat-day-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
-        <div class="heatmap-grid" id="heatmap"></div>
+    </div><!-- /dashboard -->
+
+    <!-- ============ MIND ============ -->
+    <div class="page" id="page-mind">
+      <div class="page-header">
+        <span class="page-eyebrow">Pillar I</span>
+        <h1 class="page-title">The <span class="g">Mind</span></h1>
       </div>
-      <div class="section-title">Pillar Breakdown</div>
-      <div id="pillar-stats"></div>
-      <div class="section-title">All Time</div>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="val" id="stats-total-xp">0</div><div class="lbl">Total XP</div></div>
-        <div class="stat-card"><div class="val" id="stats-best-streak">0</div><div class="lbl">Best Streak</div></div>
-        <div class="stat-card"><div class="val" id="stats-days">0</div><div class="lbl">Days Active</div></div>
+
+      <div class="grid-2">
+        <!-- Daily Quote -->
+        <div class="card card-large">
+          <span class="card-title">📖 Today's Philosophical Drop</span>
+          <div class="mirror-prompt" id="dailyQuote" style="margin-bottom:0.75rem;"></div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:1.5rem;" id="dailyQuoteAuthor"></div>
+          <span class="card-title" style="margin-top:0.5rem;">Reflection</span>
+          <div style="font-size:0.82rem;color:var(--dim);margin-bottom:0.75rem;" id="dailyQuotePrompt"></div>
+          <textarea class="input-field" id="mindReflection" placeholder="Write your reflection here..." rows="5"></textarea>
+          <button class="btn btn-solid btn-sm" style="margin-top:0.75rem;" onclick="saveMindEntry()">Save Reflection (+50 XP)</button>
+        </div>
+
+        <!-- Mindset Journal -->
+        <div class="card card-large">
+          <span class="card-title">🧠 Mindset Journal</span>
+          <div class="tab-row">
+            <button class="tab-btn active" onclick="switchTab(this,'mind-journal')">Write</button>
+            <button class="tab-btn" onclick="switchTab(this,'mind-history')">History</button>
+          </div>
+          <div class="tab-panel active" id="tab-mind-journal">
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Morning Check-In</label>
+              <select class="input-field" id="mindMood">
+                <option value="">How are you waking up today?</option>
+                <option>🔥 Fired — locked in, clear-headed</option>
+                <option>⚡ Energised — solid, ready</option>
+                <option>😐 Neutral — steady, unremarkable</option>
+                <option>🌫️ Foggy — tired, distracted</option>
+                <option>⬇️ Low — struggling, heavy</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">What is the one thing you need to do today?</label>
+              <input class="input-field" id="mindOneThing" placeholder="The single non-negotiable..."/>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">What would make today a win?</label>
+              <textarea class="input-field" id="mindWin" rows="3" placeholder="Define the win before the day begins..."></textarea>
+            </div>
+            <button class="btn btn-solid btn-sm" onclick="saveMindCheckin()">Log Check-In (+40 XP)</button>
+          </div>
+          <div class="tab-panel" id="tab-mind-history">
+            <div class="entry-list" id="mindJournalHistory"></div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="page" id="page-profile">
-      <div class="profile-header">
-        <div class="profile-avatar">⚔</div>
-        <div class="profile-name">Iron Mind</div>
-        <div class="profile-rank-label" id="profile-rank-label">Initiate · Level 1</div>
+    </div><!-- /mind -->
+
+    <!-- ============ BODY ============ -->
+    <div class="page" id="page-body">
+      <div class="page-header">
+        <span class="page-eyebrow">Pillar II</span>
+        <h1 class="page-title">The <span class="g">Body</span></h1>
       </div>
-      <div class="profile-stats">
-        <div class="profile-stat"><div class="pst-val" id="prof-xp">0</div><div class="pst-lbl">Total XP</div></div>
-        <div class="profile-stat"><div class="pst-val" id="prof-streak">0</div><div class="pst-lbl">Current Streak</div></div>
-        <div class="profile-stat"><div class="pst-val" id="prof-best">0</div><div class="pst-lbl">Best Streak</div></div>
-        <div class="profile-stat"><div class="pst-val" id="prof-days">0</div><div class="pst-lbl">Days Active</div></div>
+
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchTab(this,'body-workout')">Workout Log</button>
+        <button class="tab-btn" onclick="switchTab(this,'body-hydration')">Hydration</button>
+        <button class="tab-btn" onclick="switchTab(this,'body-metrics')">Body Metrics</button>
+        <button class="tab-btn" onclick="switchTab(this,'body-history')">History</button>
       </div>
-      <div class="section-title">Rank Progression</div>
-      <table class="rank-table" id="rank-table"></table>
-    </div>
-  </div>
-  <div class="bottom-nav">
-    <button class="nav-btn active" id="nav-dashboard" onclick="goTo('dashboard','nav-dashboard')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span class="nav-lbl">Home</span>
-    </button>
-    <button class="nav-btn" id="nav-daily" onclick="goTo('daily','nav-daily')">
-      <svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-      <span class="nav-lbl">Daily</span>
-    </button>
-    <button class="nav-btn" id="nav-stats" onclick="goTo('stats','nav-stats')">
-      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      <span class="nav-lbl">Stats</span>
-    </button>
-    <button class="nav-btn" id="nav-profile" onclick="goTo('profile','nav-profile')">
-      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span class="nav-lbl">Profile</span>
-    </button>
-  </div>
-</div>
+
+      <!-- WORKOUT LOG -->
+      <div class="tab-panel active" id="tab-body-workout">
+        <div class="grid-2">
+          <div class="card">
+            <span class="card-title">⚔️ Log Workout</span>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Exercise Name</label>
+              <input class="input-field" id="exName" placeholder="e.g. Bench Press"/>
+            </div>
+            <div class="form-row form-row-3" style="margin-bottom:0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Sets</label>
+                <input class="input-field" id="exSets" type="number" min="1" placeholder="4"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Reps</label>
+                <input class="input-field" id="exReps" type="number" min="1" placeholder="8"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Weight (kg)</label>
+                <input class="input-field" id="exWeight" type="number" min="0" placeholder="80"/>
+              </div>
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+              <button class="btn btn-outline btn-sm" onclick="addExercise()">+ Add Exercise</button>
+              <button class="btn btn-solid btn-sm" onclick="saveWorkout()">Save Session (+75 XP)</button>
+            </div>
+            <div id="currentExercises" style="margin-top:1rem;"></div>
+          </div>
+          <div class="card">
+            <span class="card-title">📋 Last Session</span>
+            <div id="lastWorkout"><div class="empty"><span class="empty-icon">⚔️</span>No sessions logged yet.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HYDRATION -->
+      <div class="tab-panel" id="tab-body-hydration">
+        <div class="card card-large" style="max-width:500px;">
+          <span class="card-title">💧 Hydration — Daily Target: 8 Glasses</span>
+          <div class="glasses" id="glasses"></div>
+          <div style="margin-top:0.75rem;font-size:0.82rem;color:var(--dim);" id="hydrationStatus">0 / 8 glasses</div>
+          <div style="margin-top:0.5rem;font-size:0.72rem;color:var(--dim);">Tap a glass to fill it. Dehydration tanks testosterone and focus.</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:1rem;" onclick="resetHydration()">Reset</button>
+        </div>
+      </div>
+
+      <!-- BODY METRICS -->
+      <div class="tab-panel" id="tab-body-metrics">
+        <div class="grid-2">
+          <div class="card">
+            <span class="card-title">📏 Log Metrics</span>
+            <div class="form-row form-row-2" style="margin-bottom:0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Weight (kg)</label>
+                <input class="input-field" id="metWeight" type="number" step="0.1" placeholder="78.0"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Body Fat % (est.)</label>
+                <input class="input-field" id="metBF" type="number" step="0.5" placeholder="15"/>
+              </div>
+            </div>
+            <div class="form-row form-row-3" style="margin-bottom:0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Chest (cm)</label>
+                <input class="input-field" id="metChest" type="number" placeholder="100"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Waist (cm)</label>
+                <input class="input-field" id="metWaist" type="number" placeholder="82"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Arms (cm)</label>
+                <input class="input-field" id="metArms" type="number" placeholder="38"/>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Notes</label>
+              <input class="input-field" id="metNotes" placeholder="How's the physique progressing?"/>
+            </div>
+            <button class="btn btn-solid btn-sm" onclick="saveMetrics()">Save Metrics (+30 XP)</button>
+          </div>
+          <div class="card">
+            <span class="card-title">📈 Metrics History</span>
+            <div id="metricsHistory"><div class="empty"><span class="empty-icon">📏</span>No metrics logged yet.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WORKOUT HISTORY -->
+      <div class="tab-panel" id="tab-body-history">
+        <div class="card">
+          <span class="card-title">⚔️ Workout History</span>
+          <div id="workoutHistory"></div>
+        </div>
+      </div>
+
+    </div><!-- /body -->
+
+    <!-- ============ SHADOW ============ -->
+    <div class="page" id="page-shadow">
+      <div class="page-header">
+        <span class="page-eyebrow">Pillar III</span>
+        <h1 class="page-title">The <span class="g">Shadow</span></h1>
+      </div>
+
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchTab(this,'shadow-mirror')">Shadow Mirror</button>
+        <button class="tab-btn" onclick="switchTab(this,'shadow-archetype')">Archetype</button>
+        <button class="tab-btn" onclick="switchTab(this,'shadow-dreams')">Dream Log</button>
+        <button class="tab-btn" onclick="switchTab(this,'shadow-checkin')">Check-In</button>
+        <button class="tab-btn" onclick="switchTab(this,'shadow-patterns')">Patterns</button>
+      </div>
+
+      <!-- SHADOW MIRROR -->
+      <div class="tab-panel active" id="tab-shadow-mirror">
+        <div class="grid-2">
+          <div class="card card-large">
+            <span class="card-title">🌑 Today's Shadow Mirror</span>
+            <div class="mirror-prompt" id="shadowPrompt"></div>
+            <div class="form-group">
+              <label class="form-label">Your Response</label>
+              <textarea class="input-field" id="shadowResponse" placeholder="Write without filtering. The shadow thrives in what goes unsaid." rows="7"></textarea>
+            </div>
+            <button class="btn btn-solid btn-sm" style="margin-top:0.75rem;" onclick="saveShadowEntry()">Save Entry (+75 XP)</button>
+          </div>
+          <div class="card card-large">
+            <span class="card-title">📋 Previous Entries</span>
+            <div class="entry-list" id="shadowHistory"><div class="empty"><span class="empty-icon">🌑</span>No entries yet. The mirror awaits.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARCHETYPE ASSESSMENT -->
+      <div class="tab-panel" id="tab-shadow-archetype">
+        <div class="grid-2">
+          <div class="card card-large">
+            <span class="card-title">♔ Archetype Assessment</span>
+            <div style="font-size:0.8rem;color:var(--dim);margin-bottom:1.25rem;line-height:1.7;">
+              Select the response that most resonates — be honest, not aspirational. Your dominant archetype reveals which masculine energy is leading, and which is suppressed.
+            </div>
+            <div id="archetypeQuiz"></div>
+            <button class="btn btn-solid btn-sm" style="margin-top:1rem;" onclick="scoreArchetype()">Reveal My Archetype (+100 XP)</button>
+          </div>
+          <div class="card card-large">
+            <span class="card-title">◈ Your Archetype Profile</span>
+            <div id="archetypeResult">
+              <div class="empty"><span class="empty-icon">♔</span>Complete the assessment to reveal your archetype profile.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DREAM LOG -->
+      <div class="tab-panel" id="tab-shadow-dreams">
+        <div class="grid-2">
+          <div class="card card-large">
+            <span class="card-title">🌙 Log a Dream</span>
+            <div style="font-size:0.78rem;color:var(--dim);margin-bottom:1rem;line-height:1.6;">Log dreams immediately on waking — the unconscious speaks loudest in the first minutes. Note recurring figures, symbols and feelings.</div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Dream Content</label>
+              <textarea class="input-field" id="dreamContent" placeholder="Describe the dream — people, places, feelings, symbols..." rows="7"></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Dominant Emotion</label>
+              <input class="input-field" id="dreamEmotion" placeholder="e.g. Fear, power, sadness, pursuit..."/>
+            </div>
+            <button class="btn btn-solid btn-sm" onclick="saveDream()">Log Dream (+40 XP)</button>
+          </div>
+          <div class="card card-large">
+            <span class="card-title">📋 Dream Archive</span>
+            <div class="entry-list" id="dreamHistory"><div class="empty"><span class="empty-icon">🌙</span>No dreams logged yet.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMOTIONAL CHECK-IN -->
+      <div class="tab-panel" id="tab-shadow-checkin">
+        <div class="card card-large" style="max-width:600px;">
+          <span class="card-title">⚡ Emotional Check-In</span>
+          <div style="font-size:0.78rem;color:var(--dim);margin-bottom:1.25rem;line-height:1.6;">
+            Not "how are you feeling" — this goes deeper. Two minutes, twice a day. Feed the Shadow pillar.
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label">Time of Day</label>
+            <select class="input-field" id="checkinTime">
+              <option value="morning">Morning</option>
+              <option value="evening">Evening</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label">Where in your body are you holding tension right now?</label>
+            <input class="input-field" id="checkinTension" placeholder="e.g. Jaw, chest, shoulders, stomach..."/>
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label">What emotion have you been avoiding today?</label>
+            <input class="input-field" id="checkinEmotion" placeholder="Name it without justifying it..."/>
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label">What is the quality of your internal state right now?</label>
+            <select class="input-field" id="checkinState">
+              <option value="">Select...</option>
+              <option>🔥 Fired up — clear and present</option>
+              <option>⚡ Energised — moving, alive</option>
+              <option>😐 Neutral — steady</option>
+              <option>🌫️ Scattered — unfocused</option>
+              <option>⬇️ Contracted — heavy, withdrawn</option>
+              <option>😤 Agitated — frustrated, on edge</option>
+              <option>🌑 Numb — disconnected from feeling</option>
+            </select>
+          </div>
+          <button class="btn btn-solid btn-sm" onclick="saveCheckin()">Log Check-In (+40 XP)</button>
+          <div class="entry-list" id="checkinHistory" style="margin-top:1.5rem;"></div>
+        </div>
+      </div>
+
+      <!-- PATTERN TRACKER -->
+      <div class="tab-panel" id="tab-shadow-patterns">
+        <div class="grid-2">
+          <div class="card card-large">
+            <span class="card-title">🔄 Log a Pattern</span>
+            <div style="font-size:0.78rem;color:var(--dim);margin-bottom:1rem;line-height:1.6;">
+              The unconscious reveals itself through repetition. Log triggers and reactions — over time, the pattern becomes visible and can be integrated.
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">The Trigger</label>
+              <input class="input-field" id="patternTrigger" placeholder="What happened — or what did someone do?"/>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Your Reaction</label>
+              <textarea class="input-field" id="patternReaction" placeholder="What did you feel, think, or do in response?" rows="4"></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">What might this be protecting you from?</label>
+              <input class="input-field" id="patternProtect" placeholder="Go deeper — what is the reaction avoiding?"/>
+            </div>
+            <button class="btn btn-solid btn-sm" onclick="savePattern()">Log Pattern (+50 XP)</button>
+          </div>
+          <div class="card card-large">
+            <span class="card-title">📋 Logged Patterns</span>
+            <div class="entry-list" id="patternHistory"><div class="empty"><span class="empty-icon">🔄</span>No patterns logged yet.</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /shadow -->
+
+    <!-- ============ WEALTH ============ -->
+    <div class="page" id="page-wealth">
+      <div class="page-header">
+        <span class="page-eyebrow">Pillar IV</span>
+        <h1 class="page-title">The <span class="g">Wealth</span></h1>
+      </div>
+
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchTab(this,'wealth-income')">Income</button>
+        <button class="tab-btn" onclick="switchTab(this,'wealth-deepwork')">Deep Work</button>
+        <button class="tab-btn" onclick="switchTab(this,'wealth-skills')">Skills</button>
+      </div>
+
+      <!-- INCOME -->
+      <div class="tab-panel active" id="tab-wealth-income">
+        <div class="grid-2">
+          <div class="card card-large">
+            <span class="card-title">💰 Monthly Income Goal</span>
+            <div class="form-row form-row-2" style="margin-bottom:0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Income Goal (£)</label>
+                <input class="input-field" id="incomeGoal" type="number" placeholder="1000"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Log Income (£)</label>
+                <input class="input-field" id="incomeAmount" type="number" placeholder="50"/>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Source</label>
+              <input class="input-field" id="incomeSource" placeholder="e.g. Gumroad sale, client..."/>
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+              <button class="btn btn-ghost btn-sm" onclick="setIncomeGoal()">Set Goal</button>
+              <button class="btn btn-solid btn-sm" onclick="logIncome()">Log Income (+30 XP)</button>
+            </div>
+            <div class="prog-wrap" style="margin-top:1.25rem;">
+              <div class="prog-label"><span>Monthly Progress</span><span id="incomeProgress">£0 / £0</span></div>
+              <div class="prog-bar"><div class="prog-fill" id="incomeBar" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div class="card card-large">
+            <span class="card-title">📋 Income Log</span>
+            <div class="entry-list" id="incomeHistory"><div class="empty"><span class="empty-icon">💰</span>No income logged yet.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEEP WORK -->
+      <div class="tab-panel" id="tab-wealth-deepwork">
+        <div class="card card-large" style="max-width:500px;">
+          <span class="card-title">⚡ Forge Session — Deep Work Timer</span>
+          <div style="font-size:0.78rem;color:var(--dim);margin-bottom:0.5rem;line-height:1.6;">
+            90-minute deep work blocks. No phone. No distractions. Build something that compounds.
+          </div>
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label class="form-label">What are you building this session?</label>
+            <input class="input-field" id="dwFocus" placeholder="e.g. Edit testosterone video, build Iron Forge feature..."/>
+          </div>
+          <div class="timer-display" id="timerDisplay">90:00</div>
+          <div class="timer-controls">
+            <button class="btn btn-solid" id="timerBtn" onclick="toggleTimer()">Start Session</button>
+            <button class="btn btn-ghost btn-sm" onclick="resetTimer()">Reset</button>
+          </div>
+          <div id="dwSessions" style="margin-top:1.5rem;">
+            <span class="card-title">Completed Sessions</span>
+            <div class="entry-list" id="dwHistory"><div class="empty" style="margin-top:0.5rem;"><span class="empty-icon">⚡</span>No sessions logged.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="tab-panel" id="tab-wealth-skills">
+        <div class="grid-2">
+          <div class="card card-large">
+            <span class="card-title">🛠 Skill Development</span>
+            <div style="font-size:0.78rem;color:var(--dim);margin-bottom:1rem;line-height:1.6;">
+              Skills are the precursor to wealth. Track deliberate development hours — they compound.
+            </div>
+            <div class="form-row form-row-2" style="margin-bottom:0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Skill Name</label>
+                <input class="input-field" id="skillName" placeholder="e.g. Video editing"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hours Logged</label>
+                <input class="input-field" id="skillHours" type="number" min="0.5" step="0.5" placeholder="1.5"/>
+              </div>
+            </div>
+            <button class="btn btn-solid btn-sm" onclick="logSkill()">Log Skill Time (+30 XP)</button>
+          </div>
+          <div class="card card-large">
+            <span class="card-title">📈 Skill Totals</span>
+            <div id="skillList"><div class="empty"><span class="empty-icon">🛠</span>No skills tracked yet.</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /wealth -->
+
+    <!-- ============ PURPOSE ============ -->
+    <div class="page" id="page-purpose">
+      <div class="page-header">
+        <span class="page-eyebrow">Pillar V</span>
+        <h1 class="page-title">The <span class="g">Purpose</span></h1>
+      </div>
+
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchTab(this,'purpose-blueprint')">Forge Blueprint</button>
+        <button class="tab-btn" onclick="switchTab(this,'purpose-milestones')">Milestone Vault</button>
+        <button class="tab-btn" onclick="switchTab(this,'purpose-values')">Values Audit</button>
+      </div>
+
+      <!-- FORGE BLUEPRINT -->
+      <div class="tab-panel active" id="tab-purpose-blueprint">
+        <div class="card card-large">
+          <span class="card-title">🗺 The Forge Blueprint — Your North Star</span>
+          <div style="font-size:0.8rem;color:var(--dim);margin-bottom:1.5rem;line-height:1.7;">
+            The Blueprint is your personal architecture. Values anchor the man. Vision shows him where. Mission tells him how. Fill this once, return to it when you lose direction.
+          </div>
+          <div class="grid-2">
+            <div>
+              <div class="form-group" style="margin-bottom:1rem;">
+                <label class="form-label">Core Values (comma-separated)</label>
+                <textarea class="input-field" id="bpValues" placeholder="e.g. Discipline, Depth, Growth, Brotherhood, Truth..." rows="3"></textarea>
+              </div>
+              <div class="form-group" style="margin-bottom:1rem;">
+                <label class="form-label">3-Year Vision — What does your life look like?</label>
+                <textarea class="input-field" id="bpVision" placeholder="Describe it in detail — how do you spend your days, who are you, what have you built..." rows="5"></textarea>
+              </div>
+            </div>
+            <div>
+              <div class="form-group" style="margin-bottom:1rem;">
+                <label class="form-label">Purpose Statement — One Sentence</label>
+                <textarea class="input-field" id="bpMission" placeholder="e.g. I exist to help men descend into themselves and emerge forged..." rows="3"></textarea>
+              </div>
+              <div class="form-group" style="margin-bottom:1rem;">
+                <label class="form-label">Legacy — What do you want to have built in 10 years?</label>
+                <textarea class="input-field" id="bpLegacy" placeholder="Think long. What does the world look like because you were in it..." rows="5"></textarea>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-solid btn-sm" onclick="saveBlueprint()">Save Blueprint (+100 XP)</button>
+          <div id="blueprintSaved" style="margin-top:0.75rem;font-size:0.75rem;color:var(--dim);display:none;">✓ Blueprint saved.</div>
+        </div>
+      </div>
+
+      <!-- MILESTONE VAULT -->
+      <div class="tab-panel" id="tab-purpose-milestones">
+        <div class="grid-2">
+          <div class="card card-large">
+            <span class="card-title">🏆 Add to Milestone Vault</span>
+            <div style="font-size:0.78rem;color:var(--dim);margin-bottom:1rem;line-height:1.6;">
+              Every significant win deserves a permanent record. This is the story of your becoming — scroll back through it when the work feels invisible.
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Category</label>
+              <select class="input-field" id="msCategory">
+                <option value="PR">💪 Physical Record</option>
+                <option value="Business">💰 Business Win</option>
+                <option value="Psychology">🧠 Psychological Breakthrough</option>
+                <option value="Challenge">🏆 Challenge Completed</option>
+                <option value="Relationship">🤝 Relationship</option>
+                <option value="Shadow">🌑 Shadow Integration</option>
+                <option value="Other">◦ Other</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Milestone Title</label>
+              <input class="input-field" id="msTitle" placeholder="Name this achievement..."/>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Description</label>
+              <textarea class="input-field" id="msDesc" placeholder="What happened, what it meant, why it matters..." rows="4"></textarea>
+            </div>
+            <button class="btn btn-solid btn-sm" onclick="addMilestone()">Add to Vault (+60 XP)</button>
+          </div>
+          <div class="card card-large">
+            <span class="card-title">📖 The Vault</span>
+            <div id="milestoneList"><div class="empty"><span class="empty-icon">🏆</span>Your vault is empty. The first milestone changes that.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VALUES AUDIT -->
+      <div class="tab-panel" id="tab-purpose-values">
+        <div class="card card-large" style="max-width:700px;">
+          <span class="card-title">⚖️ Quarterly Values Audit</span>
+          <div style="font-size:0.8rem;color:var(--dim);margin-bottom:1.5rem;line-height:1.7;">
+            Every quarter, score yourself honestly. Not who you want to be — who you have actually been. Drift is normal. Catching it is the work.
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label">What are your stated core values? (from your Blueprint)</label>
+            <input class="input-field" id="vaValues" placeholder="List them here, or pull from your Blueprint..."/>
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label">Where have your actions been aligned with those values this quarter?</label>
+            <textarea class="input-field" id="vaAligned" placeholder="Be specific — what did you do that reflected who you say you are?" rows="4"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label">Where have you drifted?</label>
+            <textarea class="input-field" id="vaDrift" placeholder="Be honest. Where did your behaviour contradict your values?" rows="4"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label">Alignment Score — This Quarter (1–10)</label>
+            <input class="input-field" id="vaScore" type="number" min="1" max="10" placeholder="7"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <label class="form-label">One correction for next quarter</label>
+            <textarea class="input-field" id="vaCorrection" placeholder="What specific change will bring you back into alignment?" rows="3"></textarea>
+          </div>
+          <button class="btn btn-solid btn-sm" onclick="saveValuesAudit()">Save Audit (+80 XP)</button>
+          <div class="entry-list" id="valuesHistory" style="margin-top:1.5rem;"></div>
+        </div>
+      </div>
+
+    </div><!-- /purpose -->
+
+    <!-- ============ PROGRESS ============ -->
+    <div class="page" id="page-progress">
+      <div class="page-header">
+        <span class="page-eyebrow">The Forge</span>
+        <h1 class="page-title">Your <span class="g">Progress</span></h1>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:1.5rem;">
+        <!-- Forge Score -->
+        <div class="card" style="text-align:center;padding:2rem 1rem;">
+          <span class="card-title">◈ Forge Score</span>
+          <div class="forge-score-big" id="forgeScoreBig">0</div>
+          <div style="font-size:0.65rem;color:var(--dim);margin-top:0.5rem;letter-spacing:0.1em;">MONTHLY XP TOTAL</div>
+        </div>
+        <!-- Total XP -->
+        <div class="card" style="text-align:center;padding:2rem 1rem;">
+          <span class="card-title">⚡ Total XP</span>
+          <div style="font-family:var(--font-d);font-size:3rem;font-weight:900;color:var(--white);line-height:1;" id="totalXPDisplay">0</div>
+          <div style="font-size:0.65rem;color:var(--dim);margin-top:0.5rem;letter-spacing:0.1em;">LIFETIME</div>
+        </div>
+        <!-- Current Rank -->
+        <div class="card" style="text-align:center;padding:2rem 1rem;">
+          <span class="card-title">♔ Current Rank</span>
+          <div style="font-family:var(--font-d);font-size:1.4rem;font-weight:700;color:var(--gold);line-height:1.2;margin-top:0.5rem;" id="currentRankDisplay">Initiate</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:1.5rem;">
+        <!-- Pillar XP Breakdown -->
+        <div class="card">
+          <span class="card-title">◈ Pillar Mastery</span>
+          <div id="pillarMastery" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+        </div>
+        <!-- Rank System -->
+        <div class="card">
+          <span class="card-title">♔ The Rank System</span>
+          <div class="rank-list" id="rankList"></div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card">
+        <span class="card-title">📅 The Timeline — A Record of Becoming</span>
+        <div id="progressTimeline"><div class="empty"><span class="empty-icon">📅</span>Your timeline starts the moment you do. Log your first milestone.</div></div>
+      </div>
+
+    </div><!-- /progress -->
+
+  </div><!-- /content -->
+</div><!-- /app-wrap -->
+
+<!-- ================================================
+     JAVASCRIPT
+     ================================================ -->
 <script>
-const PILLARS=[
-  {id:'mind',name:'Mind',icon:'🧠',tasks:[{id:'read',name:'Read 20 mins'},{id:'meditate',name:'Meditate'}]},
-  {id:'body',name:'Body',icon:'💪',tasks:[{id:'train',name:'Train'},{id:'shower',name:'Cold shower'}]},
-  {id:'shadow',name:'Shadow',icon:'☯',tasks:[{id:'journal',name:'Journal'},{id:'reflect',name:'Reflection'}]},
-  {id:'wealth',name:'Wealth',icon:'💰',tasks:[{id:'business',name:'Work on business'},{id:'learn',name:'Learn a skill'}]},
-  {id:'purpose',name:'Purpose',icon:'🔥',tasks:[{id:'content',name:'Content creation'},{id:'goals',name:'Review goals'}]},
+// ========== DATA ==========
+const DATA_KEY = 'iron_forge_v2';
+
+const DEFAULT_DATA = {
+  user: { totalXP: 0, streak: 0, lastCheckin: null },
+  pillars: {
+    mind:    { mastery: 0, xp: 0 },
+    body:    { mastery: 0, xp: 0 },
+    shadow:  { mastery: 0, xp: 0 },
+    wealth:  { mastery: 0, xp: 0 },
+    purpose: { mastery: 0, xp: 0 }
+  },
+  quests: { date: null, completed: [] },
+  workouts: [],
+  currentExercises: [],
+  hydration: {},
+  bodyMetrics: [],
+  shadowJournal: [],
+  dreams: [],
+  checkIns: [],
+  patterns: [],
+  archetype: null,
+  blueprint: null,
+  milestones: [],
+  valuesAudit: [],
+  income: { goal: 0, logs: [] },
+  skills: [],
+  deepWork: [],
+  mindJournal: [],
+  activity: {}
+};
+
+let D = {};
+function loadData() {
+  try { D = JSON.parse(localStorage.getItem(DATA_KEY)) || {}; }
+  catch(e) { D = {}; }
+  // Deep merge defaults
+  Object.keys(DEFAULT_DATA).forEach(k => {
+    if (D[k] === undefined || D[k] === null) D[k] = JSON.parse(JSON.stringify(DEFAULT_DATA[k]));
+  });
+  if (!D.pillars) D.pillars = JSON.parse(JSON.stringify(DEFAULT_DATA.pillars));
+  ['mind','body','shadow','wealth','purpose'].forEach(p => {
+    if (!D.pillars[p]) D.pillars[p] = { mastery: 0, xp: 0 };
+  });
+}
+function saveData() { localStorage.setItem(DATA_KEY, JSON.stringify(D)); }
+
+// ========== RANKS ==========
+const RANKS = [
+  { name:'Initiate',     minXP:0,     icon:'◦',  desc:'The journey begins.' },
+  { name:'Seeker',       minXP:500,   icon:'◈',  desc:'You have chosen the path.' },
+  { name:'Warrior',      minXP:1500,  icon:'⚔',  desc:'Discipline is becoming second nature.' },
+  { name:'Forge Brother',minXP:3000,  icon:'⛓',  desc:'The work is real. You keep showing up.' },
+  { name:'Iron Mind',    minXP:5000,  icon:'⚡',  desc:'Your mind has been forged.' },
+  { name:'Shadow Walker',minXP:8000,  icon:'🌑', desc:'You have descended and returned.' },
+  { name:'Archetype',    minXP:12000, icon:'✦',  desc:'You embody the integrated masculine.' },
+  { name:'Sovereign',    minXP:99999, icon:'♔',  desc:'Hidden rank. Unlocked by full mastery.', hidden:true }
 ];
-const XP_PER_TASK=5;
-const XP_PER_LEVEL=50;
-const RANKS=[
-  {min:1,max:4,name:'Initiate',icon:'🌑'},
-  {min:5,max:9,name:'Aspirant',icon:'🌒'},
-  {min:10,max:14,name:'Warrior',icon:'⚔'},
-  {min:15,max:19,name:'Iron Mind',icon:'🛡'},
-  {min:20,max:24,name:'Sovereign',icon:'👑'},
-  {min:25,max:999,name:'Archetype',icon:'⚡'},
+
+function getRank(xp) {
+  let r = RANKS[0];
+  for (let i = RANKS.length-1; i >= 0; i--) {
+    if (xp >= RANKS[i].minXP) { r = RANKS[i]; break; }
+  }
+  return r;
+}
+function getNextRank(xp) {
+  for (let i = 0; i < RANKS.length-1; i++) {
+    if (xp < RANKS[i+1].minXP) return RANKS[i+1];
+  }
+  return null;
+}
+
+function addXP(amount, pillar) {
+  D.user.totalXP += amount;
+  if (pillar && D.pillars[pillar]) {
+    D.pillars[pillar].xp += amount;
+    D.pillars[pillar].mastery = Math.min(10, Math.floor(D.pillars[pillar].xp / 300));
+  }
+  // Activity tracking
+  const today = todayStr();
+  if (!D.activity[today]) D.activity[today] = { mind:0, body:0, shadow:0, wealth:0, purpose:0 };
+  if (pillar && D.activity[today][pillar] !== undefined) D.activity[today][pillar]++;
+  saveData();
+  updateSidebar();
+  if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+  if (document.getElementById('page-progress').classList.contains('active')) renderProgress();
+}
+
+// ========== UTILS ==========
+function todayStr() {
+  const d = new Date(); 
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function fmtDateShort(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+}
+function dayOfYear() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  return Math.floor((now - start) / 86400000);
+}
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) { t = document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;bottom:2rem;right:2rem;background:var(--iron);border:1px solid var(--gold);color:var(--gold);font-family:var(--font-d);font-size:0.6rem;letter-spacing:0.2em;padding:0.75rem 1.2rem;z-index:999;animation:pgIn .3s ease;'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.style.display='block';
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.style.display='none', 2500);
+}
+
+// ========== SIDEBAR ==========
+let sidebarCollapsed = false;
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+  document.getElementById('appWrap').classList.toggle('sb-collapsed', sidebarCollapsed);
+}
+
+function updateSidebar() {
+  const xp = D.user.totalXP;
+  const rank = getRank(xp);
+  const next = getNextRank(xp);
+  document.getElementById('sbRankName').textContent = rank.icon + ' ' + rank.name;
+  const pct = next ? Math.round(((xp - rank.minXP)/(next.minXP - rank.minXP))*100) : 100;
+  document.getElementById('sbXpFill').style.width = pct + '%';
+  document.getElementById('sbXpLabel').textContent = xp + ' XP' + (next ? ' — ' + next.name + ' at ' + next.minXP : '');
+  document.getElementById('topbarStreak').textContent = '🔥 ' + D.user.streak + ' Day Streak';
+  document.getElementById('streakNum').textContent = D.user.streak;
+}
+
+// ========== NAVIGATION ==========
+const PAGE_TITLES = {
+  dashboard:'Dashboard', mind:'Mind', body:'Body',
+  shadow:'Shadow', wealth:'Wealth', purpose:'Purpose', progress:'Progress'
+};
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const navEl = document.getElementById('nav-'+id);
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('topbarTitle').textContent = PAGE_TITLES[id] || id;
+  window.scrollTo(0,0);
+  // Render page on show
+  const renders = { dashboard:renderDashboard, mind:renderMind, body:renderBody, shadow:renderShadow, wealth:renderWealth, purpose:renderPurpose, progress:renderProgress };
+  if (renders[id]) renders[id]();
+}
+
+// ========== TABS ==========
+function switchTab(btn, panelId) {
+  const container = btn.closest('.tab-row');
+  container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const page = btn.closest('.page');
+  page.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+panelId).classList.add('active');
+}
+
+// ========== TOPBAR DATE ==========
+function setDate() {
+  const d = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('topbarDate').textContent = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+// ========== STREAK ==========
+function doCheckin() {
+  const today = todayStr();
+  if (D.user.lastCheckin === today) { showToast('Already checked in today ✓'); return; }
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+  if (D.user.lastCheckin === yStr) D.user.streak++;
+  else D.user.streak = 1;
+  D.user.lastCheckin = today;
+  addXP(20, null);
+  showToast('Checked in! Streak: ' + D.user.streak + ' days 🔥');
+  updateSidebar();
+}
+
+// ========== DAILY QUESTS ==========
+const QUEST_BANK = [
+  { pillar:'mind',    text:'Write a mindset journal reflection',       xp:50 },
+  { pillar:'body',    text:'Log a workout session',                    xp:75 },
+  { pillar:'shadow',  text:'Complete today\'s Shadow Mirror prompt',   xp:75 },
+  { pillar:'wealth',  text:'Log 60+ minutes of deep work',            xp:50 },
+  { pillar:'purpose', text:'Review your Forge Blueprint',             xp:50 },
+  { pillar:'body',    text:'Hit 8 glasses of water',                  xp:40 },
+  { pillar:'shadow',  text:'Record last night\'s dream',              xp:50 },
+  { pillar:'mind',    text:'Complete your morning check-in',          xp:40 },
+  { pillar:'purpose', text:'Add a milestone to the Vault',            xp:60 },
+  { pillar:'shadow',  text:'Log an emotional check-in',               xp:40 },
+  { pillar:'wealth',  text:'Log skill development time',              xp:30 },
+  { pillar:'shadow',  text:'Log an unconscious pattern',              xp:50 },
+  { pillar:'body',    text:'Log your body metrics',                   xp:30 },
+  { pillar:'purpose', text:'Complete a values audit entry',           xp:80 },
+  { pillar:'mind',    text:'Write tonight\'s evening reflection',     xp:50 },
 ];
-const TOTAL_TASKS=PILLARS.reduce((a,p)=>a+p.tasks.length,0);
-function getRank(l){return RANKS.find(r=>l>=r.min&&l<=r.max)||RANKS[0];}
-function loadState(){
-  try{const r=localStorage.getItem('ironmind_v3');if(r)return JSON.parse(r);}catch(e){}
-  return{totalXp:0,streak:0,bestStreak:0,daysActive:0,lastResetDate:null,todayChecks:{},pillarXp:{mind:0,body:0,shadow:0,wealth:0,purpose:0},history:[]};
-}
-function saveState(s){localStorage.setItem('ironmind_v3',JSON.stringify(s));}
-function todayKey(){const d=new Date();return`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;}
-function checkDailyReset(s){
-  const today=todayKey();
-  if(s.lastResetDate!==today){
-    if(s.lastResetDate!==null){
-      const prev=Object.values(s.todayChecks).filter(Boolean).length;
-      const completed=prev>=TOTAL_TASKS;
-      s.history.push({date:s.lastResetDate,checks:prev,completed});
-      if(s.history.length>28)s.history=s.history.slice(-28);
-      if(completed){s.streak=(s.streak||0)+1;if(s.streak>s.bestStreak)s.bestStreak=s.streak;s.daysActive=(s.daysActive||0)+1;}
-      else{s.streak=0;}
-    }
-    s.todayChecks={};s.lastResetDate=today;saveState(s);
+
+function getDailyQuests() {
+  const seed = dayOfYear();
+  const q = [];
+  const used = new Set();
+  let i = 0;
+  while (q.length < 3 && i < 100) {
+    const idx = (seed + i * 5) % QUEST_BANK.length;
+    if (!used.has(idx)) { used.add(idx); q.push({ ...QUEST_BANK[idx], id:idx }); }
+    i++;
   }
-  return s;
+  return q;
 }
-let state=loadState();state=checkDailyReset(state);
-let openPillar=null;
-function getLevel(){return Math.floor(state.totalXp/XP_PER_LEVEL)+1;}
-function getPillarLevel(id){return Math.floor((state.pillarXp[id]||0)/30)+1;}
-function countChecks(){return Object.values(state.todayChecks).filter(Boolean).length;}
-function getPillarChecks(p){return p.tasks.filter(t=>!!state.todayChecks[p.id+'_'+t.id]).length;}
-function getMidnightMs(){const now=new Date();const m=new Date(now);m.setHours(24,0,0,0);return m-now;}
-function formatTime(ms){const s=Math.floor(ms/1000);const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);const sc=s%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;}
-function showLevelUpToast(rankName){
-  const t=document.getElementById('lvlToast');
-  document.getElementById('lvlToastRank').textContent=rankName;
-  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+
+function renderQuests() {
+  const today = todayStr();
+  if (D.quests.date !== today) { D.quests = { date:today, completed:[] }; saveData(); }
+  const quests = getDailyQuests();
+  const el = document.getElementById('questsList');
+  el.innerHTML = quests.map(q => {
+    const done = D.quests.completed.includes(q.id);
+    return `<div class="quest ${done?'done':''}" onclick="toggleQuest(${q.id})">
+      <div class="quest-check">${done?'✓':''}</div>
+      <div class="quest-text">${q.text}</div>
+      <div class="quest-xp">+${q.xp} XP</div>
+    </div>`;
+  }).join('');
 }
-function toggleTask(pillarId,taskId){
-  const prevLevel=getLevel();
-  const key=pillarId+'_'+taskId;
-  if(state.todayChecks[key]){state.todayChecks[key]=false;state.totalXp=Math.max(0,state.totalXp-XP_PER_TASK);state.pillarXp[pillarId]=Math.max(0,(state.pillarXp[pillarId]||0)-XP_PER_TASK);}
-  else{state.todayChecks[key]=true;state.totalXp+=XP_PER_TASK;state.pillarXp[pillarId]=(state.pillarXp[pillarId]||0)+XP_PER_TASK;}
-  saveState(state);
-  const newLevel=getLevel();
-  if(newLevel>prevLevel){const rank=getRank(newLevel);showLevelUpToast(`${rank.name} · Level ${newLevel}`);}
-  renderAll();
+
+function toggleQuest(id) {
+  const today = todayStr();
+  if (D.quests.date !== today) D.quests = { date:today, completed:[] };
+  const idx = D.quests.completed.indexOf(id);
+  const quests = getDailyQuests();
+  const quest = quests.find(q => q.id === id);
+  if (idx === -1) {
+    D.quests.completed.push(id);
+    if (quest) addXP(quest.xp, quest.pillar);
+    showToast('+' + (quest?.xp||50) + ' XP — Quest Complete');
+  } else {
+    D.quests.completed.splice(idx, 1);
+  }
+  saveData();
+  renderQuests();
 }
-function togglePillarOpen(id){openPillar=openPillar===id?null:id;renderDailyPillars();}
-function renderDailyPillars(){
-  const el=document.getElementById('daily-pillars');if(!el)return;el.innerHTML='';
-  PILLARS.forEach(p=>{
-    const checks=getPillarChecks(p);const lv=getPillarLevel(p.id);const isOpen=openPillar===p.id;
-    const block=document.createElement('div');block.className='pillar-block'+(isOpen?' open':'');
-    let tasksHtml='';
-    p.tasks.forEach(t=>{
-      const key=p.id+'_'+t.id;const done=!!state.todayChecks[key];
-      tasksHtml+=`<div class="task-row${done?' done-row':''}" onclick="toggleTask('${p.id}','${t.id}')"><div class="task-left"><div class="task-check${done?' done':''}"></div><span class="task-name">${t.name}</span></div><span class="task-xp">+5 XP</span></div>`;
-    });
-    block.innerHTML=`<div class="pillar-header" onclick="togglePillarOpen('${p.id}')"><div class="pillar-left"><span class="pillar-icon">${p.icon}</span><div><div class="pillar-name">${p.name}</div><div class="pillar-prog">${checks}/${p.tasks.length} complete</div></div></div><div class="pillar-right"><span class="pillar-lv">LV ${lv}</span><span class="pillar-chevron">▼</span></div></div><div class="pillar-tasks">${tasksHtml}</div>`;
-    el.appendChild(block);
+
+// ========== FORGE MAP ==========
+const PILLAR_LABELS = ['MIND','BODY','SHADOW','WEALTH','PURPOSE'];
+const PILLAR_KEYS = ['mind','body','shadow','wealth','purpose'];
+const CX = 160, CY = 155, R = 110;
+function getPoint(angleDeg, r) {
+  const a = (angleDeg - 90) * Math.PI / 180;
+  return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+}
+function polyStr(pts) { return pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '); }
+
+function renderForgeMap() {
+  const angles = [0, 72, 144, 216, 288];
+  const outerPts = angles.map(a => getPoint(a, R));
+
+  // Grid
+  [0.25, 0.5, 0.75, 1].forEach((f, i) => {
+    const ids = ['grid25','grid50','grid75','gridOuter'];
+    const el = document.getElementById(ids[i]);
+    if (el) el.setAttribute('points', polyStr(angles.map(a=>getPoint(a, R*f))));
   });
-}
-function renderDashPillars(){
-  const el=document.getElementById('dash-pillars');if(!el)return;el.innerHTML='';
-  PILLARS.forEach(p=>{
-    const checks=getPillarChecks(p);const lv=getPillarLevel(p.id);const allDone=checks===p.tasks.length;
-    const card=document.createElement('div');card.className='dash-pillar-card'+(allDone?' all-done':'');
-    card.innerHTML=`<div class="dpc-icon">${p.icon}</div><div class="dpc-name">${p.name}</div><div class="dpc-prog">${checks}/${p.tasks.length}</div><div class="dpc-lv">LV ${lv}</div>`;
-    el.appendChild(card);
+
+  // Axis lines
+  const axEl = document.getElementById('axisLines');
+  if (axEl) axEl.innerHTML = angles.map(a => {
+    const p = getPoint(a, R);
+    return `<line x1="${CX}" y1="${CY}" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}"/>`;
+  }).join('');
+
+  // Filled shape
+  const shapePts = angles.map((a, i) => {
+    const mastery = D.pillars[PILLAR_KEYS[i]].mastery;
+    const r = Math.max((mastery/10) * R, 6);
+    return getPoint(a, r);
   });
+  const shapeEl = document.getElementById('forgeShape');
+  if (shapeEl) shapeEl.setAttribute('points', polyStr(shapePts));
+
+  // Vertex dots
+  const dotsEl = document.getElementById('vertexDots');
+  if (dotsEl) dotsEl.innerHTML = shapePts.map(p =>
+    `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="var(--gold)" stroke="var(--void)" stroke-width="1.5"/>`
+  ).join('');
+
+  // Labels (slightly outside outer pentagon)
+  const labelsEl = document.getElementById('pillarLabels');
+  if (labelsEl) labelsEl.innerHTML = angles.map((a, i) => {
+    const p = getPoint(a, R + 22);
+    const anchor = p[0] < CX - 5 ? 'end' : p[0] > CX + 5 ? 'start' : 'middle';
+    const mastery = D.pillars[PILLAR_KEYS[i]].mastery;
+    return `<text x="${p[0].toFixed(1)}" y="${(p[1]+4).toFixed(1)}" text-anchor="${anchor}" letter-spacing="2">${PILLAR_LABELS[i]}</text>
+            <text x="${p[0].toFixed(1)}" y="${(p[1]+16).toFixed(1)}" text-anchor="${anchor}" font-size="8" fill="rgba(201,168,76,0.45)" letter-spacing="1">${mastery}/10</text>`;
+  }).join('');
 }
-function renderStats(){
-  const checks=countChecks();const level=getLevel();const rank=getRank(level);
-  const xpInLevel=state.totalXp%XP_PER_LEVEL;const xpPct=Math.round((xpInLevel/XP_PER_LEVEL)*100);
-  ['dash','daily'].forEach(prefix=>{
-    const set=(id,val)=>{const e=document.getElementById(`${prefix}-${id}`);if(e)e.textContent=val;};
-    set('streak',state.streak);set('xp',state.totalXp);set('today',`${checks}/${TOTAL_TASKS}`);
-    const xpBar=document.getElementById(`${prefix}-xp-bar`);if(xpBar)xpBar.style.width=xpPct+'%';
-    const xpLabel=document.getElementById(`${prefix}-xp-label`);if(xpLabel)xpLabel.textContent=`XP · ${xpInLevel}`;
+
+// ========== SOVEREIGNTY INDEX ==========
+function calcSovereignty() {
+  const avgMastery = PILLAR_KEYS.reduce((s, k) => s + D.pillars[k].mastery, 0) / 5;
+  const masteryScore = (avgMastery / 10) * 40;
+  const streakScore = Math.min(D.user.streak, 30) / 30 * 25;
+  // Recent activity (last 7 days)
+  const today = new Date();
+  let activeDays = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today); d.setDate(today.getDate()-i);
+    const str = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (D.activity[str] && Object.values(D.activity[str]).some(v=>v>0)) activeDays++;
+  }
+  const activityScore = (activeDays / 7) * 35;
+  return Math.round(masteryScore + streakScore + activityScore);
+}
+
+// ========== HEATMAP ==========
+function renderHeatmap() {
+  const el = document.getElementById('weeklyHeatmap');
+  if (!el) return;
+  const today = new Date();
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayStrs = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate()-i);
+    dayStrs.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+  }
+  const dayLabels = dayStrs.map(s => {
+    const d = new Date(s); 
+    return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
   });
-  const setId=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val;};
-  setId('dash-rank-icon',rank.icon);setId('dash-rank-name',rank.name);setId('dash-rank-level',`Level ${level}`);
-  const complete=checks>=TOTAL_TASKS;
-  document.getElementById('completeBanner').classList.toggle('show',complete);
-  document.getElementById('completeBanner2').classList.toggle('show',complete);
+
+  let html = `<div class="heatmap-days">${dayLabels.map(d=>`<span class="hm-day">${d}</span>`).join('')}</div>`;
+  PILLAR_KEYS.forEach(key => {
+    const cells = dayStrs.map(ds => {
+      const a = D.activity[ds];
+      const count = a ? (a[key]||0) : 0;
+      const cls = count===0?'':count===1?'active-1':count===2?'active-2':count===3?'active-3':'active-full';
+      return `<div class="hm-cell ${cls}" title="${key}: ${count} actions"></div>`;
+    }).join('');
+    html += `<div class="heatmap-row"><span class="heatmap-label">${key}</span><div class="heatmap-cells">${cells}</div></div>`;
+  });
+  el.innerHTML = html;
 }
-function renderHeatmap(){
-  const el=document.getElementById('heatmap');if(!el)return;el.innerHTML='';
-  for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    const key=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-    const hist=state.history.find(h=>h.date===key);
-    const checks=hist?hist.checks:(key===state.lastResetDate?countChecks():0);
-    let cls='heat-cell';
-    if(checks>=TOTAL_TASKS)cls+=' h4';else if(checks>=6)cls+=' h3';else if(checks>=3)cls+=' h2';else if(checks>=1)cls+=' h1';
-    const cell=document.createElement('div');cell.className=cls;el.appendChild(cell);
+
+// ========== DASHBOARD RENDER ==========
+function renderDashboard() {
+  renderForgeMap();
+  renderQuests();
+  renderHeatmap();
+  const sov = calcSovereignty();
+  document.getElementById('sovScore').textContent = sov;
+  document.getElementById('streakNum').textContent = D.user.streak;
+}
+
+// ========== MIND ==========
+const QUOTES = [
+  { text:"The privilege of a lifetime is to become who you truly are.", author:"Carl Jung", prompt:"Who are you becoming — and are you moving toward or away from that man today?" },
+  { text:"He who has a why to live can bear almost any how.", author:"Viktor Frankl", prompt:"What is your why right now? Is it strong enough to carry you through discomfort?" },
+  { text:"Until you make the unconscious conscious, it will direct your life and you will call it fate.", author:"Carl Jung", prompt:"What pattern are you still running unconsciously? What would it mean to name it today?" },
+  { text:"The impediment to action advances action. What stands in the way becomes the way.", author:"Marcus Aurelius", prompt:"What obstacle are you treating as a wall that is actually a door?" },
+  { text:"A man who is a master of patience is master of everything else.", author:"George Savile", prompt:"Where are you forcing rather than forging? What would patience unlock?" },
+  { text:"The cave you fear to enter holds the treasure you seek.", author:"Joseph Campbell", prompt:"What are you avoiding that keeps calling you back? What lives in that cave?" },
+  { text:"The unexamined life is not worth living.", author:"Socrates", prompt:"What part of your life are you refusing to examine? Why?" },
+  { text:"Out of suffering have emerged the strongest souls.", author:"Khalil Gibran", prompt:"What has your suffering built in you that ease never could have?" },
+  { text:"Do not pray for an easy life, pray for the strength to endure a difficult one.", author:"Bruce Lee", prompt:"What strength are you developing right now through difficulty?" },
+  { text:"The most dangerous man to any government is the man who is able to think things out for himself.", author:"H.L. Mencken", prompt:"Where are you thinking for yourself — and where are you still following the herd?" },
+];
+
+function renderMind() {
+  const q = QUOTES[dayOfYear() % QUOTES.length];
+  document.getElementById('dailyQuote').textContent = `"${q.text}"`;
+  document.getElementById('dailyQuoteAuthor').textContent = `— ${q.author}`;
+  document.getElementById('dailyQuotePrompt').textContent = q.prompt;
+  renderMindHistory();
+}
+
+function saveMindEntry() {
+  const text = document.getElementById('mindReflection').value.trim();
+  if (!text) { showToast('Write something first.'); return; }
+  const q = QUOTES[dayOfYear() % QUOTES.length];
+  D.mindJournal.unshift({ date:new Date().toISOString(), prompt:q.text, response:text, type:'reflection' });
+  document.getElementById('mindReflection').value = '';
+  addXP(50,'mind');
+  showToast('+50 XP — Reflection saved');
+  renderMindHistory();
+  saveData();
+}
+
+function saveMindCheckin() {
+  const mood = document.getElementById('mindMood').value;
+  const one = document.getElementById('mindOneThing').value.trim();
+  const win = document.getElementById('mindWin').value.trim();
+  if (!mood && !one) { showToast('Fill in at least one field.'); return; }
+  D.mindJournal.unshift({ date:new Date().toISOString(), mood, oneThing:one, win, type:'checkin' });
+  document.getElementById('mindMood').value='';
+  document.getElementById('mindOneThing').value='';
+  document.getElementById('mindWin').value='';
+  addXP(40,'mind');
+  showToast('+40 XP — Check-in logged');
+  renderMindHistory();
+  saveData();
+}
+
+function renderMindHistory() {
+  const el = document.getElementById('mindJournalHistory');
+  if (!D.mindJournal.length) { el.innerHTML='<div class="empty"><span class="empty-icon">🧠</span>No entries yet.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+D.mindJournal.slice(0,10).map(e => {
+    if (e.type==='checkin') return `<div class="entry"><span class="entry-date">${fmtDateShort(e.date)}</span><div class="entry-body"><strong>${e.mood||''}</strong>${e.oneThing?'<br>Priority: '+e.oneThing:''}</div><span class="entry-tag">CHECK-IN</span></div>`;
+    return `<div class="entry"><span class="entry-date">${fmtDateShort(e.date)}</span><div class="entry-body">${e.response.substring(0,120)}${e.response.length>120?'…':''}</div><span class="entry-tag">REFLECT</span></div>`;
+  }).join('')+'</div>';
+}
+
+// ========== BODY ==========
+let pendingExercises = [];
+
+function renderBody() {
+  renderLastWorkout();
+  renderWorkoutHistory();
+  renderHydration();
+  renderMetrics();
+}
+
+function addExercise() {
+  const name = document.getElementById('exName').value.trim();
+  const sets = parseInt(document.getElementById('exSets').value)||0;
+  const reps = parseInt(document.getElementById('exReps').value)||0;
+  const weight = parseFloat(document.getElementById('exWeight').value)||0;
+  if (!name || !sets || !reps) { showToast('Fill in exercise name, sets and reps.'); return; }
+  pendingExercises.push({ name, sets, reps, weight });
+  document.getElementById('exName').value='';
+  document.getElementById('exSets').value='';
+  document.getElementById('exReps').value='';
+  document.getElementById('exWeight').value='';
+  renderPendingExercises();
+}
+
+function renderPendingExercises() {
+  const el = document.getElementById('currentExercises');
+  if (!pendingExercises.length) { el.innerHTML=''; return; }
+  el.innerHTML = '<div class="rule"></div>'+pendingExercises.map((e,i) =>
+    `<div class="workout-exercise">
+      <div class="workout-ex-name">${e.name} <button onclick="removePendingEx(${i})" style="float:right;background:none;border:none;color:var(--dim);cursor:pointer;font-size:0.8rem;">✕</button></div>
+      <div class="sets-grid">
+        ${Array.from({length:e.sets},(_,s)=>`<div class="set-chip"><span class="set-num">SET ${s+1}</span>${e.reps} reps ${e.weight?'@ '+e.weight+'kg':''}</div>`).join('')}
+      </div>
+    </div>`
+  ).join('');
+}
+
+function removePendingEx(i) { pendingExercises.splice(i,1); renderPendingExercises(); }
+
+function saveWorkout() {
+  if (!pendingExercises.length) { showToast('Add at least one exercise first.'); return; }
+  D.workouts.unshift({ date:new Date().toISOString(), exercises:[...pendingExercises] });
+  pendingExercises = [];
+  renderPendingExercises();
+  addXP(75,'body');
+  showToast('+75 XP — Workout logged');
+  renderBody();
+  saveData();
+}
+
+function renderLastWorkout() {
+  const el = document.getElementById('lastWorkout');
+  if (!D.workouts.length) { el.innerHTML='<div class="empty"><span class="empty-icon">⚔️</span>No sessions yet.</div>'; return; }
+  const w = D.workouts[0];
+  el.innerHTML = `<div style="font-size:0.7rem;color:var(--gold);margin-bottom:0.75rem;font-family:var(--font-d);letter-spacing:0.15em;">${fmtDate(w.date)}</div>`+
+    w.exercises.map(e => `<div class="workout-exercise">
+      <div class="workout-ex-name">${e.name}</div>
+      <div style="font-size:0.78rem;color:var(--dim);">${e.sets} sets × ${e.reps} reps${e.weight?' @ '+e.weight+'kg':''}</div>
+    </div>`).join('');
+}
+
+function renderWorkoutHistory() {
+  const el = document.getElementById('workoutHistory');
+  if (!D.workouts.length) { el.innerHTML='<div class="empty"><span class="empty-icon">⚔️</span>No sessions logged yet.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+D.workouts.slice(0,10).map(w =>
+    `<div class="entry">
+      <span class="entry-date">${fmtDateShort(w.date)}</span>
+      <div class="entry-body">${w.exercises.map(e=>`<strong>${e.name}</strong>: ${e.sets}×${e.reps}${e.weight?' @'+e.weight+'kg':''}`).join(' · ')}</div>
+      <span class="entry-tag">${w.exercises.length} EXERCISES</span>
+    </div>`
+  ).join('')+'</div>';
+}
+
+function renderHydration() {
+  const el = document.getElementById('glasses');
+  const today = todayStr();
+  const count = D.hydration[today] || 0;
+  el.innerHTML = Array.from({length:8},(_,i) =>
+    `<div class="glass ${i<count?'full':''}" onclick="toggleGlass(${i})">
+      <div class="glass-fill" style="height:${i<count?'85%':'0%'}"></div>
+    </div>`
+  ).join('');
+  document.getElementById('hydrationStatus').textContent = count + ' / 8 glasses';
+}
+
+function toggleGlass(i) {
+  const today = todayStr();
+  const count = D.hydration[today] || 0;
+  D.hydration[today] = i < count ? i : i + 1;
+  if (!D.activity[today]) D.activity[today] = { mind:0, body:0, shadow:0, wealth:0, purpose:0 };
+  D.activity[today].body++;
+  saveData();
+  renderHydration();
+}
+
+function resetHydration() {
+  D.hydration[todayStr()] = 0;
+  saveData(); renderHydration();
+}
+
+function saveMetrics() {
+  const weight = parseFloat(document.getElementById('metWeight').value);
+  const bf = parseFloat(document.getElementById('metBF').value);
+  const chest = parseFloat(document.getElementById('metChest').value);
+  const waist = parseFloat(document.getElementById('metWaist').value);
+  const arms = parseFloat(document.getElementById('metArms').value);
+  const notes = document.getElementById('metNotes').value.trim();
+  if (!weight && !chest) { showToast('Enter at least one measurement.'); return; }
+  D.bodyMetrics.unshift({ date:new Date().toISOString(), weight, bf, chest, waist, arms, notes });
+  ['metWeight','metBF','metChest','metWaist','metArms','metNotes'].forEach(id => document.getElementById(id).value='');
+  addXP(30,'body');
+  showToast('+30 XP — Metrics logged');
+  renderMetrics();
+  saveData();
+}
+
+function renderMetrics() {
+  const el = document.getElementById('metricsHistory');
+  if (!D.bodyMetrics.length) { el.innerHTML='<div class="empty"><span class="empty-icon">📏</span>No metrics logged yet.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+D.bodyMetrics.slice(0,8).map(m =>
+    `<div class="entry">
+      <span class="entry-date">${fmtDateShort(m.date)}</span>
+      <div class="entry-body">
+        ${m.weight?'<strong>'+m.weight+'kg</strong> ':''}${m.bf?'BF: '+m.bf+'% ':''}${m.chest?'Chest: '+m.chest+'cm ':''}${m.waist?'Waist: '+m.waist+'cm ':''}${m.arms?'Arms: '+m.arms+'cm ':''}
+        ${m.notes?'<br><em>'+m.notes+'</em>':''}
+      </div>
+    </div>`
+  ).join('')+'</div>';
+}
+
+// ========== SHADOW ==========
+const SHADOW_PROMPTS = [
+  "What behaviour in others disgusts you most — and where do you do the same thing?",
+  "What part of yourself did you learn to hide to be accepted?",
+  "What emotion were you not allowed to feel growing up?",
+  "Who are you most jealous of, and what does that envy reveal about your unlived life?",
+  "What would you do differently if you were not afraid of being seen?",
+  "What do you secretly want that you are ashamed to admit?",
+  "When did you first decide you were not enough — or too much?",
+  "What does your self-sabotage protect you from?",
+  "What are you still carrying that no longer belongs to you?",
+  "If your shadow had a voice, what would it most want to say to you?",
+  "What have you never forgiven yourself for — and why are you still holding it?",
+  "Who in your life do you perform for? What are you afraid they would see if you stopped?",
+  "What quality in others enrages you — and when have you been that way yourself?",
+  "What did you promise yourself you would never become — and how close have you come?",
+  "What would the people closest to you say about you behind your back?",
+  "Where do you seek approval — and what does that cost you?",
+  "What is the story you tell about why your life is the way it is?",
+  "What are you most afraid to lose? What does that attachment reveal?",
+  "Where do you confuse your wounds with your identity?",
+  "What part of your childhood self have you abandoned? What would it take to return to him?",
+  "What do you want to say to someone in your life that you have never said?",
+  "What does your life say your values are, based on how you spend your time?",
+  "What mask do you wear most consistently — and who would you be without it?",
+  "Where do you give your power away and blame others for the result?",
+  "What grief are you still carrying that you have never properly let yourself feel?",
+  "What would change if you stopped pretending everything was fine?",
+  "What part of you is the angriest — and what is it actually asking for?",
+  "What do you want so badly that wanting it feels dangerous?",
+  "Where does your inner critic sound most like someone from your past?",
+  "What would the fully integrated version of you do differently tomorrow?"
+];
+
+function renderShadow() {
+  const prompt = SHADOW_PROMPTS[dayOfYear() % SHADOW_PROMPTS.length];
+  document.getElementById('shadowPrompt').textContent = `"${prompt}"`;
+  renderShadowHistory();
+  renderArchetypeQuiz();
+  renderDreamHistory();
+  renderCheckinHistory();
+  renderPatternHistory();
+  if (D.archetype) renderArchetypeResult(D.archetype);
+}
+
+function saveShadowEntry() {
+  const res = document.getElementById('shadowResponse').value.trim();
+  if (!res) { showToast('Write something. The shadow demands honesty.'); return; }
+  const prompt = SHADOW_PROMPTS[dayOfYear() % SHADOW_PROMPTS.length];
+  D.shadowJournal.unshift({ date:new Date().toISOString(), prompt, response:res });
+  document.getElementById('shadowResponse').value = '';
+  addXP(75,'shadow');
+  showToast('+75 XP — Shadow entry saved');
+  renderShadowHistory();
+  saveData();
+}
+
+function renderShadowHistory() {
+  const el = document.getElementById('shadowHistory');
+  if (!D.shadowJournal.length) { el.innerHTML='<div class="empty"><span class="empty-icon">🌑</span>No entries yet. The mirror awaits.</div>'; return; }
+  el.innerHTML = D.shadowJournal.slice(0,8).map(e =>
+    `<div class="entry">
+      <span class="entry-date">${fmtDateShort(e.date)}</span>
+      <div class="entry-body"><em style="color:var(--dim-hi);font-size:0.75rem;">${e.prompt.substring(0,60)}…</em><br>${e.response.substring(0,150)}${e.response.length>150?'…':''}</div>
+    </div>`
+  ).join('');
+}
+
+// ARCHETYPE QUIZ
+const ARCHETYPE_QS = [
+  { q:"When you face a significant challenge, your natural first response is to:", opts:[{text:"Create a plan, establish order, and delegate wisely.",a:'king'},{text:"Dive in, fight through it, and push past limits.",a:'warrior'},{text:"Research deeply, understand the root cause, then act.",a:'magician'},{text:"Connect with others, seek meaning, and feel the experience.",a:'lover'}]},
+  { q:"What motivates you most deeply?", opts:[{text:"Building something lasting that outlives you.",a:'king'},{text:"Proving yourself through discipline and achievement.",a:'warrior'},{text:"Mastering a skill or domain to the deepest level.",a:'magician'},{text:"Creating beauty, connection, and meaningful experience.",a:'lover'}]},
+  { q:"Where do you feel most powerful?", opts:[{text:"Leading a group toward a shared vision.",a:'king'},{text:"In physical or competitive challenge.",a:'warrior'},{text:"Solving complex problems others can't crack.",a:'magician'},{text:"In deep conversation or creative expression.",a:'lover'}]},
+  { q:"Your greatest fear is:", opts:[{text:"Losing control or your ability to provide order.",a:'king'},{text:"Being seen as weak, passive or ineffective.",a:'warrior'},{text:"Being ignorant, deceived or losing your competence.",a:'magician'},{text:"Being cut off from love, beauty or deep feeling.",a:'lover'}]},
+  { q:"How do people tend to describe you?", opts:[{text:"Calm, decisive, fair, authoritative.",a:'king'},{text:"Determined, driven, direct, intense.",a:'warrior'},{text:"Intelligent, strategic, analytical, insightful.",a:'magician'},{text:"Empathetic, creative, expressive, passionate.",a:'lover'}]},
+  { q:"When things go wrong, you tend to:", opts:[{text:"Take responsibility and restore order.",a:'king'},{text:"Blame yourself or fight harder regardless of cost.",a:'warrior'},{text:"Analyse what went wrong and identify a better approach.",a:'magician'},{text:"Feel it deeply, process it emotionally, then reconnect.",a:'lover'}]},
+  { q:"What makes a man truly powerful in your view?", opts:[{text:"Wisdom, integrity, and the ability to hold others well.",a:'king'},{text:"Discipline, resilience, and the refusal to quit.",a:'warrior'},{text:"Knowledge, transformation, and mastery of self.",a:'magician'},{text:"Depth, authenticity, and full emotional presence.",a:'lover'}]},
+  { q:"Which shadow pattern do you most recognise in yourself?", opts:[{text:"Tyranny or abdication — either controlling or checked out.",a:'king'},{text:"Aggression or cowardice — dominating or running.",a:'warrior'},{text:"Detachment or manipulation — hiding behind intelligence.",a:'magician'},{text:"Addiction or numbness — chasing feeling or avoiding it.",a:'lover'}]},
+];
+
+let archetypeAnswers = {};
+
+function renderArchetypeQuiz() {
+  const el = document.getElementById('archetypeQuiz');
+  el.innerHTML = ARCHETYPE_QS.map((q,qi) =>
+    `<div class="quiz-q">
+      <span class="quiz-q-num">QUESTION ${qi+1} OF ${ARCHETYPE_QS.length}</span>
+      <div class="quiz-q-text">${q.q}</div>
+      <div class="quiz-options">
+        ${q.opts.map((o,oi) => `
+          <label class="quiz-opt ${archetypeAnswers[qi]===oi?'selected':''}" onclick="selectArchetypeOpt(${qi},${oi})">
+            <input type="radio" name="q${qi}" value="${oi}"/>
+            <div class="quiz-opt-dot"></div>
+            <span class="quiz-opt-text">${o.text}</span>
+          </label>`).join('')}
+      </div>
+    </div>`
+  ).join('');
+}
+
+function selectArchetypeOpt(qi, oi) {
+  archetypeAnswers[qi] = oi;
+  renderArchetypeQuiz();
+}
+
+function scoreArchetype() {
+  const answered = Object.keys(archetypeAnswers).length;
+  if (answered < ARCHETYPE_QS.length) { showToast(`Answer all ${ARCHETYPE_QS.length} questions first.`); return; }
+  const scores = { king:0, warrior:0, magician:0, lover:0 };
+  ARCHETYPE_QS.forEach((q,qi) => {
+    const opt = q.opts[archetypeAnswers[qi]];
+    if (opt) scores[opt.a]++;
+  });
+  const dominant = Object.keys(scores).reduce((a,b) => scores[a]>scores[b]?a:b);
+  D.archetype = { scores, dominant, date:new Date().toISOString() };
+  addXP(100,'shadow');
+  showToast('+100 XP — Your archetype: ' + dominant.charAt(0).toUpperCase()+dominant.slice(1));
+  renderArchetypeResult(D.archetype);
+  saveData();
+}
+
+const ARCHETYPE_DESC = {
+  king:    { label:'The King', desc:'Your dominant energy is leadership, order and vision. You hold others well when at your best — your shadow is tyranny or abdication. Develop the Warrior\'s discipline and the Magician\'s depth to balance your King.' },
+  warrior: { label:'The Warrior', desc:'Your dominant energy is discipline, drive and action. You are built to compete and push limits — your shadow is aggression without direction. Develop the King\'s vision and the Lover\'s feeling to channel your Warrior.' },
+  magician:{ label:'The Magician', desc:'Your dominant energy is knowledge, transformation and mastery. You see what others miss — your shadow is detachment and manipulation through intelligence. Develop the Warrior\'s physicality and the King\'s leadership to ground your Magician.' },
+  lover:   { label:'The Lover', desc:'Your dominant energy is depth, passion and presence. You experience life fully — your shadow is addiction and emotional overwhelm. Develop the Warrior\'s discipline and the Magician\'s clarity to direct your Lover.' }
+};
+
+function renderArchetypeResult(data) {
+  const el = document.getElementById('archetypeResult');
+  const desc = ARCHETYPE_DESC[data.dominant];
+  const total = Object.values(data.scores).reduce((s,v)=>s+v,0);
+  el.innerHTML = `
+    <div class="archetype-result">
+      <div style="font-size:0.55rem;font-family:var(--font-d);letter-spacing:0.32em;color:var(--gold-deep);margin-bottom:0.5rem;">DOMINANT ARCHETYPE</div>
+      <div class="archetype-name">${desc.label}</div>
+      <div style="font-size:0.8rem;color:var(--dim);line-height:1.7;margin:1rem 0;">${desc.desc}</div>
+      <div class="archetype-bars">
+        ${Object.entries(data.scores).map(([k,v])=>`
+          <div class="arch-bar-row">
+            <span class="arch-bar-label">${k}</span>
+            <div class="arch-bar"><div class="arch-bar-fill" style="width:${Math.round((v/total)*100)}%"></div></div>
+            <span class="arch-score">${v}</span>
+          </div>`).join('')}
+      </div>
+      <div style="font-size:0.62rem;color:var(--dim);margin-top:0.75rem;">Assessed ${fmtDate(data.date)}</div>
+    </div>`;
+}
+
+// DREAM LOG
+function saveDream() {
+  const content = document.getElementById('dreamContent').value.trim();
+  const emotion = document.getElementById('dreamEmotion').value.trim();
+  if (!content) { showToast('Log the dream content first.'); return; }
+  D.dreams.unshift({ date:new Date().toISOString(), content, emotion });
+  document.getElementById('dreamContent').value='';
+  document.getElementById('dreamEmotion').value='';
+  addXP(40,'shadow');
+  showToast('+40 XP — Dream logged');
+  renderDreamHistory();
+  saveData();
+}
+
+function renderDreamHistory() {
+  const el = document.getElementById('dreamHistory');
+  if (!D.dreams.length) { el.innerHTML='<div class="empty"><span class="empty-icon">🌙</span>No dreams logged yet.</div>'; return; }
+  el.innerHTML = D.dreams.slice(0,8).map(d =>
+    `<div class="entry">
+      <span class="entry-date">${fmtDateShort(d.date)}</span>
+      <div class="entry-body">${d.content.substring(0,140)}${d.content.length>140?'…':''} ${d.emotion?'<br><em>Emotion: '+d.emotion+'</em>':''}</div>
+      <span class="entry-tag">DREAM</span>
+    </div>`
+  ).join('');
+}
+
+// CHECK-IN
+function saveCheckin() {
+  const time = document.getElementById('checkinTime').value;
+  const tension = document.getElementById('checkinTension').value.trim();
+  const emotion = document.getElementById('checkinEmotion').value.trim();
+  const state = document.getElementById('checkinState').value;
+  if (!tension && !emotion) { showToast('Fill in at least one field.'); return; }
+  D.checkIns.unshift({ date:new Date().toISOString(), time, tension, emotion, state });
+  document.getElementById('checkinTension').value='';
+  document.getElementById('checkinEmotion').value='';
+  document.getElementById('checkinState').value='';
+  addXP(40,'shadow');
+  showToast('+40 XP — Check-in logged');
+  renderCheckinHistory();
+  saveData();
+}
+
+function renderCheckinHistory() {
+  const el = document.getElementById('checkinHistory');
+  if (!D.checkIns.length) return;
+  el.innerHTML = '<span class="card-title">Recent Check-Ins</span><div class="entry-list">'+D.checkIns.slice(0,6).map(c =>
+    `<div class="entry">
+      <span class="entry-date">${fmtDateShort(c.date)}<br><span style="color:var(--dim-hi);font-size:0.45rem;">${c.time||''}</span></span>
+      <div class="entry-body">${c.state||''} ${c.tension?'<br>Tension: '+c.tension:''} ${c.emotion?'<br>Avoiding: '+c.emotion:''}</div>
+    </div>`
+  ).join('')+'</div>';
+}
+
+// PATTERNS
+function savePattern() {
+  const trigger = document.getElementById('patternTrigger').value.trim();
+  const reaction = document.getElementById('patternReaction').value.trim();
+  const protect = document.getElementById('patternProtect').value.trim();
+  if (!trigger || !reaction) { showToast('Fill in the trigger and reaction.'); return; }
+  D.patterns.unshift({ date:new Date().toISOString(), trigger, reaction, protect });
+  document.getElementById('patternTrigger').value='';
+  document.getElementById('patternReaction').value='';
+  document.getElementById('patternProtect').value='';
+  addXP(50,'shadow');
+  showToast('+50 XP — Pattern logged');
+  renderPatternHistory();
+  saveData();
+}
+
+function renderPatternHistory() {
+  const el = document.getElementById('patternHistory');
+  if (!D.patterns.length) { el.innerHTML='<div class="empty"><span class="empty-icon">🔄</span>No patterns logged yet.</div>'; return; }
+  el.innerHTML = D.patterns.slice(0,8).map(p =>
+    `<div class="entry">
+      <span class="entry-date">${fmtDateShort(p.date)}</span>
+      <div class="entry-body"><strong>Trigger:</strong> ${p.trigger}<br><strong>Reaction:</strong> ${p.reaction.substring(0,100)}${p.reaction.length>100?'…':''}</div>
+    </div>`
+  ).join('');
+}
+
+// ========== WEALTH ==========
+let timerInterval = null, timerSecs = 90*60, timerRunning = false;
+
+function renderWealth() {
+  renderIncomeHistory();
+  renderSkillList();
+  renderDWHistory();
+  updateIncomeBar();
+}
+
+function setIncomeGoal() {
+  const goal = parseFloat(document.getElementById('incomeGoal').value);
+  if (!goal) { showToast('Enter a goal amount.'); return; }
+  D.income.goal = goal;
+  saveData(); updateIncomeBar();
+  showToast('Goal set: £'+goal);
+}
+
+function logIncome() {
+  const amount = parseFloat(document.getElementById('incomeAmount').value);
+  const source = document.getElementById('incomeSource').value.trim();
+  if (!amount) { showToast('Enter an amount.'); return; }
+  D.income.logs.unshift({ date:new Date().toISOString(), amount, source });
+  document.getElementById('incomeAmount').value='';
+  document.getElementById('incomeSource').value='';
+  addXP(30,'wealth');
+  showToast('+30 XP — £'+amount+' logged');
+  renderIncomeHistory(); updateIncomeBar();
+  saveData();
+}
+
+function updateIncomeBar() {
+  const goal = D.income.goal;
+  const now = new Date();
+  const monthLogs = D.income.logs.filter(l => {
+    const d = new Date(l.date);
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  });
+  const total = monthLogs.reduce((s,l)=>s+l.amount,0);
+  const pct = goal ? Math.min(Math.round((total/goal)*100),100) : 0;
+  document.getElementById('incomeBar').style.width = pct+'%';
+  document.getElementById('incomeProgress').textContent = '£'+total.toFixed(0)+' / £'+(goal||0);
+}
+
+function renderIncomeHistory() {
+  const el = document.getElementById('incomeHistory');
+  if (!D.income.logs.length) { el.innerHTML='<div class="empty"><span class="empty-icon">💰</span>No income logged yet.</div>'; return; }
+  el.innerHTML = D.income.logs.slice(0,10).map(l =>
+    `<div class="entry">
+      <span class="entry-date">${fmtDateShort(l.date)}</span>
+      <div class="entry-body"><strong>£${l.amount.toFixed(2)}</strong>${l.source?' — '+l.source:''}</div>
+      <span class="entry-tag">INCOME</span>
+    </div>`
+  ).join('');
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval); timerRunning=false;
+    document.getElementById('timerBtn').textContent='Resume Session';
+  } else {
+    timerRunning=true;
+    document.getElementById('timerBtn').textContent='Pause';
+    timerInterval = setInterval(()=>{
+      timerSecs--;
+      if (timerSecs <= 0) {
+        clearInterval(timerInterval); timerRunning=false;
+        timerSecs=0;
+        const focus = document.getElementById('dwFocus').value.trim();
+        D.deepWork.unshift({ date:new Date().toISOString(), duration:90, focus });
+        document.getElementById('dwFocus').value='';
+        addXP(50,'wealth');
+        showToast('+50 XP — Forge Session complete 🔥');
+        renderDWHistory(); saveData();
+        document.getElementById('timerBtn').textContent='Start Session';
+        timerSecs=90*60;
+      }
+      updateTimerDisplay();
+    },1000);
   }
 }
-function renderPillarStats(){
-  const el=document.getElementById('pillar-stats');if(!el)return;el.innerHTML='';
-  PILLARS.forEach(p=>{
-    const xp=state.pillarXp[p.id]||0;const lv=getPillarLevel(p.id);const pct=Math.round(((xp%30)/30)*100);
-    const row=document.createElement('div');row.className='pillar-stat-row';
-    row.innerHTML=`<div class="ps-left"><span class="ps-icon">${p.icon}</span><div><div class="ps-name">${p.name}</div><div class="mini-bar-wrap"><div class="mini-bar-fill" style="width:${pct}%"></div></div></div></div><div style="text-align:right"><div class="ps-xp">${xp} XP</div><div class="ps-lv">Level ${lv}</div></div>`;
-    el.appendChild(row);
+function resetTimer() {
+  clearInterval(timerInterval); timerRunning=false; timerSecs=90*60;
+  updateTimerDisplay();
+  document.getElementById('timerBtn').textContent='Start Session';
+}
+function updateTimerDisplay() {
+  const m = String(Math.floor(timerSecs/60)).padStart(2,'0');
+  const s = String(timerSecs%60).padStart(2,'0');
+  document.getElementById('timerDisplay').textContent = m+':'+s;
+}
+
+function renderDWHistory() {
+  const el = document.getElementById('dwHistory');
+  if (!D.deepWork.length) { el.innerHTML='<div class="empty" style="margin-top:0.5rem;"><span class="empty-icon">⚡</span>No sessions logged.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+D.deepWork.slice(0,5).map(s =>
+    `<div class="entry"><span class="entry-date">${fmtDateShort(s.date)}</span><div class="entry-body">${s.focus||'Forge Session'} — ${s.duration} min</div><span class="entry-tag">DONE</span></div>`
+  ).join('')+'</div>';
+}
+
+function logSkill() {
+  const name = document.getElementById('skillName').value.trim();
+  const hours = parseFloat(document.getElementById('skillHours').value);
+  if (!name || !hours) { showToast('Enter skill name and hours.'); return; }
+  const existing = D.skills.find(s=>s.name.toLowerCase()===name.toLowerCase());
+  if (existing) existing.total += hours;
+  else D.skills.push({ name, total:hours });
+  document.getElementById('skillName').value='';
+  document.getElementById('skillHours').value='';
+  addXP(30,'wealth');
+  showToast('+30 XP — '+hours+'h logged for '+name);
+  renderSkillList(); saveData();
+}
+
+function renderSkillList() {
+  const el = document.getElementById('skillList');
+  if (!D.skills.length) { el.innerHTML='<div class="empty"><span class="empty-icon">🛠</span>No skills tracked yet.</div>'; return; }
+  const maxH = Math.max(...D.skills.map(s=>s.total));
+  el.innerHTML = D.skills.sort((a,b)=>b.total-a.total).map(s =>
+    `<div style="margin-bottom:0.75rem;">
+      <div class="prog-label"><span style="color:var(--white);">${s.name}</span><span>${s.total}h</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${Math.round((s.total/maxH)*100)}%"></div></div>
+    </div>`
+  ).join('');
+}
+
+// ========== PURPOSE ==========
+function renderPurpose() {
+  renderMilestones();
+  renderValuesHistory();
+  if (D.blueprint) loadBlueprint();
+}
+
+function saveBlueprint() {
+  const values  = document.getElementById('bpValues').value.trim();
+  const vision  = document.getElementById('bpVision').value.trim();
+  const mission = document.getElementById('bpMission').value.trim();
+  const legacy  = document.getElementById('bpLegacy').value.trim();
+  if (!vision && !mission) { showToast('Fill in at least your vision or purpose statement.'); return; }
+  D.blueprint = { values, vision, mission, legacy, date:new Date().toISOString() };
+  addXP(100,'purpose');
+  showToast('+100 XP — Blueprint saved');
+  document.getElementById('blueprintSaved').style.display='block';
+  saveData();
+}
+
+function loadBlueprint() {
+  if (!D.blueprint) return;
+  ['bpValues','bpVision','bpMission','bpLegacy'].forEach(id => {
+    const key = id.replace('bp','').toLowerCase();
+    const el = document.getElementById(id);
+    if (el && D.blueprint[key]) el.value = D.blueprint[key];
   });
-  const s=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val;};
-  s('stats-total-xp',state.totalXp);s('stats-best-streak',state.bestStreak);s('stats-days',state.daysActive);
 }
-function renderProfile(){
-  const level=getLevel();const rank=getRank(level);
-  const el=document.getElementById('profile-rank-label');if(el)el.textContent=`${rank.name} · Level ${level}`;
-  const s=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val;};
-  s('prof-xp',state.totalXp);s('prof-streak',state.streak);s('prof-best',state.bestStreak);s('prof-days',state.daysActive);
-  const table=document.getElementById('rank-table');if(!table)return;table.innerHTML='';
-  RANKS.forEach(r=>{
-    const isCurrent=level>=r.min&&level<=r.max;
-    const tr=document.createElement('tr');if(isCurrent)tr.className='current-rank';
-    tr.innerHTML=`<td>${r.icon}</td><td><span class="rank-badge">${r.name}</span></td><td>Lv ${r.min}${r.max<999?'–'+r.max:'+'}</td><td style="text-align:right">${isCurrent?'← You':''}</td>`;
-    table.appendChild(tr);
-  });
+
+function addMilestone() {
+  const cat   = document.getElementById('msCategory').value;
+  const title = document.getElementById('msTitle').value.trim();
+  const desc  = document.getElementById('msDesc').value.trim();
+  if (!title) { showToast('Give this milestone a name.'); return; }
+  D.milestones.unshift({ date:new Date().toISOString(), cat, title, desc });
+  document.getElementById('msTitle').value='';
+  document.getElementById('msDesc').value='';
+  addXP(60,'purpose');
+  showToast('+60 XP — Added to the Vault');
+  renderMilestones(); saveData();
 }
-function renderAll(){renderStats();renderDashPillars();renderDailyPillars();renderHeatmap();renderPillarStats();renderProfile();}
-function goTo(page,btnId){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  const btn=document.getElementById(btnId);if(btn)btn.classList.add('active');
+
+const MS_ICONS = { PR:'💪', Business:'💰', Psychology:'🧠', Challenge:'🏆', Relationship:'🤝', Shadow:'🌑', Other:'◦' };
+
+function renderMilestones() {
+  const el = document.getElementById('milestoneList');
+  if (!D.milestones.length) { el.innerHTML='<div class="empty"><span class="empty-icon">🏆</span>Your vault is empty. The first milestone changes that.</div>'; return; }
+  el.innerHTML = '<div style="display:flex;flex-direction:column;gap:0.75rem;">'+D.milestones.map(m =>
+    `<div class="milestone-card">
+      <span class="milestone-icon">${MS_ICONS[m.cat]||'◦'}</span>
+      <div>
+        <span class="milestone-cat">${m.cat}</span>
+        <div class="milestone-title">${m.title}</div>
+        ${m.desc?`<div class="milestone-desc">${m.desc}</div>`:''}
+        <span class="milestone-date">${fmtDate(m.date)}</span>
+      </div>
+    </div>`
+  ).join('')+'</div>';
 }
-function tick(){
-  const ms=getMidnightMs();const txt=formatTime(ms);
-  ['dash-timer','daily-timer'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el)el.innerHTML=`Resets in <span>${txt}</span>`;
-  });
-  state=checkDailyReset(state);
+
+function saveValuesAudit() {
+  const values = document.getElementById('vaValues').value.trim();
+  const aligned = document.getElementById('vaAligned').value.trim();
+  const drift = document.getElementById('vaDrift').value.trim();
+  const score = parseInt(document.getElementById('vaScore').value)||0;
+  const correction = document.getElementById('vaCorrection').value.trim();
+  if (!aligned && !drift) { showToast('Fill in the alignment and drift sections.'); return; }
+  D.valuesAudit.unshift({ date:new Date().toISOString(), values, aligned, drift, score, correction });
+  ['vaValues','vaAligned','vaDrift','vaScore','vaCorrection'].forEach(id=>document.getElementById(id).value='');
+  addXP(80,'purpose');
+  showToast('+80 XP — Values Audit saved');
+  renderValuesHistory(); saveData();
 }
-renderAll();setInterval(tick,1000);tick();
+
+function renderValuesHistory() {
+  const el = document.getElementById('valuesHistory');
+  if (!D.valuesAudit.length) return;
+  el.innerHTML = '<span class="card-title">Previous Audits</span><div class="entry-list">'+D.valuesAudit.slice(0,5).map(a =>
+    `<div class="entry">
+      <span class="entry-date">${fmtDateShort(a.date)}</span>
+      <div class="entry-body"><strong>Alignment: ${a.score}/10</strong><br>${a.correction?'Correction: '+a.correction:''}</div>
+      <span class="entry-tag">AUDIT</span>
+    </div>`
+  ).join('')+'</div>';
+}
+
+// ========== PROGRESS ==========
+function renderProgress() {
+  const xp = D.user.totalXP;
+  const rank = getRank(xp);
+  document.getElementById('totalXPDisplay').textContent = xp.toLocaleString();
+  document.getElementById('currentRankDisplay').textContent = rank.icon + ' ' + rank.name;
+
+  // Forge Score (this month's XP)
+  const now = new Date();
+  // Approximate — we use total as a proxy, ideally you'd track monthly
+  document.getElementById('forgeScoreBig').textContent = xp;
+
+  // Pillar mastery bars
+  const pmEl = document.getElementById('pillarMastery');
+  pmEl.innerHTML = PILLAR_KEYS.map(k => {
+    const p = D.pillars[k];
+    return `<div>
+      <div class="prog-label"><span style="text-transform:uppercase;letter-spacing:0.1em;font-family:var(--font-d);font-size:0.62rem;">${k}</span><span>${p.mastery}/10 — ${p.xp} XP</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${p.mastery*10}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // Rank list
+  const rlEl = document.getElementById('rankList');
+  rlEl.innerHTML = RANKS.filter(r=>!r.hidden||xp>=r.minXP).map(r => {
+    const isCurrent = getRank(xp).name === r.name;
+    const locked = xp < r.minXP;
+    return `<div class="rank-item ${isCurrent?'current':''} ${locked?'locked':''}">
+      <span class="rank-icon">${r.icon}</span>
+      <span class="rank-name">${r.name}</span>
+      ${isCurrent?'<span class="rank-badge">CURRENT</span>':''}
+      <span class="rank-xp">${r.minXP.toLocaleString()} XP</span>
+    </div>`;
+  }).join('');
+
+  // Timeline
+  const tlEl = document.getElementById('progressTimeline');
+  const allEvents = [
+    ...D.milestones.map(m=>({date:m.date, label:'🏆 '+m.title, type:'Milestone', tag:m.cat})),
+    ...D.workouts.map(w=>({date:w.date, label:'⚔️ Workout — '+w.exercises.map(e=>e.name).join(', '), type:'Body', tag:'WORKOUT'})),
+    ...D.shadowJournal.map(s=>({date:s.date, label:'🌑 Shadow Mirror entry', type:'Shadow', tag:'SHADOW'})),
+    ...D.dreams.map(d=>({date:d.date, label:'🌙 Dream logged', type:'Shadow', tag:'DREAM'})),
+    ...D.mindJournal.filter(m=>m.type==='reflection').map(m=>({date:m.date, label:'🧠 Mind reflection', type:'Mind', tag:'MIND'})),
+    ...D.deepWork.map(d=>({date:d.date, label:'⚡ '+d.focus+' ('+d.duration+'min)', type:'Wealth', tag:'DEEP WORK'})),
+    ...D.income.logs.map(l=>({date:l.date, label:'💰 £'+l.amount.toFixed(0)+' — '+l.source, type:'Wealth', tag:'INCOME'})),
+  ].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,20);
+
+  if (!allEvents.length) { tlEl.innerHTML='<div class="empty"><span class="empty-icon">📅</span>Your timeline starts the moment you do.</div>'; return; }
+  tlEl.innerHTML='<div class="entry-list">'+allEvents.map(e=>
+    `<div class="entry">
+      <span class="entry-date">${fmtDateShort(e.date)}</span>
+      <div class="entry-body">${e.label}</div>
+      <span class="entry-tag">${e.tag}</span>
+    </div>`
+  ).join('')+'</div>';
+}
+
+// ========== INIT ==========
+function init() {
+  loadData();
+  setDate();
+  updateSidebar();
+  renderDashboard();
+  // Restore blueprint fields if saved
+  if (D.blueprint) loadBlueprint();
+}
+
+init();
 </script>
 </body>
 </html>
