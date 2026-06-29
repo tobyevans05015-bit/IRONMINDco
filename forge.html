@@ -4,7 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Iron Forge Mk.II</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 /* ================================================
@@ -1420,18 +1419,85 @@ select.input-field{cursor:pointer;}
      JAVASCRIPT
      ================================================ -->
 <script>
-// ========== SUPABASE ==========
-const SUPABASE_URL = 'https://yiadmxoafcyxeqjpvxfq.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpYWRteG9hZmN5eGVxanB2eGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjUwMTgsImV4cCI6MjA5ODMwMTAxOH0.z--MpEskebYS6vVRrqzj3qEnlnYDnBHFFuaJ0uquVmU';
+// ========== SUPABASE REST API (no library) ==========
+const SB_URL = 'https://yiadmxoafcyxeqjpvxfq.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpYWRteG9hZmN5eGVxanB2eGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjUwMTgsImV4cCI6MjA5ODMwMTAxOH0.z--MpEskebYS6vVRrqzj3qEnlnYDnBHFFuaJ0uquVmU';
+const SESSION_KEY = 'if_session';
 
-let sb;
-try {
-  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-} catch(e) {
-  document.getElementById('authError').textContent = 'Failed to load connection library. Try refreshing.';
-}
 let currentUser = null;
+let accessToken = null;
 let saveTimeout = null;
+
+function sbHeaders(token) {
+  return {
+    'apikey': SB_KEY,
+    'Authorization': `Bearer ${token || SB_KEY}`,
+    'Content-Type': 'application/json'
+  };
+}
+
+async function sbSignIn(email, password) {
+  const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error_description || data.message || data.msg || 'Sign in failed');
+  return data;
+}
+
+async function sbSignUp(email, password) {
+  const res = await fetch(`${SB_URL}/auth/v1/signup`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error_description || data.message || data.msg || 'Sign up failed');
+  return data;
+}
+
+async function sbGetData(userId) {
+  const res = await fetch(`${SB_URL}/rest/v1/user_data?id=eq.${userId}&select=data`, {
+    headers: sbHeaders(accessToken)
+  });
+  const rows = await res.json();
+  return Array.isArray(rows) && rows[0] ? rows[0].data : null;
+}
+
+async function sbSaveData(userId) {
+  await fetch(`${SB_URL}/rest/v1/user_data`, {
+    method: 'POST',
+    headers: { ...sbHeaders(accessToken), 'Prefer': 'resolution=merge-duplicates' },
+    body: JSON.stringify({ id: userId, data: D, updated_at: new Date().toISOString() })
+  });
+}
+
+async function sbSignOut() {
+  try {
+    await fetch(`${SB_URL}/auth/v1/logout`, {
+      method: 'POST',
+      headers: sbHeaders(accessToken)
+    });
+  } catch(e) {}
+}
+
+function saveSession(data) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    access_token: data.access_token,
+    user: data.user
+  }));
+}
+
+function loadSession() {
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
+  catch(e) { return null; }
+}
+
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
 
 // ========== AUTH ==========
 let authMode = 'signin';
@@ -1442,6 +1508,7 @@ function setAuthMode(mode) {
   document.getElementById('signupBtn').classList.toggle('active', mode==='signup');
   document.getElementById('authSubmitBtn').textContent = mode==='signin' ? 'Enter The Forge' : 'Create Account';
   document.getElementById('authError').textContent = '';
+  document.getElementById('authError').style.color = '#e57373';
 }
 
 async function doAuth() {
@@ -1458,62 +1525,50 @@ async function doAuth() {
   errEl.textContent = '';
   errEl.style.color = '#e57373';
 
-  // Safety timeout — re-enable button after 30s if stuck
-  const safetyTimer = setTimeout(() => {
-    btn.disabled = false;
-    btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
-    errEl.textContent = 'Request timed out. Check your connection and try again.';
-  }, 30000);
-
-  // Show warming up message after 5s
   const warmupMsg = setTimeout(() => {
-    if (btn.disabled) errEl.style.color = 'var(--gold)', errEl.textContent = 'Server warming up, please wait...';
-  }, 5000);
+    errEl.style.color = 'var(--gold)';
+    errEl.textContent = 'Connecting to server...';
+  }, 4000);
 
   try {
-    let result;
     if (authMode === 'signin') {
-      result = await sb.auth.signInWithPassword({ email, password });
+      const data = await sbSignIn(email, password);
+      clearTimeout(warmupMsg);
+      accessToken = data.access_token;
+      currentUser = data.user;
+      saveSession(data);
+      await launchApp();
     } else {
-      result = await sb.auth.signUp({ email, password });
+      const data = await sbSignUp(email, password);
+      clearTimeout(warmupMsg);
+      if (data.access_token) {
+        // Auto-confirmed
+        accessToken = data.access_token;
+        currentUser = data.user;
+        saveSession(data);
+        await launchApp();
+      } else {
+        errEl.style.color = 'var(--gold)';
+        errEl.textContent = 'Account created! Check your email to confirm, then sign in.';
+        btn.disabled = false;
+        btn.textContent = 'Enter The Forge';
+        setAuthMode('signin');
+      }
     }
-
-    clearTimeout(safetyTimer);
-    clearTimeout(warmupMsg);
-    errEl.textContent = '';
-
-    if (result.error) {
-      errEl.textContent = result.error.message === 'Email not confirmed'
-        ? 'Please confirm your email first, or ask the admin to confirm it.'
-        : result.error.message;
-      btn.disabled = false;
-      btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
-      return;
-    }
-
-    if (authMode === 'signup' && result.data?.user && !result.data?.session) {
-      errEl.style.color = 'var(--gold)';
-      errEl.textContent = 'Account created! Check your email to confirm, then sign in.';
-      btn.disabled = false;
-      btn.textContent = 'Enter The Forge';
-      setAuthMode('signin');
-      return;
-    }
-
-    // Success — onAuthStateChange handles the rest
-
   } catch(e) {
-    clearTimeout(safetyTimer);
     clearTimeout(warmupMsg);
-    errEl.textContent = 'Something went wrong: ' + e.message;
+    errEl.style.color = '#e57373';
+    errEl.textContent = e.message || 'Something went wrong. Try again.';
     btn.disabled = false;
     btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
   }
 }
 
 async function signOut() {
-  await sb.auth.signOut();
+  await sbSignOut();
+  clearSession();
   currentUser = null;
+  accessToken = null;
   D = {};
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('authEmail').value = '';
@@ -1571,30 +1626,26 @@ function mergeDefaults(data) {
 }
 
 async function loadData() {
-  // Try cloud first
-  const { data, error } = await sb.from('user_data').select('data').eq('id', currentUser.id).single();
-  if (data && data.data) {
-    D = mergeDefaults(data.data);
+  const cloudData = await sbGetData(currentUser.id);
+  if (cloudData) {
+    D = mergeDefaults(cloudData);
   } else {
-    // New user or error — check localStorage for migration
     try {
       const local = JSON.parse(localStorage.getItem(DATA_KEY));
       D = mergeDefaults(local || {});
     } catch(e) {
       D = mergeDefaults({});
     }
-    // Save initial data to cloud
-    await pushData();
+    await sbSaveData(currentUser.id);
   }
 }
 
 async function pushData() {
-  if (!currentUser) return;
-  await sb.from('user_data').upsert({ id: currentUser.id, data: D, updated_at: new Date().toISOString() });
+  if (!currentUser || !accessToken) return;
+  try { await sbSaveData(currentUser.id); } catch(e) {}
 }
 
 function saveData() {
-  // Debounce cloud saves — wait 1.5s after last change before pushing
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(pushData, 1500);
 }
@@ -2631,21 +2682,19 @@ function renderProgress() {
 // ========== INIT ==========
 async function init() {
   setDate();
-
-  // Listen for auth state changes
-  sb.auth.onAuthStateChange(async (event, session) => {
-    if (session?.user) {
-      currentUser = session.user;
+  // Check for existing session in localStorage
+  const saved = loadSession();
+  if (saved && saved.access_token && saved.user) {
+    accessToken = saved.access_token;
+    currentUser = saved.user;
+    try {
       await launchApp();
-    } else {
-      currentUser = null;
+    } catch(e) {
+      // Session expired — show login
+      clearSession();
       document.getElementById('authScreen').style.display = 'flex';
     }
-  });
-
-  // Check if already logged in
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
+  } else {
     document.getElementById('authScreen').style.display = 'flex';
   }
 }
