@@ -1450,31 +1450,51 @@ async function doAuth() {
   btn.disabled = true;
   btn.textContent = authMode==='signin' ? 'Signing In...' : 'Creating Account...';
   errEl.textContent = '';
+  errEl.style.color = '#e57373';
 
-  let result;
-  if (authMode === 'signin') {
-    result = await sb.auth.signInWithPassword({ email, password });
-  } else {
-    result = await sb.auth.signUp({ email, password });
-  }
-
-  if (result.error) {
-    errEl.textContent = result.error.message;
+  // Safety timeout — re-enable button after 10s if stuck
+  const safetyTimer = setTimeout(() => {
     btn.disabled = false;
     btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
-    return;
-  }
+    errEl.textContent = 'Request timed out. Check your connection and try again.';
+  }, 10000);
 
-  if (authMode === 'signup' && result.data?.user && !result.data?.session) {
-    errEl.style.color = 'var(--gold)';
-    errEl.textContent = 'Check your email to confirm your account, then sign in.';
+  try {
+    let result;
+    if (authMode === 'signin') {
+      result = await sb.auth.signInWithPassword({ email, password });
+    } else {
+      result = await sb.auth.signUp({ email, password });
+    }
+
+    clearTimeout(safetyTimer);
+
+    if (result.error) {
+      errEl.textContent = result.error.message === 'Email not confirmed'
+        ? 'Please confirm your email first, or ask the admin to confirm it.'
+        : result.error.message;
+      btn.disabled = false;
+      btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
+      return;
+    }
+
+    if (authMode === 'signup' && result.data?.user && !result.data?.session) {
+      errEl.style.color = 'var(--gold)';
+      errEl.textContent = 'Account created! Check your email to confirm, then sign in.';
+      btn.disabled = false;
+      btn.textContent = 'Enter The Forge';
+      setAuthMode('signin');
+      return;
+    }
+
+    // Success — onAuthStateChange handles the rest
+
+  } catch(e) {
+    clearTimeout(safetyTimer);
+    errEl.textContent = 'Something went wrong: ' + e.message;
     btn.disabled = false;
-    btn.textContent = 'Enter The Forge';
-    setAuthMode('signin');
-    return;
+    btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
   }
-
-  // Signed in successfully — handled by onAuthStateChange
 }
 
 async function signOut() {
