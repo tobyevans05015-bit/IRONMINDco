@@ -567,7 +567,8 @@ select.input-field{cursor:pointer;}
     display: none;
   }
   /* Overlay behind open sidebar */
-  .sb-overlay{
+  .sb-toggle{ display: none; }
+  
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.65);
@@ -653,7 +654,10 @@ select.input-field{cursor:pointer;}
 <div class="app-wrap" id="appWrap">
 
   <header class="topbar">
-    <span class="topbar-title" id="topbarTitle">Dashboard</span>
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <button onclick="toggleSidebar()" style="background:transparent;border:none;color:var(--gold);font-size:1.2rem;cursor:pointer;padding:0.25rem;line-height:1;">☰</button>
+      <span class="topbar-title" id="topbarTitle">Dashboard</span>
+    </div>
     <div class="topbar-meta">
       <span class="topbar-streak" id="topbarStreak">🔥 0 Day Streak</span>
       <span class="topbar-date" id="topbarDate"></span>
