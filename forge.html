@@ -527,6 +527,9 @@ select.input-field{cursor:pointer;}
   text-shadow:0 0 60px rgba(201,168,76,.2);
 }
 
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:199;}
+.sb-overlay.active{display:block;}
+
 /* ================================================
    RESPONSIVE
    ================================================ */
@@ -535,12 +538,73 @@ select.input-field{cursor:pointer;}
   .content{padding:1.2rem;}
   .form-row-2,.form-row-3{grid-template-columns:1fr;}
 }
-@media(max-width:640px){
-  .sb{width:var(--sb-c);}
-  .app-wrap{margin-left:var(--sb-c);}
-  .sb.expanded{width:var(--sb-w);}
-  .app-wrap.sb-expanded{margin-left:var(--sb-w);}
+
+/* MOBILE — sidebar becomes a slide-in overlay */
+@media(max-width:768px){
+  .sb{
+    transform: translateX(-100%);
+    width: var(--sb-w) !important;
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    box-shadow: none;
+  }
+  .sb.mobile-open{
+    transform: translateX(0);
+    box-shadow: 4px 0 40px rgba(0,0,0,0.6);
+  }
+  .app-wrap{
+    margin-left: 0 !important;
+  }
+  .topbar{
+    padding: 0.75rem 1rem;
+  }
+  .topbar-title{
+    font-size: 0.7rem;
+  }
+  .topbar-meta{
+    gap: 0.75rem;
+  }
+  .topbar-date{
+    display: none;
+  }
+  /* Overlay behind open sidebar */
+  .sb-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 199;
+    display: none;
+  }
+  .sb-overlay.active{
+    display: block;
+  }
+  .content{
+    padding: 1rem;
+  }
+  .page-title{
+    font-size: 1.4rem;
+  }
+  .tab-row{
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-btn{
+    font-size: 0.5rem;
+    padding: 0.65rem 0.9rem;
+  }
+  .forge-score-big{
+    font-size: 3.5rem;
+  }
+  .sov-score{
+    font-size: 3rem;
+  }
+  .streak-num{
+    font-size: 2.2rem;
+  }
+  .timer-display{
+    font-size: 2.8rem;
+  }
 }
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
 }
@@ -583,7 +647,8 @@ select.input-field{cursor:pointer;}
   </div>
 </nav>
 
-<!-- ================================================
+<!-- Mobile overlay -->
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
      MAIN APP
      ================================================ -->
 <div class="app-wrap" id="appWrap">
@@ -1377,10 +1442,25 @@ function showToast(msg) {
 
 // ========== SIDEBAR ==========
 let sidebarCollapsed = false;
+const isMobile = () => window.innerWidth <= 768;
+
 function toggleSidebar() {
-  sidebarCollapsed = !sidebarCollapsed;
-  document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
-  document.getElementById('appWrap').classList.toggle('sb-collapsed', sidebarCollapsed);
+  if (isMobile()) {
+    const sb = document.getElementById('sidebar');
+    const overlay = document.getElementById('sbOverlay');
+    const isOpen = sb.classList.contains('mobile-open');
+    sb.classList.toggle('mobile-open', !isOpen);
+    overlay.classList.toggle('active', !isOpen);
+  } else {
+    sidebarCollapsed = !sidebarCollapsed;
+    document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+    document.getElementById('appWrap').classList.toggle('sb-collapsed', sidebarCollapsed);
+  }
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sbOverlay').classList.remove('active');
 }
 
 function updateSidebar() {
@@ -1408,6 +1488,8 @@ function showPage(id) {
   if (navEl) navEl.classList.add('active');
   document.getElementById('topbarTitle').textContent = PAGE_TITLES[id] || id;
   window.scrollTo(0,0);
+  // Close sidebar on mobile after navigation
+  if (isMobile()) closeSidebar();
   // Render page on show
   const renders = { dashboard:renderDashboard, mind:renderMind, body:renderBody, shadow:renderShadow, wealth:renderWealth, purpose:renderPurpose, progress:renderProgress };
   if (renders[id]) renders[id]();
