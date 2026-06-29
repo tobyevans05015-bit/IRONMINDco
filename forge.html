@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Iron Forge Mk.II</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 /* ================================================
@@ -1423,7 +1423,13 @@ select.input-field{cursor:pointer;}
 // ========== SUPABASE ==========
 const SUPABASE_URL = 'https://yiadmxoafcyxeqjpvxfq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpYWRteG9hZmN5eGVxanB2eGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjUwMTgsImV4cCI6MjA5ODMwMTAxOH0.z--MpEskebYS6vVRrqzj3qEnlnYDnBHFFuaJ0uquVmU';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let sb;
+try {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch(e) {
+  document.getElementById('authError').textContent = 'Failed to load connection library. Try refreshing.';
+}
 let currentUser = null;
 let saveTimeout = null;
 
@@ -1452,12 +1458,17 @@ async function doAuth() {
   errEl.textContent = '';
   errEl.style.color = '#e57373';
 
-  // Safety timeout — re-enable button after 10s if stuck
+  // Safety timeout — re-enable button after 30s if stuck
   const safetyTimer = setTimeout(() => {
     btn.disabled = false;
     btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
     errEl.textContent = 'Request timed out. Check your connection and try again.';
-  }, 10000);
+  }, 30000);
+
+  // Show warming up message after 5s
+  const warmupMsg = setTimeout(() => {
+    if (btn.disabled) errEl.style.color = 'var(--gold)', errEl.textContent = 'Server warming up, please wait...';
+  }, 5000);
 
   try {
     let result;
@@ -1468,6 +1479,8 @@ async function doAuth() {
     }
 
     clearTimeout(safetyTimer);
+    clearTimeout(warmupMsg);
+    errEl.textContent = '';
 
     if (result.error) {
       errEl.textContent = result.error.message === 'Email not confirmed'
@@ -1491,6 +1504,7 @@ async function doAuth() {
 
   } catch(e) {
     clearTimeout(safetyTimer);
+    clearTimeout(warmupMsg);
     errEl.textContent = 'Something went wrong: ' + e.message;
     btn.disabled = false;
     btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
