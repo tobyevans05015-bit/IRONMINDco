@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Iron Forge Mk.II</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 /* ================================================
@@ -609,9 +610,99 @@ select.input-field{cursor:pointer;}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
 }
+/* ================================================
+   AUTH SCREEN
+   ================================================ */
+.auth-screen{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--void);
+  display:flex;align-items:center;justify-content:center;
+  padding:1.5rem;
+}
+.auth-box{
+  width:100%;max-width:420px;
+  background:var(--iron);border:1px solid var(--border);
+  padding:3rem 2.5rem;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;
+}
+.auth-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.auth-emblem{
+  width:64px;height:64px;border:1.5px solid var(--gold);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:1rem;font-weight:700;color:var(--gold);
+  margin-bottom:1.5rem;
+}
+.auth-title{
+  font-family:var(--font-d);font-size:1.4rem;font-weight:900;
+  letter-spacing:0.18em;color:var(--white);text-transform:uppercase;
+  margin-bottom:0.3rem;
+}
+.auth-subtitle{
+  font-family:var(--font-d);font-size:0.52rem;letter-spacing:0.32em;
+  color:var(--gold-deep);text-transform:uppercase;margin-bottom:2rem;
+}
+.auth-toggle{
+  display:flex;width:100%;
+  border:1px solid var(--border);margin-bottom:1.75rem;
+}
+.auth-toggle-btn{
+  flex:1;padding:0.65rem;
+  font-family:var(--font-d);font-size:0.55rem;letter-spacing:0.2em;
+  text-transform:uppercase;cursor:pointer;border:none;
+  background:transparent;color:var(--dim);transition:all .2s;
+}
+.auth-toggle-btn.active{background:var(--gold-glow);color:var(--gold);}
+.auth-fields{width:100%;display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.25rem;}
+.auth-btn{
+  width:100%;
+  font-family:var(--font-d);font-size:0.62rem;font-weight:700;
+  letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--void);background:var(--gold);
+  border:none;padding:0.95rem;cursor:pointer;
+  transition:background .2s;margin-bottom:0.75rem;
+}
+.auth-btn:hover{background:var(--gold-pale);}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;}
+.auth-error{
+  font-size:0.75rem;color:#e57373;text-align:center;
+  min-height:1.2rem;margin-top:0.25rem;
+}
+.auth-note{
+  font-size:0.7rem;color:var(--dim);text-align:center;margin-top:0.5rem;
+  line-height:1.6;
+}
 </style>
 </head>
 <body>
+
+<!-- ================================================
+     AUTH SCREEN
+     ================================================ -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-box">
+    <div class="auth-emblem">IF</div>
+    <div class="auth-title">Iron Forge</div>
+    <div class="auth-subtitle">Mk.II — Enter The Forge</div>
+
+    <div class="auth-toggle">
+      <button class="auth-toggle-btn active" id="signinBtn" onclick="setAuthMode('signin')">Sign In</button>
+      <button class="auth-toggle-btn" id="signupBtn" onclick="setAuthMode('signup')">Create Account</button>
+    </div>
+
+    <div class="auth-fields">
+      <input class="input-field" type="email" id="authEmail" placeholder="Email address" autocomplete="email"/>
+      <input class="input-field" type="password" id="authPassword" placeholder="Password (min. 6 characters)" autocomplete="current-password"/>
+    </div>
+
+    <button class="auth-btn" id="authSubmitBtn" onclick="doAuth()">Enter The Forge</button>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-note">Your progress is saved to your account and accessible on any device.</div>
+  </div>
+</div>
 
 <!-- ================================================
      SIDEBAR
@@ -645,6 +736,10 @@ select.input-field{cursor:pointer;}
     <div class="sb-rank-name" id="sbRankName">◦ Initiate</div>
     <div class="sb-xp-bar"><div class="sb-xp-fill" id="sbXpFill" style="width:0%"></div></div>
     <div class="sb-xp-label" id="sbXpLabel">0 XP</div>
+    <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border);">
+      <div style="font-size:0.62rem;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0.5rem;" id="sbUserEmail"></div>
+      <button onclick="signOut()" style="font-family:var(--font-d);font-size:0.5rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim);background:transparent;border:1px solid var(--border);padding:0.35rem 0.75rem;cursor:pointer;width:100%;transition:all .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--dim)'">Sign Out</button>
+    </div>
   </div>
 </nav>
 
@@ -1325,6 +1420,76 @@ select.input-field{cursor:pointer;}
      JAVASCRIPT
      ================================================ -->
 <script>
+// ========== SUPABASE ==========
+const SUPABASE_URL = 'https://yiadmxoafcyxeqjpvxfq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SLSyeEhR-RMWsvYZUuuBnw_OWvNUyKC';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
+let saveTimeout = null;
+
+// ========== AUTH ==========
+let authMode = 'signin';
+
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('signinBtn').classList.toggle('active', mode==='signin');
+  document.getElementById('signupBtn').classList.toggle('active', mode==='signup');
+  document.getElementById('authSubmitBtn').textContent = mode==='signin' ? 'Enter The Forge' : 'Create Account';
+  document.getElementById('authError').textContent = '';
+}
+
+async function doAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authSubmitBtn');
+  const errEl = document.getElementById('authError');
+
+  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
+  if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+
+  btn.disabled = true;
+  btn.textContent = authMode==='signin' ? 'Signing In...' : 'Creating Account...';
+  errEl.textContent = '';
+
+  let result;
+  if (authMode === 'signin') {
+    result = await sb.auth.signInWithPassword({ email, password });
+  } else {
+    result = await sb.auth.signUp({ email, password });
+  }
+
+  if (result.error) {
+    errEl.textContent = result.error.message;
+    btn.disabled = false;
+    btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
+    return;
+  }
+
+  if (authMode === 'signup' && result.data?.user && !result.data?.session) {
+    errEl.style.color = 'var(--gold)';
+    errEl.textContent = 'Check your email to confirm your account, then sign in.';
+    btn.disabled = false;
+    btn.textContent = 'Enter The Forge';
+    setAuthMode('signin');
+    return;
+  }
+
+  // Signed in successfully — handled by onAuthStateChange
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  currentUser = null;
+  D = {};
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+  document.getElementById('authSubmitBtn').disabled = false;
+  document.getElementById('authSubmitBtn').textContent = 'Enter The Forge';
+  document.getElementById('authError').textContent = '';
+  setAuthMode('signin');
+}
+
 // ========== DATA ==========
 const DATA_KEY = 'iron_forge_v2';
 
@@ -1358,19 +1523,57 @@ const DEFAULT_DATA = {
 };
 
 let D = {};
-function loadData() {
-  try { D = JSON.parse(localStorage.getItem(DATA_KEY)) || {}; }
-  catch(e) { D = {}; }
-  // Deep merge defaults
+
+function mergeDefaults(data) {
+  const merged = {};
   Object.keys(DEFAULT_DATA).forEach(k => {
-    if (D[k] === undefined || D[k] === null) D[k] = JSON.parse(JSON.stringify(DEFAULT_DATA[k]));
+    merged[k] = (data[k] !== undefined && data[k] !== null) ? data[k] : JSON.parse(JSON.stringify(DEFAULT_DATA[k]));
   });
-  if (!D.pillars) D.pillars = JSON.parse(JSON.stringify(DEFAULT_DATA.pillars));
+  if (!merged.pillars) merged.pillars = JSON.parse(JSON.stringify(DEFAULT_DATA.pillars));
   ['mind','body','shadow','wealth','purpose'].forEach(p => {
-    if (!D.pillars[p]) D.pillars[p] = { mastery: 0, xp: 0 };
+    if (!merged.pillars[p]) merged.pillars[p] = { mastery: 0, xp: 0 };
   });
+  return merged;
 }
-function saveData() { localStorage.setItem(DATA_KEY, JSON.stringify(D)); }
+
+async function loadData() {
+  // Try cloud first
+  const { data, error } = await sb.from('user_data').select('data').eq('id', currentUser.id).single();
+  if (data && data.data) {
+    D = mergeDefaults(data.data);
+  } else {
+    // New user or error — check localStorage for migration
+    try {
+      const local = JSON.parse(localStorage.getItem(DATA_KEY));
+      D = mergeDefaults(local || {});
+    } catch(e) {
+      D = mergeDefaults({});
+    }
+    // Save initial data to cloud
+    await pushData();
+  }
+}
+
+async function pushData() {
+  if (!currentUser) return;
+  await sb.from('user_data').upsert({ id: currentUser.id, data: D, updated_at: new Date().toISOString() });
+}
+
+function saveData() {
+  // Debounce cloud saves — wait 1.5s after last change before pushing
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(pushData, 1500);
+}
+
+async function launchApp() {
+  await loadData();
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('sbUserEmail').textContent = currentUser.email;
+  setDate();
+  updateSidebar();
+  renderDashboard();
+  if (D.blueprint) loadBlueprint();
+}
 
 // ========== RANKS ==========
 const RANKS = [
@@ -2392,13 +2595,25 @@ function renderProgress() {
 }
 
 // ========== INIT ==========
-function init() {
-  loadData();
+async function init() {
   setDate();
-  updateSidebar();
-  renderDashboard();
-  // Restore blueprint fields if saved
-  if (D.blueprint) loadBlueprint();
+
+  // Listen for auth state changes
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) {
+      currentUser = session.user;
+      await launchApp();
+    } else {
+      currentUser = null;
+      document.getElementById('authScreen').style.display = 'flex';
+    }
+  });
+
+  // Check if already logged in
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    document.getElementById('authScreen').style.display = 'flex';
+  }
 }
 
 init();
