@@ -16,6 +16,8 @@
   --gold-dim:#9a7a32;
   --gold-bright:#e0c068;
   --gold-faint:rgba(201,168,76,0.12);
+  --gold-glow:rgba(201,168,76,0.10);
+  --gold-pale:#E8D5A3;
   --marble:#ece7da;
   --marble-dim:rgba(236,231,218,0.55);
   --bg:#0a0a0a;
@@ -35,7 +37,8 @@
   --font-display:'Cinzel',serif;
 }
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;-webkit-tap-highlight-color:transparent}
-#app{height:100%;display:flex;flex-direction:column;overflow:hidden}
+#app{height:100%;display:none;flex-direction:column;overflow:hidden}
+#app.app-visible{display:flex}
 /* SCROLLABLE CONTENT */
 .page{display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(var(--nav-h) + 16px);-webkit-overflow-scrolling:touch}
 .page.active{display:block}
@@ -221,9 +224,107 @@ textarea.notes{resize:none;min-height:56px;font-size:13px;margin-top:8px}
 /* Confirmation dialog */
 .confirm-btns{display:flex;gap:10px;margin-top:16px}
 .confirm-btns .btn{flex:1}
+/* ================================================
+   AUTH SCREEN
+   ================================================ */
+.auth-screen{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  padding:1.5rem;
+}
+.auth-box{
+  width:100%;max-width:420px;
+  background:var(--surface);border:1px solid var(--gold-border);
+  padding:3rem 2.5rem;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;
+}
+.auth-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.auth-emblem{
+  width:64px;height:64px;border:1.5px solid var(--gold);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--gold);
+  margin-bottom:1.5rem;
+}
+.auth-title{
+  font-family:var(--font-display);font-size:1.4rem;font-weight:800;
+  letter-spacing:0.18em;color:var(--text);text-transform:uppercase;
+  margin-bottom:0.3rem;
+}
+.auth-subtitle{
+  font-family:var(--font-display);font-size:0.52rem;letter-spacing:0.32em;
+  color:var(--gold-dim);text-transform:uppercase;margin-bottom:2rem;
+}
+.auth-toggle{
+  display:flex;width:100%;
+  border:1px solid var(--gold-border);margin-bottom:1.75rem;
+}
+.auth-toggle-btn{
+  flex:1;padding:0.65rem;
+  font-family:var(--font-display);font-size:0.55rem;letter-spacing:0.2em;
+  text-transform:uppercase;cursor:pointer;border:none;
+  background:transparent;color:var(--text2);transition:all .2s;
+}
+.auth-toggle-btn.active{background:var(--gold-glow);color:var(--gold);}
+.auth-fields{width:100%;display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.25rem;}
+.input-field{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);font-family:'Inter',sans-serif;font-size:0.85rem;
+  padding:0.65rem 0.9rem;outline:none;transition:border-color .2s;
+}
+.input-field:focus{border-color:var(--gold);}
+.input-field::placeholder{color:rgba(240,240,240,.28);}
+.auth-btn{
+  width:100%;
+  font-family:var(--font-display);font-size:0.62rem;font-weight:700;
+  letter-spacing:0.22em;text-transform:uppercase;
+  color:#000;background:var(--gold);
+  border:none;padding:0.95rem;cursor:pointer;
+  transition:background .2s;margin-bottom:0.75rem;
+}
+.auth-btn:hover{background:var(--gold-pale);}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;}
+.auth-error{
+  font-size:0.75rem;color:#e57373;text-align:center;
+  min-height:1.2rem;margin-top:0.25rem;
+}
+.auth-note{
+  font-size:0.7rem;color:var(--text2);text-align:center;margin-top:0.5rem;
+  line-height:1.6;
+}
 </style>
 </head>
 <body>
+
+<!-- ================================================
+     AUTH SCREEN
+     ================================================ -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-box">
+    <div class="auth-emblem">IL</div>
+    <div class="auth-title">Iron Lifts</div>
+    <div class="auth-subtitle">Track The Work</div>
+
+    <div class="auth-toggle">
+      <button class="auth-toggle-btn active" id="signinBtn" onclick="setAuthMode('signin')">Sign In</button>
+      <button class="auth-toggle-btn" id="signupBtn" onclick="setAuthMode('signup')">Create Account</button>
+    </div>
+
+    <div class="auth-fields">
+      <input class="input-field" type="email" id="authEmail" placeholder="Email address" autocomplete="email"/>
+      <input class="input-field" type="password" id="authPassword" placeholder="Password (min. 6 characters)" autocomplete="current-password"/>
+    </div>
+
+    <button class="auth-btn" id="authSubmitBtn" onclick="doAuth()">Enter Iron Lifts</button>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-note">Your progress is saved to your account and accessible on any device.</div>
+  </div>
+</div>
+
 <div id="app">
   <!-- PAGES -->
   <div class="page active" id="page-home"></div>
@@ -455,6 +556,209 @@ function saveState(){
   save('il_sessions',state.sessions);
   save('il_settings',state.settings);
   save('il_muscle_data',state.muscleData);
+  queueCloudSave();
+}
+
+// ─── SUPABASE REST API (no library) ────────────────────────────────────────────
+const SB_URL = 'https://yiadmxoafcyxeqjpvxfq.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpYWRteG9hZmN5eGVxanB2eGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjUwMTgsImV4cCI6MjA5ODMwMTAxOH0.z--MpEskebYS6vVRrqzj3qEnlnYDnBHFFuaJ0uquVmU';
+const SESSION_KEY = 'il_session';
+
+let currentUser = null;
+let accessToken = null;
+let cloudSaveTimeout = null;
+
+function sbHeaders(token){
+  return {
+    'apikey': SB_KEY,
+    'Authorization': `Bearer ${token || SB_KEY}`,
+    'Content-Type': 'application/json'
+  };
+}
+
+async function sbSignIn(email,password){
+  const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`,{
+    method:'POST',
+    headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({email,password})
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error_description||data.message||data.msg||'Sign in failed');
+  return data;
+}
+
+async function sbSignUp(email,password){
+  const res = await fetch(`${SB_URL}/auth/v1/signup`,{
+    method:'POST',
+    headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({email,password})
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error_description||data.message||data.msg||'Sign up failed');
+  return data;
+}
+
+async function sbGetData(userId){
+  const res = await fetch(`${SB_URL}/rest/v1/iron_lifts_data?id=eq.${userId}&select=data`,{
+    headers:sbHeaders(accessToken)
+  });
+  const rows = await res.json();
+  return Array.isArray(rows) && rows[0] ? rows[0].data : null;
+}
+
+async function sbSaveData(userId){
+  await fetch(`${SB_URL}/rest/v1/iron_lifts_data`,{
+    method:'POST',
+    headers:{...sbHeaders(accessToken),'Prefer':'resolution=merge-duplicates'},
+    body:JSON.stringify({id:userId,data:state,updated_at:new Date().toISOString()})
+  });
+}
+
+async function sbSignOut(){
+  try{
+    await fetch(`${SB_URL}/auth/v1/logout`,{method:'POST',headers:sbHeaders(accessToken)});
+  }catch(e){}
+}
+
+function saveSession(data){
+  localStorage.setItem(SESSION_KEY,JSON.stringify({access_token:data.access_token,user:data.user}));
+}
+function loadSession(){
+  try{return JSON.parse(localStorage.getItem(SESSION_KEY))}catch(e){return null}
+}
+function clearSession(){
+  localStorage.removeItem(SESSION_KEY);
+}
+
+async function pushCloudData(){
+  if(!currentUser||!accessToken) return;
+  try{await sbSaveData(currentUser.id)}catch(e){}
+}
+function queueCloudSave(){
+  if(!currentUser||!accessToken) return; // not logged in yet during initial local-only renders
+  clearTimeout(cloudSaveTimeout);
+  cloudSaveTimeout = setTimeout(pushCloudData,1500);
+}
+
+function mergeCloudState(cloudData){
+  // cloudData has the same shape as `state` — merge over current local defaults
+  if(!cloudData) return;
+  Object.keys(state).forEach(k=>{
+    if(cloudData[k]!==undefined && cloudData[k]!==null) state[k]=cloudData[k];
+  });
+}
+
+async function loadCloudData(){
+  const cloudData = await sbGetData(currentUser.id);
+  if(cloudData){
+    mergeCloudState(cloudData);
+    saveState(); // mirror cloud copy into localStorage for offline access
+  }else{
+    // first login on this account — push current local state up as the seed copy
+    await sbSaveData(currentUser.id);
+  }
+}
+
+// ─── AUTH ───────────────────────────────────────────────────────────────────────
+let authMode = 'signin';
+
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('signinBtn').classList.toggle('active',mode==='signin');
+  document.getElementById('signupBtn').classList.toggle('active',mode==='signup');
+  document.getElementById('authSubmitBtn').textContent = mode==='signin' ? 'Enter Iron Lifts' : 'Create Account';
+  document.getElementById('authError').textContent = '';
+  document.getElementById('authError').style.color = '#e57373';
+}
+
+async function doAuth(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authSubmitBtn');
+  const errEl = document.getElementById('authError');
+
+  if(!email||!password){errEl.textContent='Enter your email and password.';return}
+  if(password.length<6){errEl.textContent='Password must be at least 6 characters.';return}
+
+  btn.disabled = true;
+  btn.textContent = authMode==='signin' ? 'Signing In...' : 'Creating Account...';
+  errEl.textContent = '';
+  errEl.style.color = '#e57373';
+
+  const warmupMsg = setTimeout(()=>{
+    errEl.style.color = 'var(--gold)';
+    errEl.textContent = 'Connecting to server...';
+  },4000);
+
+  try{
+    if(authMode==='signin'){
+      const data = await sbSignIn(email,password);
+      clearTimeout(warmupMsg);
+      accessToken = data.access_token;
+      currentUser = data.user;
+      saveSession(data);
+      await launchApp();
+    }else{
+      const data = await sbSignUp(email,password);
+      clearTimeout(warmupMsg);
+      if(data.access_token){
+        accessToken = data.access_token;
+        currentUser = data.user;
+        saveSession(data);
+        await launchApp();
+      }else{
+        errEl.style.color = 'var(--gold)';
+        errEl.textContent = 'Account created! Check your email to confirm, then sign in.';
+        btn.disabled = false;
+        btn.textContent = 'Enter Iron Lifts';
+        setAuthMode('signin');
+      }
+    }
+  }catch(e){
+    clearTimeout(warmupMsg);
+    errEl.style.color = '#e57373';
+    errEl.textContent = e.message || 'Something went wrong. Try again.';
+    btn.disabled = false;
+    btn.textContent = authMode==='signin' ? 'Enter Iron Lifts' : 'Create Account';
+  }
+}
+
+async function signOut(){
+  await sbSignOut();
+  clearSession();
+  currentUser = null;
+  accessToken = null;
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('app').classList.remove('app-visible');
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+  document.getElementById('authSubmitBtn').disabled = false;
+  document.getElementById('authSubmitBtn').textContent = 'Enter Iron Lifts';
+  document.getElementById('authError').textContent = '';
+  setAuthMode('signin');
+}
+
+async function launchApp(){
+  await loadCloudData();
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('app').classList.add('app-visible');
+  renderHome();
+}
+
+async function initAuth(){
+  const saved = loadSession();
+  if(saved && saved.access_token && saved.user){
+    accessToken = saved.access_token;
+    currentUser = saved.user;
+    try{
+      await launchApp();
+    }catch(e){
+      clearSession();
+      document.getElementById('authScreen').style.display = 'flex';
+    }
+  }else{
+    document.getElementById('authScreen').style.display = 'flex';
+  }
 }
 
 function allExercises(){return[...PRESET_EXERCISES,...state.customExercises]}
@@ -1167,6 +1471,12 @@ function renderSettings(){
     </div>
 
     <div class="card" style="margin-bottom:12px">
+      <h3 style="margin-bottom:14px">Account</h3>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;word-break:break-all">${currentUser?currentUser.email:''}</div>
+      <button class="btn btn-outline btn-full" onclick="signOut()">Sign Out</button>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
       <h3 style="margin-bottom:14px">Data</h3>
       <button class="btn btn-danger btn-full" onclick="confirmClearAll()">Clear All Data</button>
     </div>
@@ -1179,8 +1489,8 @@ function renderSettings(){
 
 function confirmClearAll(){
   showConfirm('Clear all data?','This will permanently delete all splits, sessions, and custom exercises. This cannot be undone.',()=>{
-    localStorage.clear();
-    state={splits:[],customExercises:[],sessions:[],settings:{activeSplitId:null,restTime:90,unit:'kg'}};
+    state={splits:[],customExercises:[],sessions:[],settings:{activeSplitId:null,restTime:90,unit:'kg'},muscleData:{}};
+    saveState();
     renderPage(currentPage);
   },'Clear All');
 }
@@ -1566,7 +1876,7 @@ function showConfirm(title, msg, cb, btnLabel='Delete'){
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-renderHome();
+initAuth();
 </script>
 </body>
 </html>
