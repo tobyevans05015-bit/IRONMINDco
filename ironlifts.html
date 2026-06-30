@@ -869,7 +869,7 @@ function setMuscleManual(muscle,val){
 
 function bodyFigureSVG(view){
   const levels=getMuscleLevels();
-  const op=m=>(0.10+(levels[m]/100)*0.55).toFixed(2);
+  const op=m=>(0.05+(levels[m]/100)*0.82).toFixed(2);
   const img=view==='front'?BODY_IMG_FRONT:BODY_IMG_BACK;
   const zones=view==='front'?[
     {m:'Shoulders',x:0.22,y:0.155,w:0.56,h:0.06,r:'30%'},
@@ -888,7 +888,7 @@ function bodyFigureSVG(view){
     {m:'Legs',x:0.24,y:0.51,w:0.52,h:0.42,r:'14%'}
   ];
   const overlays=zones.map(z=>
-    `<div style="position:absolute;left:${z.x*100}%;top:${z.y*100}%;width:${z.w*100}%;height:${z.h*100}%;background:var(--gold);opacity:${op(z.m)};border-radius:${z.r};filter:blur(2.5px);mix-blend-mode:soft-light;pointer-events:none"></div>`
+    `<div style="position:absolute;left:${z.x*100}%;top:${z.y*100}%;width:${z.w*100}%;height:${z.h*100}%;background:var(--gold);opacity:${op(z.m)};border-radius:${z.r};filter:blur(2.5px);mix-blend-mode:multiply;pointer-events:none"></div>`
   ).join('');
   return`<div style="position:relative;width:100%;max-width:220px;margin:0 auto">
     <img src="${img}" style="width:100%;display:block;filter:brightness(0.9) contrast(1.05)" alt="${view==='front'?'Front':'Back'} body muscle development"/>
