@@ -854,10 +854,10 @@ function getMuscleLevels(){
 }
 
 function muscleColor(level){
-  if(level>=75)return'var(--gold-bright)';
-  if(level>=50)return'var(--gold)';
-  if(level>=25)return'var(--gold-dim)';
-  return'#3a3326';
+  if(level>=75)return'#60a5fa';
+  if(level>=50)return'#3b82f6';
+  if(level>=25)return'#1d4ed8';
+  return'#1e3a5f';
 }
 
 function setMuscleManual(muscle,val){
@@ -869,7 +869,15 @@ function setMuscleManual(muscle,val){
 
 function bodyFigureSVG(view){
   const levels=getMuscleLevels();
-  const gold=(m)=>`rgba(201,168,76,${(levels[m]/100*0.75).toFixed(2)})`;
+  const gold=(m)=>{
+    const t=levels[m]/100;
+    // Blue scale: dim steel blue at low levels → vivid electric blue at high
+    const r=Math.round(20+t*55);
+    const g=Math.round(60+t*105);
+    const b=Math.round(120+t*135);
+    const a=(0.25+t*0.65).toFixed(2);
+    return`rgba(${r},${g},${b},${a})`;
+  };
   const img=view==='front'?BODY_IMG_FRONT:BODY_IMG_BACK;
   const w=view==='front'?400:400;
   const h=view==='front'?841:877;
@@ -921,10 +929,10 @@ function renderMuscleChart(){
         </div>
       </div>
       <div class="muscle-legend">
-        <div class="muscle-legend-item"><span class="muscle-legend-swatch" style="background:var(--gold-bright)"></span>Strong</div>
-        <div class="muscle-legend-item"><span class="muscle-legend-swatch" style="background:var(--gold)"></span>Developing</div>
-        <div class="muscle-legend-item"><span class="muscle-legend-swatch" style="background:var(--gold-dim)"></span>Lagging</div>
-        <div class="muscle-legend-item"><span class="muscle-legend-swatch" style="background:#3a3326"></span>Minimal data</div>
+        <div class="muscle-legend-item"><span class="muscle-legend-swatch" style="background:#60a5fa"></span>Strong</div>
+        <div class="muscle-legend-item"><span class="muscle-legend-swatch" style="background:#3b82f6"></span>Developing</div>
+        <div class="muscle-legend-item"><span class="muscle-legend-swatch" style="background:#1d4ed8"></span>Lagging</div>
+        <div class="muscle-legend-item"><span class="muscle-legend-swatch" style="background:#1e3a5f"></span>Minimal data</div>
       </div>
       <div class="divider"></div>
       <h3 style="margin-bottom:2px">Self-Assessment</h3>
