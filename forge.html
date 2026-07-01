@@ -2458,14 +2458,17 @@ function renderArchetypeManualSliders(scores) {
   var manual = D.archetypeManual || { king:0, warrior:0, magician:0, lover:0 };
   el.innerHTML = ['king','warrior','magician','lover'].map(function(k) {
     var m = ARCHETYPE_META[k];
+    var valId = 'manualVal_' + k;
+    var sliderId = 'manualSlider_' + k;
     return '<div style="margin-bottom:1rem;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">' +
       '<label style="font-family:var(--font-d);font-size:0.6rem;letter-spacing:0.15em;color:' + m.color + ';">' + m.icon + ' ' + m.label.toUpperCase() + '</label>' +
-      '<span id="manualVal_' + k + '" style="font-size:0.7rem;color:var(--gold);font-family:var(--font-d);">' + (manual[k]||0) + '</span>' +
+      '<span id="' + valId + '" style="font-size:0.7rem;color:var(--gold);font-family:var(--font-d);">' + (manual[k]||0) + '</span>' +
       '</div>' +
-      '<input type="range" id="manualSlider_' + k + '" min="-20" max="50" value="' + (manual[k]||0) + '"' +
+      '<input type="range" id="' + sliderId + '" min="-20" max="50" value="' + (manual[k]||0) + '"' +
+      ' data-val="' + valId + '"' +
       ' style="width:100%;accent-color:var(--gold);"' +
-      ' oninput="document.getElementById('manualVal_' + k + '').textContent=this.value"/>' +
+      ' oninput="document.getElementById(this.dataset.val).textContent=this.value"/>' +
       '<div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--dim);margin-top:0.2rem;">' +
       '<span>Weaker than quiz suggests</span><span>Stronger</span>' +
       '</div>' +
