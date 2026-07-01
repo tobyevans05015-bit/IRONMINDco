@@ -714,8 +714,8 @@ select.input-field{cursor:pointer;}
     </div>
 
     <div class="auth-fields">
-      <input class="input-field" type="email" id="authEmail" placeholder="Email address" autocomplete="email"/>
-      <input class="input-field" type="password" id="authPassword" placeholder="Password (min. 6 characters)" autocomplete="current-password"/>
+      <input class="input-field" type="email" id="authEmail" placeholder="Email address" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('authPassword').focus()"/>
+      <input class="input-field" type="password" id="authPassword" placeholder="Password (min. 6 characters)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"/>
     </div>
 
     <button class="auth-btn" id="authSubmitBtn" onclick="doAuth()">Enter The Forge</button>
@@ -1875,7 +1875,6 @@ function switchTab(btn, panelId) {
   const container = btn.closest('.tab-row');
   container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // Only hide sibling panels — the parent element of the tab-row
   const parent = container.parentElement;
   parent.querySelectorAll(':scope > .tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-'+panelId).classList.add('active');
@@ -2466,7 +2465,7 @@ function renderArchetypeManualSliders(scores) {
       '</div>' +
       '<input type="range" id="manualSlider_' + k + '" min="-20" max="50" value="' + (manual[k]||0) + '"' +
       ' style="width:100%;accent-color:var(--gold);"' +
-      ' oninput="document.getElementById('manualVal_' + k + '').textContent=this.value"/>' +
+      ' oninput="document.getElementById(this.dataset.val).textContent=this.value"/>' +
       '<div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--dim);margin-top:0.2rem;">' +
       '<span>Weaker than quiz suggests</span><span>Stronger</span>' +
       '</div>' +
