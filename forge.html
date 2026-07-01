@@ -858,6 +858,12 @@ select.input-field{cursor:pointer;}
         <h1 class="page-title">The <span class="g">Mind</span></h1>
       </div>
 
+      <div class="tab-row" style="margin-bottom:1.25rem;">
+        <button class="tab-btn active" onclick="switchTab(this,'mind-main')">Journal</button>
+        <button class="tab-btn" onclick="switchTab(this,'mind-meditation')">Meditation</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-mind-main">
       <div class="grid-2">
         <!-- Daily Quote -->
         <div class="card card-large">
@@ -904,6 +910,43 @@ select.input-field{cursor:pointer;}
           </div>
         </div>
       </div>
+      </div><!-- /tab-mind-main -->
+
+      <div class="tab-panel" id="tab-mind-meditation">
+        <div class="grid-2">
+          <div class="card card-large">
+            <span class="card-title">🧘 Log Meditation</span>
+            <div style="font-size:0.78rem;color:var(--dim);margin-bottom:1rem;line-height:1.6;">Stillness is a weapon. Log your practice — each session builds the Lover and Magician archetypes.</div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Duration (minutes)</label>
+              <input class="input-field" id="meditationDuration" type="number" min="1" placeholder="e.g. 20"/>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label class="form-label">Style</label>
+              <select class="input-field" id="meditationStyle">
+                <option value="">Select style...</option>
+                <option>Breathwork</option>
+                <option>Mindfulness</option>
+                <option>Visualisation</option>
+                <option>Body Scan</option>
+                <option>Transcendental</option>
+                <option>Shadow Work</option>
+                <option>Silent Sitting</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label">Notes (optional)</label>
+              <textarea class="input-field" id="meditationNotes" rows="3" placeholder="What came up? What shifted?"></textarea>
+            </div>
+            <button class="btn btn-solid btn-sm" onclick="saveMeditation()">Log Meditation (+40 XP)</button>
+          </div>
+          <div class="card card-large">
+            <span class="card-title">📋 Meditation History</span>
+            <div class="entry-list" id="meditationHistory"><div class="empty"><span class="empty-icon">🧘</span>No sessions logged yet.</div></div>
+          </div>
+        </div>
+      </div><!-- /tab-mind-meditation -->
+
     </div><!-- /mind -->
 
     <!-- ============ BODY ============ -->
@@ -1061,20 +1104,32 @@ select.input-field{cursor:pointer;}
 
       <!-- ARCHETYPE ASSESSMENT -->
       <div class="tab-panel" id="tab-shadow-archetype">
+
+        <!-- Profile dashboard always visible at top -->
+        <div class="card" style="margin-bottom:1.5rem;">
+          <span class="card-title">◈ Your Archetype Profile</span>
+          <div id="archetypeProfile"><div class="empty"><span class="empty-icon">♔</span>Complete the assessment below to build your profile.</div></div>
+        </div>
+
         <div class="grid-2">
+          <!-- Quiz -->
           <div class="card card-large">
             <span class="card-title">♔ Archetype Assessment</span>
-            <div style="font-size:0.8rem;color:var(--dim);margin-bottom:1.25rem;line-height:1.7;">
-              Select the response that most resonates — be honest, not aspirational. Your dominant archetype reveals which masculine energy is leading, and which is suppressed.
+            <div style="font-size:0.78rem;color:var(--dim);margin-bottom:1.25rem;line-height:1.7;">
+              20 questions. Be honest, not aspirational — your answers reveal which masculine energies lead you and which are suppressed. Each archetype exists in you; this maps the balance.
             </div>
             <div id="archetypeQuiz"></div>
-            <button class="btn btn-solid btn-sm" style="margin-top:1rem;" onclick="scoreArchetype()">Reveal My Archetype (+100 XP)</button>
+            <button class="btn btn-solid btn-sm" style="margin-top:1rem;" onclick="scoreArchetype()">Score Assessment (+100 XP)</button>
           </div>
+
+          <!-- Manual adjust -->
           <div class="card card-large">
-            <span class="card-title">◈ Your Archetype Profile</span>
-            <div id="archetypeResult">
-              <div class="empty"><span class="empty-icon">♔</span>Complete the assessment to reveal your archetype profile.</div>
+            <span class="card-title">⚙️ Manual Adjustment</span>
+            <div style="font-size:0.78rem;color:var(--dim);margin-bottom:1rem;line-height:1.6;">
+              If the profile doesn't reflect how you truly see yourself, adjust each archetype manually. This doesn't override your quiz — it adds a personal calibration layer.
             </div>
+            <div id="archetypeManualSliders"></div>
+            <button class="btn btn-outline btn-sm" style="margin-top:1rem;" onclick="saveArchetypeManual()">Save Adjustments</button>
           </div>
         </div>
       </div>
@@ -1635,7 +1690,9 @@ const DEFAULT_DATA = {
   skills: [],
   deepWork: [],
   mindJournal: [],
-  activity: {}
+  activity: {},
+  meditations: [],
+  archetypeManual: { king:0, warrior:0, magician:0, lover:0 }
 };
 
 let D = {};
@@ -2111,7 +2168,8 @@ function saveTrainingCheckin() {
   document.getElementById('sessionRatingVal').textContent = '5';
   document.getElementById('sessionEnergyVal').textContent = '5';
   addXP(75,'body');
-  showToast('+75 XP — Session logged');
+  addArchetypeXP('warrior', 8);
+  showToast('+75 XP — Session logged · Warrior +8');
   renderBody();
   saveData();
 }
@@ -2245,7 +2303,7 @@ function renderShadow() {
   renderDreamHistory();
   renderCheckinHistory();
   renderPatternHistory();
-  if (D.archetype) renderArchetypeResult(D.archetype);
+  renderArchetypeProfile();
 }
 
 function saveShadowEntry() {
@@ -2271,7 +2329,14 @@ function renderShadowHistory() {
   ).join('');
 }
 
-// ARCHETYPE QUIZ
+// ========== ARCHETYPE SYSTEM ==========
+
+function addArchetypeXP(arch, amount) {
+  if (!D.archetypeXP) D.archetypeXP = { king:0, warrior:0, magician:0, lover:0 };
+  D.archetypeXP[arch] = (D.archetypeXP[arch] || 0) + amount;
+  renderArchetypeProfile();
+}
+
 const ARCHETYPE_QS = [
   { q:"When you face a significant challenge, your natural first response is to:", opts:[{text:"Create a plan, establish order, and delegate wisely.",a:'king'},{text:"Dive in, fight through it, and push past limits.",a:'warrior'},{text:"Research deeply, understand the root cause, then act.",a:'magician'},{text:"Connect with others, seek meaning, and feel the experience.",a:'lover'}]},
   { q:"What motivates you most deeply?", opts:[{text:"Building something lasting that outlives you.",a:'king'},{text:"Proving yourself through discipline and achievement.",a:'warrior'},{text:"Mastering a skill or domain to the deepest level.",a:'magician'},{text:"Creating beauty, connection, and meaningful experience.",a:'lover'}]},
@@ -2281,6 +2346,18 @@ const ARCHETYPE_QS = [
   { q:"When things go wrong, you tend to:", opts:[{text:"Take responsibility and restore order.",a:'king'},{text:"Blame yourself or fight harder regardless of cost.",a:'warrior'},{text:"Analyse what went wrong and identify a better approach.",a:'magician'},{text:"Feel it deeply, process it emotionally, then reconnect.",a:'lover'}]},
   { q:"What makes a man truly powerful in your view?", opts:[{text:"Wisdom, integrity, and the ability to hold others well.",a:'king'},{text:"Discipline, resilience, and the refusal to quit.",a:'warrior'},{text:"Knowledge, transformation, and mastery of self.",a:'magician'},{text:"Depth, authenticity, and full emotional presence.",a:'lover'}]},
   { q:"Which shadow pattern do you most recognise in yourself?", opts:[{text:"Tyranny or abdication — either controlling or checked out.",a:'king'},{text:"Aggression or cowardice — dominating or running.",a:'warrior'},{text:"Detachment or manipulation — hiding behind intelligence.",a:'magician'},{text:"Addiction or numbness — chasing feeling or avoiding it.",a:'lover'}]},
+  { q:"When you enter a room, you naturally:", opts:[{text:"Assess the dynamic and position yourself to lead.",a:'king'},{text:"Size up the challenges and look for the fight worth having.",a:'warrior'},{text:"Observe quietly and gather information before speaking.",a:'magician'},{text:"Seek genuine connection and feel the energy of the room.",a:'lover'}]},
+  { q:"Your relationship with solitude is:", opts:[{text:"Necessary — you need space to think and plan clearly.",a:'king'},{text:"Uncomfortable — you prefer action and output over stillness.",a:'warrior'},{text:"Essential — your best thinking happens in silence.",a:'magician'},{text:"Painful — you come alive in connection, not isolation.",a:'lover'}]},
+  { q:"When you give advice, it tends to be:", opts:[{text:"Structured, decisive and focused on what needs to happen.",a:'king'},{text:"Direct, action-oriented and focused on pushing through.",a:'warrior'},{text:"Analytical, thorough and focused on understanding root causes.",a:'magician'},{text:"Empathetic, feeling-led and focused on the person first.",a:'lover'}]},
+  { q:"How do you handle grief or loss?", opts:[{text:"Contain it, keep functioning, restore stability.",a:'king'},{text:"Push through it — move, train, act until it passes.",a:'warrior'},{text:"Withdraw to process and make sense of what happened.",a:'magician'},{text:"Feel it completely and let it move through you.",a:'lover'}]},
+  { q:"Your relationship with your body is:", opts:[{text:"A tool to be maintained so you can lead effectively.",a:'king'},{text:"A weapon — you build, train and test it constantly.",a:'warrior'},{text:"A system to understand and optimise through knowledge.",a:'magician'},{text:"A vessel of sensation, pleasure and emotional experience.",a:'lover'}]},
+  { q:"What legacy do you want to leave?", opts:[{text:"Order, institutions and systems that outlast you.",a:'king'},{text:"A record of battles fought and boundaries pushed.",a:'warrior'},{text:"Knowledge passed on that transforms how people see the world.",a:'magician'},{text:"Beauty, love and depth that touched people's souls.",a:'lover'}]},
+  { q:"When someone challenges your authority or ideas:", opts:[{text:"You listen, assess, then hold or adjust your position calmly.",a:'king'},{text:"You defend your ground instinctively and forcefully.",a:'warrior'},{text:"You dismantle their argument with precision and logic.",a:'magician'},{text:"You feel it emotionally before you respond intellectually.",a:'lover'}]},
+  { q:"Your shadow at its worst looks like:", opts:[{text:"Controlling, cold, dismissive — or completely checked out.",a:'king'},{text:"Aggressive, brutal, unable to stop even when winning.",a:'warrior'},{text:"Cynical, manipulative, using knowledge as a weapon.",a:'magician'},{text:"Addicted, overwhelmed, drowning in feeling or chasing sensation.",a:'lover'}]},
+  { q:"The work that most energises you is:", opts:[{text:"Strategic — building, leading, deciding.",a:'king'},{text:"Physical or competitive — training, executing, competing.",a:'warrior'},{text:"Intellectual — researching, solving, creating frameworks.",a:'magician'},{text:"Creative or relational — making, expressing, connecting.",a:'lover'}]},
+  { q:"In relationships, you primarily offer:", opts:[{text:"Stability, protection, direction and provision.",a:'king'},{text:"Loyalty, strength and the willingness to fight for those you love.",a:'warrior'},{text:"Insight, growth and the ability to see others deeply.",a:'magician'},{text:"Presence, passion, depth and emotional attunement.",a:'lover'}]},
+  { q:"When you are at your best, you feel:", opts:[{text:"Clear, sovereign, like you are holding the world rightly.",a:'king'},{text:"Unstoppable — pure will meeting pure action.",a:'warrior'},{text:"Lucid — like you can see through the surface of things.",a:'magician'},{text:"Fully alive — present, open, in love with the moment.",a:'lover'}]},
+  { q:"The masculine energy you most need to develop is:", opts:[{text:"Greater vision and the courage to lead without approval.",a:'king'},{text:"More discipline, physical edge and tolerance for discomfort.",a:'warrior'},{text:"Deeper self-knowledge and mastery of my inner world.",a:'magician'},{text:"More emotional depth, vulnerability and genuine connection.",a:'lover'}]},
 ];
 
 let archetypeAnswers = {};
@@ -2310,46 +2387,135 @@ function selectArchetypeOpt(qi, oi) {
 
 function scoreArchetype() {
   const answered = Object.keys(archetypeAnswers).length;
-  if (answered < ARCHETYPE_QS.length) { showToast(`Answer all ${ARCHETYPE_QS.length} questions first.`); return; }
+  if (answered < ARCHETYPE_QS.length) { showToast('Answer all ' + ARCHETYPE_QS.length + ' questions first.'); return; }
   const scores = { king:0, warrior:0, magician:0, lover:0 };
   ARCHETYPE_QS.forEach((q,qi) => {
     const opt = q.opts[archetypeAnswers[qi]];
     if (opt) scores[opt.a]++;
   });
+  if (!D.archetypeXP) D.archetypeXP = { king:0, warrior:0, magician:0, lover:0 };
+  Object.keys(scores).forEach(k => { D.archetypeXP[k] = (D.archetypeXP[k]||0) + scores[k]*5; });
   const dominant = Object.keys(scores).reduce((a,b) => scores[a]>scores[b]?a:b);
   D.archetype = { scores, dominant, date:new Date().toISOString() };
   addXP(100,'shadow');
-  showToast('+100 XP — Your archetype: ' + dominant.charAt(0).toUpperCase()+dominant.slice(1));
-  renderArchetypeResult(D.archetype);
+  showToast('+100 XP — Assessment complete');
+  renderArchetypeProfile();
   saveData();
 }
 
-const ARCHETYPE_DESC = {
-  king:    { label:'The King', desc:'Your dominant energy is leadership, order and vision. You hold others well when at your best — your shadow is tyranny or abdication. Develop the Warrior\'s discipline and the Magician\'s depth to balance your King.' },
-  warrior: { label:'The Warrior', desc:'Your dominant energy is discipline, drive and action. You are built to compete and push limits — your shadow is aggression without direction. Develop the King\'s vision and the Lover\'s feeling to channel your Warrior.' },
-  magician:{ label:'The Magician', desc:'Your dominant energy is knowledge, transformation and mastery. You see what others miss — your shadow is detachment and manipulation through intelligence. Develop the Warrior\'s physicality and the King\'s leadership to ground your Magician.' },
-  lover:   { label:'The Lover', desc:'Your dominant energy is depth, passion and presence. You experience life fully — your shadow is addiction and emotional overwhelm. Develop the Warrior\'s discipline and the Magician\'s clarity to direct your Lover.' }
+const ARCHETYPE_META = {
+  king:     { label:'The King',     icon:'♔', color:'rgba(201,168,76,0.9)',   desc:'Leadership, order, vision. You hold the world rightly at your peak. Shadow: tyranny or abdication.' },
+  warrior:  { label:'The Warrior',  icon:'⚔', color:'rgba(220,80,80,0.9)',    desc:'Discipline, drive, action. Built to compete and push limits. Shadow: aggression without direction.' },
+  magician: { label:'The Magician', icon:'✦',  color:'rgba(100,150,220,0.9)', desc:'Knowledge, transformation, mastery. You see what others miss. Shadow: detachment and manipulation.' },
+  lover:    { label:'The Lover',    icon:'◈',  color:'rgba(180,120,220,0.9)', desc:'Depth, passion, presence. You experience life fully. Shadow: addiction and emotional overwhelm.' }
 };
 
-function renderArchetypeResult(data) {
-  const el = document.getElementById('archetypeResult');
-  const desc = ARCHETYPE_DESC[data.dominant];
-  const total = Object.values(data.scores).reduce((s,v)=>s+v,0);
-  el.innerHTML = `
-    <div class="archetype-result">
-      <div style="font-size:0.55rem;font-family:var(--font-d);letter-spacing:0.32em;color:var(--gold-deep);margin-bottom:0.5rem;">DOMINANT ARCHETYPE</div>
-      <div class="archetype-name">${desc.label}</div>
-      <div style="font-size:0.8rem;color:var(--dim);line-height:1.7;margin:1rem 0;">${desc.desc}</div>
-      <div class="archetype-bars">
-        ${Object.entries(data.scores).map(([k,v])=>`
-          <div class="arch-bar-row">
-            <span class="arch-bar-label">${k}</span>
-            <div class="arch-bar"><div class="arch-bar-fill" style="width:${Math.round((v/total)*100)}%"></div></div>
-            <span class="arch-score">${v}</span>
-          </div>`).join('')}
-      </div>
-      <div style="font-size:0.62rem;color:var(--dim);margin-top:0.75rem;">Assessed ${fmtDate(data.date)}</div>
-    </div>`;
+function getArchetypeScores() {
+  if (!D.archetypeXP) D.archetypeXP = { king:0, warrior:0, magician:0, lover:0 };
+  const manual = D.archetypeManual || { king:0, warrior:0, magician:0, lover:0 };
+  const combined = {};
+  ['king','warrior','magician','lover'].forEach(k => {
+    combined[k] = Math.max(0, (D.archetypeXP[k]||0) + (manual[k]||0));
+  });
+  return combined;
+}
+
+function renderArchetypeProfile() {
+  const el = document.getElementById('archetypeProfile');
+  if (!el) return;
+  const scores = getArchetypeScores();
+  const maxVal = Math.max(...Object.values(scores), 1);
+  const dominant = Object.keys(scores).reduce((a,b)=>scores[a]>scores[b]?a:b);
+  const meta = ARCHETYPE_META[dominant];
+  el.innerHTML =
+    '<div style="margin-bottom:1.25rem;">' +
+    '<div style="font-size:0.5rem;font-family:var(--font-d);letter-spacing:0.32em;color:var(--gold-deep);margin-bottom:0.35rem;">DOMINANT ARCHETYPE</div>' +
+    '<div style="font-family:var(--font-d);font-size:1.2rem;color:var(--gold);letter-spacing:0.1em;">' + meta.icon + ' ' + meta.label + '</div>' +
+    '<div style="font-size:0.78rem;color:var(--dim);margin-top:0.5rem;line-height:1.65;">' + meta.desc + '</div>' +
+    '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:0.9rem;">' +
+    ['king','warrior','magician','lover'].map(function(k) {
+      var m = ARCHETYPE_META[k];
+      var pct = Math.round((scores[k]/maxVal)*100);
+      return '<div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">' +
+        '<span style="font-family:var(--font-d);font-size:0.6rem;letter-spacing:0.18em;color:' + m.color + ';">' + m.icon + ' ' + m.label.toUpperCase() + '</span>' +
+        '<span style="font-size:0.7rem;color:var(--dim);">' + scores[k] + ' XP</span>' +
+        '</div>' +
+        '<div style="height:8px;background:var(--iron-lift);border-radius:4px;overflow:hidden;border:1px solid var(--border);">' +
+        '<div style="height:100%;width:' + pct + '%;background:' + m.color + ';border-radius:4px;transition:width 0.5s ease;"></div>' +
+        '</div>' +
+        '</div>';
+    }).join('') +
+    '</div>' +
+    (D.archetype ? '<div style="font-size:0.6rem;color:var(--dim);margin-top:1rem;">Last assessed ' + fmtDate(D.archetype.date) + '</div>' : '');
+  renderArchetypeManualSliders(scores);
+}
+
+function renderArchetypeManualSliders(scores) {
+  var el = document.getElementById('archetypeManualSliders');
+  if (!el) return;
+  var manual = D.archetypeManual || { king:0, warrior:0, magician:0, lover:0 };
+  el.innerHTML = ['king','warrior','magician','lover'].map(function(k) {
+    var m = ARCHETYPE_META[k];
+    return '<div style="margin-bottom:1rem;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">' +
+      '<label style="font-family:var(--font-d);font-size:0.6rem;letter-spacing:0.15em;color:' + m.color + ';">' + m.icon + ' ' + m.label.toUpperCase() + '</label>' +
+      '<span id="manualVal_' + k + '" style="font-size:0.7rem;color:var(--gold);font-family:var(--font-d);">' + (manual[k]||0) + '</span>' +
+      '</div>' +
+      '<input type="range" id="manualSlider_' + k + '" min="-20" max="50" value="' + (manual[k]||0) + '"' +
+      ' style="width:100%;accent-color:var(--gold);"' +
+      ' oninput="document.getElementById('manualVal_' + k + '').textContent=this.value"/>' +
+      '<div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--dim);margin-top:0.2rem;">' +
+      '<span>Weaker than quiz suggests</span><span>Stronger</span>' +
+      '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function saveArchetypeManual() {
+  D.archetypeManual = {};
+  ['king','warrior','magician','lover'].forEach(function(k) {
+    D.archetypeManual[k] = parseInt(document.getElementById('manualSlider_'+k).value)||0;
+  });
+  renderArchetypeProfile();
+  saveData();
+  showToast('Archetype adjustments saved');
+}
+
+
+// MEDITATION
+function saveMeditation() {
+  const duration = parseInt(document.getElementById('meditationDuration').value);
+  const style = document.getElementById('meditationStyle').value;
+  const notes = document.getElementById('meditationNotes').value.trim();
+  if (!duration || duration < 1) { showToast('Enter the session duration.'); return; }
+  if (!D.meditations) D.meditations = [];
+  D.meditations.unshift({ date:new Date().toISOString(), duration, style, notes });
+  document.getElementById('meditationDuration').value='';
+  document.getElementById('meditationStyle').value='';
+  document.getElementById('meditationNotes').value='';
+  addXP(40,'mind');
+  addArchetypeXP('lover', 6);
+  addArchetypeXP('magician', 4);
+  showToast('+40 XP — Meditation logged · Lover +6 · Magician +4');
+  renderMeditationHistory();
+  saveData();
+}
+
+function renderMeditationHistory() {
+  const el = document.getElementById('meditationHistory');
+  if (!el) return;
+  if (!D.meditations || !D.meditations.length) {
+    el.innerHTML='<div class="empty"><span class="empty-icon">🧘</span>No sessions logged yet.</div>'; return;
+  }
+  el.innerHTML = D.meditations.slice(0,10).map(m =>
+    '<div class="entry">' +
+    '<span class="entry-date">' + fmtDateShort(m.date) + '</span>' +
+    '<div class="entry-body"><strong>' + m.duration + ' min' + (m.style?' — '+m.style:'') + '</strong>' + (m.notes?'<br>'+m.notes.substring(0,100):'') + '</div>' +
+    '<span class="entry-tag">MEDITATION</span>' +
+    '</div>'
+  ).join('');
 }
 
 // DREAM LOG
@@ -2361,7 +2527,9 @@ function saveDream() {
   document.getElementById('dreamContent').value='';
   document.getElementById('dreamEmotion').value='';
   addXP(40,'shadow');
-  showToast('+40 XP — Dream logged');
+  addArchetypeXP('magician', 5);
+  addArchetypeXP('lover', 3);
+  showToast('+40 XP — Dream logged · Magician +5 · Lover +3');
   renderDreamHistory();
   saveData();
 }
@@ -2390,7 +2558,9 @@ function saveCheckin() {
   document.getElementById('checkinEmotion').value='';
   document.getElementById('checkinState').value='';
   addXP(40,'shadow');
-  showToast('+40 XP — Check-in logged');
+  addArchetypeXP('lover', 5);
+  addArchetypeXP('magician', 3);
+  showToast('+40 XP — Check-in logged · Lover +5 · Magician +3');
   renderCheckinHistory();
   saveData();
 }
@@ -2417,7 +2587,8 @@ function savePattern() {
   document.getElementById('patternReaction').value='';
   document.getElementById('patternProtect').value='';
   addXP(50,'shadow');
-  showToast('+50 XP — Pattern logged');
+  addArchetypeXP('magician', 6);
+  showToast('+50 XP — Pattern logged · Magician +6');
   renderPatternHistory();
   saveData();
 }
@@ -2543,7 +2714,9 @@ function logSkill() {
   document.getElementById('skillName').value='';
   document.getElementById('skillHours').value='';
   addXP(30,'wealth');
-  showToast('+30 XP — '+hours+'h logged for '+name);
+  addArchetypeXP('magician', 5);
+  addArchetypeXP('king', 3);
+  showToast('+30 XP — '+hours+'h logged · Magician +5 · King +3');
   renderSkillList(); saveData();
 }
 
