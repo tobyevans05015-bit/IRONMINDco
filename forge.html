@@ -674,6 +674,27 @@ select.input-field{cursor:pointer;}
   font-size:0.7rem;color:var(--dim);text-align:center;margin-top:0.5rem;
   line-height:1.6;
 }
+
+/* Training type pills */
+.type-pill {
+  padding: 0.35rem 0.85rem;
+  background: var(--iron-lift);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--dim);
+  font-family: var(--font-d);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+  transition: all .2s;
+}
+.type-pill:hover { border-color: var(--gold); color: var(--gold-pale); }
+.type-pill-active {
+  background: var(--gold-glow);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 </style>
 </head>
 <body>
@@ -899,34 +920,40 @@ select.input-field{cursor:pointer;}
         <button class="tab-btn" onclick="switchTab(this,'body-history')">History</button>
       </div>
 
-      <!-- WORKOUT LOG -->
+      <!-- TRAINING CHECK-IN -->
       <div class="tab-panel active" id="tab-body-workout">
         <div class="grid-2">
           <div class="card">
-            <span class="card-title">⚔️ Log Workout</span>
-            <div class="form-group" style="margin-bottom:0.75rem;">
-              <label class="form-label">Exercise Name</label>
-              <input class="input-field" id="exName" placeholder="e.g. Bench Press"/>
+            <span class="card-title">⚔️ Training Check-In</span>
+
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;padding:0.85rem 1rem;background:var(--iron-lift);border:1px solid var(--border);border-radius:6px;">
+              <input type="checkbox" id="trainedToday" style="width:20px;height:20px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;"/>
+              <label for="trainedToday" style="font-family:var(--font-d);font-size:0.72rem;letter-spacing:0.18em;color:var(--gold);cursor:pointer;">I TRAINED TODAY</label>
             </div>
-            <div class="form-row form-row-3" style="margin-bottom:0.75rem;">
-              <div class="form-group">
-                <label class="form-label">Sets</label>
-                <input class="input-field" id="exSets" type="number" min="1" placeholder="4"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Reps</label>
-                <input class="input-field" id="exReps" type="number" min="1" placeholder="8"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Weight (kg)</label>
-                <input class="input-field" id="exWeight" type="number" min="0" placeholder="80"/>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label">Session Type <span style="color:var(--dim);font-size:0.7rem;">(select all that apply)</span></label>
+              <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;" id="sessionTypePills">
+                <button type="button" class="type-pill" data-type="Strength" onclick="toggleType(this)">Strength</button>
+                <button type="button" class="type-pill" data-type="Hypertrophy" onclick="toggleType(this)">Hypertrophy</button>
+                <button type="button" class="type-pill" data-type="Cardio" onclick="toggleType(this)">Cardio</button>
+                <button type="button" class="type-pill" data-type="Boxing" onclick="toggleType(this)">Boxing</button>
+                <button type="button" class="type-pill" data-type="Mobility" onclick="toggleType(this)">Mobility</button>
+                <button type="button" class="type-pill" data-type="Recovery" onclick="toggleType(this)">Recovery</button>
               </div>
             </div>
-            <div style="display:flex;gap:0.75rem;">
-              <button class="btn btn-outline btn-sm" onclick="addExercise()">+ Add Exercise</button>
-              <button class="btn btn-solid btn-sm" onclick="saveWorkout()">Save Session (+75 XP)</button>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label">Session Rating &nbsp;<span id="sessionRatingVal" style="color:var(--gold);font-family:var(--font-d);">5</span> / 10</label>
+              <input type="range" id="sessionRating" min="1" max="10" value="5" style="width:100%;margin-top:0.4rem;accent-color:var(--gold);" oninput="document.getElementById('sessionRatingVal').textContent=this.value"/>
             </div>
-            <div id="currentExercises" style="margin-top:1rem;"></div>
+
+            <div class="form-group" style="margin-bottom:1.25rem;">
+              <label class="form-label">Energy Level &nbsp;<span id="sessionEnergyVal" style="color:var(--gold);font-family:var(--font-d);">5</span> / 10</label>
+              <input type="range" id="sessionEnergy" min="1" max="10" value="5" style="width:100%;margin-top:0.4rem;accent-color:var(--gold);" oninput="document.getElementById('sessionEnergyVal').textContent=this.value"/>
+            </div>
+
+            <button class="btn btn-solid btn-sm" onclick="saveTrainingCheckin()">Log Session (+75 XP)</button>
           </div>
           <div class="card">
             <span class="card-title">📋 Last Session</span>
@@ -2051,7 +2078,6 @@ function renderMindHistory() {
 }
 
 // ========== BODY ==========
-let pendingExercises = [];
 
 function renderBody() {
   renderLastWorkout();
@@ -2060,65 +2086,62 @@ function renderBody() {
   renderMetrics();
 }
 
-function addExercise() {
-  const name = document.getElementById('exName').value.trim();
-  const sets = parseInt(document.getElementById('exSets').value)||0;
-  const reps = parseInt(document.getElementById('exReps').value)||0;
-  const weight = parseFloat(document.getElementById('exWeight').value)||0;
-  if (!name || !sets || !reps) { showToast('Fill in exercise name, sets and reps.'); return; }
-  pendingExercises.push({ name, sets, reps, weight });
-  document.getElementById('exName').value='';
-  document.getElementById('exSets').value='';
-  document.getElementById('exReps').value='';
-  document.getElementById('exWeight').value='';
-  renderPendingExercises();
+// Training check-in pill toggle
+function toggleType(btn) {
+  btn.classList.toggle('type-pill-active');
 }
 
-function renderPendingExercises() {
-  const el = document.getElementById('currentExercises');
-  if (!pendingExercises.length) { el.innerHTML=''; return; }
-  el.innerHTML = '<div class="rule"></div>'+pendingExercises.map((e,i) =>
-    `<div class="workout-exercise">
-      <div class="workout-ex-name">${e.name} <button onclick="removePendingEx(${i})" style="float:right;background:none;border:none;color:var(--dim);cursor:pointer;font-size:0.8rem;">✕</button></div>
-      <div class="sets-grid">
-        ${Array.from({length:e.sets},(_,s)=>`<div class="set-chip"><span class="set-num">SET ${s+1}</span>${e.reps} reps ${e.weight?'@ '+e.weight+'kg':''}</div>`).join('')}
-      </div>
-    </div>`
-  ).join('');
+function getSelectedTypes() {
+  return Array.from(document.querySelectorAll('.type-pill-active')).map(b => b.dataset.type);
 }
 
-function removePendingEx(i) { pendingExercises.splice(i,1); renderPendingExercises(); }
-
-function saveWorkout() {
-  if (!pendingExercises.length) { showToast('Add at least one exercise first.'); return; }
-  D.workouts.unshift({ date:new Date().toISOString(), exercises:[...pendingExercises] });
-  pendingExercises = [];
-  renderPendingExercises();
+function saveTrainingCheckin() {
+  const trained = document.getElementById('trainedToday').checked;
+  if (!trained) { showToast('Tick the training checkbox first.'); return; }
+  const types = getSelectedTypes();
+  if (!types.length) { showToast('Select at least one session type.'); return; }
+  const rating = parseInt(document.getElementById('sessionRating').value);
+  const energy = parseInt(document.getElementById('sessionEnergy').value);
+  D.workouts.unshift({ date:new Date().toISOString(), types, rating, energy });
+  // reset form
+  document.getElementById('trainedToday').checked = false;
+  document.querySelectorAll('.type-pill-active').forEach(b => b.classList.remove('type-pill-active'));
+  document.getElementById('sessionRating').value = 5;
+  document.getElementById('sessionEnergy').value = 5;
+  document.getElementById('sessionRatingVal').textContent = '5';
+  document.getElementById('sessionEnergyVal').textContent = '5';
   addXP(75,'body');
-  showToast('+75 XP — Workout logged');
+  showToast('+75 XP — Session logged');
   renderBody();
   saveData();
 }
 
 function renderLastWorkout() {
   const el = document.getElementById('lastWorkout');
-  if (!D.workouts.length) { el.innerHTML='<div class="empty"><span class="empty-icon">⚔️</span>No sessions yet.</div>'; return; }
+  if (!D.workouts.length) { el.innerHTML='<div class="empty"><span class="empty-icon">⚔️</span>No sessions logged yet.</div>'; return; }
   const w = D.workouts[0];
-  el.innerHTML = `<div style="font-size:0.7rem;color:var(--gold);margin-bottom:0.75rem;font-family:var(--font-d);letter-spacing:0.15em;">${fmtDate(w.date)}</div>`+
-    w.exercises.map(e => `<div class="workout-exercise">
-      <div class="workout-ex-name">${e.name}</div>
-      <div style="font-size:0.78rem;color:var(--dim);">${e.sets} sets × ${e.reps} reps${e.weight?' @ '+e.weight+'kg':''}</div>
-    </div>`).join('');
+  el.innerHTML = `
+    <div style="font-size:0.7rem;color:var(--gold);margin-bottom:0.75rem;font-family:var(--font-d);letter-spacing:0.15em;">${fmtDate(w.date)}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.75rem;">
+      ${(w.types||[]).map(t=>`<span style="padding:0.2rem 0.6rem;background:var(--iron-lift);border:1px solid var(--border-hi);border-radius:4px;font-size:0.72rem;color:var(--gold);font-family:var(--font-d);letter-spacing:0.1em;">${t}</span>`).join('')}
+    </div>
+    <div style="display:flex;gap:1.5rem;font-size:0.78rem;color:var(--dim);">
+      <span>Session <strong style="color:var(--white);">${w.rating||'—'}/10</strong></span>
+      <span>Energy <strong style="color:var(--white);">${w.energy||'—'}/10</strong></span>
+    </div>`;
 }
 
 function renderWorkoutHistory() {
   const el = document.getElementById('workoutHistory');
   if (!D.workouts.length) { el.innerHTML='<div class="empty"><span class="empty-icon">⚔️</span>No sessions logged yet.</div>'; return; }
-  el.innerHTML = '<div class="entry-list">'+D.workouts.slice(0,10).map(w =>
+  el.innerHTML = '<div class="entry-list">'+D.workouts.slice(0,20).map(w =>
     `<div class="entry">
       <span class="entry-date">${fmtDateShort(w.date)}</span>
-      <div class="entry-body">${w.exercises.map(e=>`<strong>${e.name}</strong>: ${e.sets}×${e.reps}${e.weight?' @'+e.weight+'kg':''}`).join(' · ')}</div>
-      <span class="entry-tag">${w.exercises.length} EXERCISES</span>
+      <div class="entry-body">
+        <strong>${(w.types||[]).join(' · ')}</strong>
+        <span style="margin-left:0.75rem;color:var(--dim);font-size:0.75rem;">Rating ${w.rating}/10 · Energy ${w.energy}/10</span>
+      </div>
+      <span class="entry-tag">TRAINED</span>
     </div>`
   ).join('')+'</div>';
 }
