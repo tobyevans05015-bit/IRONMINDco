@@ -840,7 +840,7 @@ select.input-field{cursor:pointer;}
         <div class="card">
           <span class="card-title">⚡ Daily Quests</span>
           <div id="questsList"></div>
-          <div style="margin-top:1rem;font-size:0.7rem;color:var(--dim);">Quests reset at midnight. Complete all 3 for bonus XP.</div>
+          <div style="margin-top:1rem;font-size:0.7rem;color:var(--dim);">One quest per pillar, resets at midnight. Complete all 5 for a Forge Bonus.</div>
         </div>
 
         <!-- Weekly Heatmap -->
@@ -1667,13 +1667,13 @@ const DATA_KEY = 'iron_forge_v2';
 const DEFAULT_DATA = {
   user: { totalXP: 0, streak: 0, lastCheckin: null },
   pillars: {
-    mind:    { mastery: 0, xp: 0 },
-    body:    { mastery: 0, xp: 0 },
-    shadow:  { mastery: 0, xp: 0 },
-    wealth:  { mastery: 0, xp: 0 },
-    purpose: { mastery: 0, xp: 0 }
+    mind:    { mastery: 0, xp: 0, sigilTier: 0, bonusPct: 0 },
+    body:    { mastery: 0, xp: 0, sigilTier: 0, bonusPct: 0 },
+    shadow:  { mastery: 0, xp: 0, sigilTier: 0, bonusPct: 0 },
+    wealth:  { mastery: 0, xp: 0, sigilTier: 0, bonusPct: 0 },
+    purpose: { mastery: 0, xp: 0, sigilTier: 0, bonusPct: 0 }
   },
-  quests: { date: null, completed: [] },
+  quests: { date: null, completed: [], bonusGiven: false },
   workouts: [],
   currentExercises: [],
   hydration: {},
@@ -1704,7 +1704,9 @@ function mergeDefaults(data) {
   });
   if (!merged.pillars) merged.pillars = JSON.parse(JSON.stringify(DEFAULT_DATA.pillars));
   ['mind','body','shadow','wealth','purpose'].forEach(p => {
-    if (!merged.pillars[p]) merged.pillars[p] = { mastery: 0, xp: 0 };
+    if (!merged.pillars[p]) merged.pillars[p] = { mastery: 0, xp: 0, sigilTier: 0, bonusPct: 0 };
+    if (merged.pillars[p].sigilTier === undefined) merged.pillars[p].sigilTier = 0;
+    if (merged.pillars[p].bonusPct === undefined) merged.pillars[p].bonusPct = 0;
   });
   return merged;
 }
@@ -1770,12 +1772,29 @@ function getNextRank(xp) {
   return null;
 }
 
+// ========== SIGILS (Prestige) ==========
+const SIGILS = [
+  { name: 'Initiate',  icon: '◦', bonus: 0  },
+  { name: 'Adept',     icon: '◈', bonus: 3  },
+  { name: 'Warrior',   icon: '⚔', bonus: 6  },
+  { name: 'Sovereign', icon: '♔', bonus: 10 },
+  { name: 'Archetype', icon: '✦', bonus: 15 }
+];
+const MAX_SIGIL_TIER = SIGILS.length - 1;
+
+function getSigil(tier) {
+  return SIGILS[Math.min(tier, MAX_SIGIL_TIER)];
+}
+
 function addXP(amount, pillar) {
-  D.user.totalXP += amount;
+  let finalAmount = amount;
   if (pillar && D.pillars[pillar]) {
-    D.pillars[pillar].xp += amount;
+    const bonusMult = 1 + (D.pillars[pillar].bonusPct / 100);
+    finalAmount = Math.round(amount * bonusMult);
+    D.pillars[pillar].xp += finalAmount;
     D.pillars[pillar].mastery = Math.min(10, Math.floor(D.pillars[pillar].xp / 300));
   }
+  D.user.totalXP += finalAmount;
   // Activity tracking
   const today = todayStr();
   if (!D.activity[today]) D.activity[today] = { mind:0, body:0, shadow:0, wealth:0, purpose:0 };
@@ -1783,6 +1802,47 @@ function addXP(amount, pillar) {
   saveData();
   updateSidebar();
   if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+  if (document.getElementById('page-progress').classList.contains('active')) renderProgress();
+
+  // Check for prestige eligibility
+  if (pillar && D.pillars[pillar] && D.pillars[pillar].mastery >= 10 && D.pillars[pillar].sigilTier < MAX_SIGIL_TIER) {
+    showPrestigeModal(pillar);
+  }
+}
+
+function showPrestigeModal(pillar) {
+  if (document.getElementById('prestigeModal')) return; // already showing
+  const p = D.pillars[pillar];
+  const current = getSigil(p.sigilTier);
+  const next = getSigil(p.sigilTier + 1);
+  const label = PILLAR_LABELS[PILLAR_KEYS.indexOf(pillar)];
+  const modal = document.createElement('div');
+  modal.id = 'prestigeModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem;';
+  modal.innerHTML = `
+    <div style="background:var(--panel,#1a1a1a);border:1px solid var(--gold);border-radius:8px;padding:2rem;max-width:420px;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:0.5rem;">${current.icon}</div>
+      <div style="font-family:var(--font-d);font-size:1.1rem;letter-spacing:0.08em;color:var(--gold);margin-bottom:0.75rem;">${label} MASTERED</div>
+      <p style="color:var(--dim);font-size:0.85rem;line-height:1.6;margin-bottom:1.5rem;">
+        You've mastered this cycle. Descend into the Shadow to earn the <strong style="color:var(--white);">${next.name}</strong> sigil
+        and begin again — stronger. All future ${label} XP gains permanently increase by <strong style="color:var(--gold);">${next.bonus}%</strong>.
+      </p>
+      <button class="btn btn-solid btn-sm" style="width:100%;margin-bottom:0.5rem;" onclick="confirmPrestige('${pillar}')">Descend — Earn ${next.name} Sigil</button>
+      <button class="btn btn-sm" style="width:100%;background:transparent;color:var(--dim);" onclick="document.getElementById('prestigeModal').remove()">Not yet</button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function confirmPrestige(pillar) {
+  const p = D.pillars[pillar];
+  p.sigilTier += 1;
+  p.bonusPct = getSigil(p.sigilTier).bonus;
+  p.xp = 0;
+  p.mastery = 0;
+  document.getElementById('prestigeModal').remove();
+  showToast(getSigil(p.sigilTier).icon + ' ' + getSigil(p.sigilTier).name + ' Sigil earned — ' + PILLAR_LABELS[PILLAR_KEYS.indexOf(pillar)] + ' reborn');
+  saveData();
+  updateSidebar();
   if (document.getElementById('page-progress').classList.contains('active')) renderProgress();
 }
 
@@ -1905,33 +1965,43 @@ function doCheckin() {
 // ========== DAILY QUESTS ==========
 const QUEST_BANK = [
   { pillar:'mind',    text:'Write a mindset journal reflection',       xp:50 },
-  { pillar:'body',    text:'Log a workout session',                    xp:75 },
-  { pillar:'shadow',  text:'Complete today\'s Shadow Mirror prompt',   xp:75 },
-  { pillar:'wealth',  text:'Log 60+ minutes of deep work',            xp:50 },
-  { pillar:'purpose', text:'Review your Forge Blueprint',             xp:50 },
-  { pillar:'body',    text:'Hit 8 glasses of water',                  xp:40 },
-  { pillar:'shadow',  text:'Record last night\'s dream',              xp:50 },
   { pillar:'mind',    text:'Complete your morning check-in',          xp:40 },
-  { pillar:'purpose', text:'Add a milestone to the Vault',            xp:60 },
-  { pillar:'shadow',  text:'Log an emotional check-in',               xp:40 },
-  { pillar:'wealth',  text:'Log skill development time',              xp:30 },
-  { pillar:'shadow',  text:'Log an unconscious pattern',              xp:50 },
-  { pillar:'body',    text:'Log your body metrics',                   xp:30 },
-  { pillar:'purpose', text:'Complete a values audit entry',           xp:80 },
   { pillar:'mind',    text:'Write tonight\'s evening reflection',     xp:50 },
+  { pillar:'mind',    text:'Log a 10-minute meditation',              xp:40 },
+  { pillar:'body',    text:'Log a workout session',                    xp:75 },
+  { pillar:'body',    text:'Hit 8 glasses of water',                  xp:40 },
+  { pillar:'body',    text:'Log your body metrics',                   xp:30 },
+  { pillar:'shadow',  text:'Complete today\'s Shadow Mirror prompt',   xp:75 },
+  { pillar:'shadow',  text:'Record last night\'s dream',              xp:50 },
+  { pillar:'shadow',  text:'Log an emotional check-in',               xp:40 },
+  { pillar:'shadow',  text:'Log an unconscious pattern',              xp:50 },
+  { pillar:'wealth',  text:'Log 60+ minutes of deep work',            xp:50 },
+  { pillar:'wealth',  text:'Log skill development time',              xp:30 },
+  { pillar:'wealth',  text:'Log today\'s content or brand output',    xp:40 },
+  { pillar:'wealth',  text:'Review your spending for today',          xp:30 },
+  { pillar:'wealth',  text:'Identify one opportunity to grow income', xp:40 },
+  { pillar:'purpose', text:'Review your Forge Blueprint',             xp:50 },
+  { pillar:'purpose', text:'Add a milestone to the Vault',            xp:60 },
+  { pillar:'purpose', text:'Complete a values audit entry',           xp:80 },
+  { pillar:'purpose', text:'Rate how aligned today felt (1-10) and why', xp:30 },
+  { pillar:'purpose', text:'Write one line on who you\'re becoming',  xp:40 },
 ];
+
+// Simple deterministic pseudo-random per day+pillar, so selection rotates daily but is stable within a day
+function seededPick(seed, arr) {
+  const x = Math.sin(seed * 9973 + 1) * 10000;
+  const frac = x - Math.floor(x);
+  return arr[Math.floor(frac * arr.length)];
+}
 
 function getDailyQuests() {
   const seed = dayOfYear();
-  const q = [];
-  const used = new Set();
-  let i = 0;
-  while (q.length < 3 && i < 100) {
-    const idx = (seed + i * 5) % QUEST_BANK.length;
-    if (!used.has(idx)) { used.add(idx); q.push({ ...QUEST_BANK[idx], id:idx }); }
-    i++;
-  }
-  return q;
+  return PILLAR_KEYS.map((pillar, pIdx) => {
+    const options = QUEST_BANK.filter(q => q.pillar === pillar);
+    const chosen = seededPick(seed + pIdx * 31, options);
+    const id = QUEST_BANK.indexOf(chosen);
+    return { ...chosen, id };
+  });
 }
 
 function renderQuests() {
@@ -1959,8 +2029,17 @@ function toggleQuest(id) {
     D.quests.completed.push(id);
     if (quest) addXP(quest.xp, quest.pillar);
     showToast('+' + (quest?.xp||50) + ' XP — Quest Complete');
+    // Forge Bonus — all 5 pillar quests done today
+    const allIds = quests.map(q => q.id);
+    const allDone = allIds.every(qid => D.quests.completed.includes(qid));
+    if (allDone && !D.quests.bonusGiven) {
+      D.quests.bonusGiven = true;
+      addXP(50, null);
+      showToast('⚡ Forge Bonus — All 5 Pillars Trained Today (+50 XP)');
+    }
   } else {
     D.quests.completed.splice(idx, 1);
+    if (D.quests.bonusGiven) D.quests.bonusGiven = false;
   }
   saveData();
   renderQuests();
@@ -2834,8 +2913,12 @@ function renderProgress() {
   const pmEl = document.getElementById('pillarMastery');
   pmEl.innerHTML = PILLAR_KEYS.map(k => {
     const p = D.pillars[k];
+    const sigil = getSigil(p.sigilTier);
+    const sigilBadge = p.sigilTier > 0
+      ? `<span style="color:var(--gold);margin-left:0.4rem;" title="${sigil.name} — +${p.bonusPct}% XP">${sigil.icon} ${sigil.name}</span>`
+      : '';
     return `<div>
-      <div class="prog-label"><span style="text-transform:uppercase;letter-spacing:0.1em;font-family:var(--font-d);font-size:0.62rem;">${k}</span><span>${p.mastery}/10 — ${p.xp} XP</span></div>
+      <div class="prog-label"><span style="text-transform:uppercase;letter-spacing:0.1em;font-family:var(--font-d);font-size:0.62rem;">${k}${sigilBadge}</span><span>${p.mastery}/10 — ${p.xp} XP</span></div>
       <div class="prog-bar"><div class="prog-fill" style="width:${p.mastery*10}%"></div></div>
     </div>`;
   }).join('');
