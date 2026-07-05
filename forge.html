@@ -1799,9 +1799,26 @@ function addXP(amount, pillar) {
   const today = todayStr();
   if (!D.activity[today]) D.activity[today] = { mind:0, body:0, shadow:0, wealth:0, purpose:0 };
   if (pillar && D.activity[today][pillar] !== undefined) D.activity[today][pillar]++;
+
+  // Auto-complete today's quest for this pillar if any real action just fed it XP
+  if (pillar) {
+    if (D.quests.date !== today) D.quests = { date:today, completed:[], bonusGiven:false };
+    const todaysQuests = getDailyQuests();
+    const matchingQuest = todaysQuests.find(q => q.pillar === pillar);
+    if (matchingQuest && !D.quests.completed.includes(matchingQuest.id)) {
+      D.quests.completed.push(matchingQuest.id);
+      const allDone = todaysQuests.every(q => D.quests.completed.includes(q.id));
+      if (allDone && !D.quests.bonusGiven) {
+        D.quests.bonusGiven = true;
+        D.user.totalXP += 50; // Forge Bonus, no recursive addXP call needed
+        showToast('⚡ Forge Bonus — All 5 Pillars Trained Today (+50 XP)');
+      }
+    }
+  }
+
   saveData();
   updateSidebar();
-  if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+  if (document.getElementById('page-dashboard').classList.contains('active')) { renderDashboard(); renderQuests(); }
   if (document.getElementById('page-progress').classList.contains('active')) renderProgress();
 
   // Check for prestige eligibility
