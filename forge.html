@@ -1683,6 +1683,7 @@ const DEFAULT_DATA = {
   checkIns: [],
   patterns: [],
   archetype: null,
+  archetypeXP: { king: 0, warrior: 0, magician: 0, lover: 0 },
   blueprint: null,
   milestones: [],
   valuesAudit: [],
@@ -1708,6 +1709,8 @@ function mergeDefaults(data) {
     if (merged.pillars[p].sigilTier === undefined) merged.pillars[p].sigilTier = 0;
     if (merged.pillars[p].bonusPct === undefined) merged.pillars[p].bonusPct = 0;
   });
+  if (!merged.archetypeXP) merged.archetypeXP = { king:0, warrior:0, magician:0, lover:0 };
+  ['king','warrior','magician','lover'].forEach(k => { if (merged.archetypeXP[k] === undefined) merged.archetypeXP[k] = 0; });
   return merged;
 }
 
@@ -2201,7 +2204,8 @@ function saveMindEntry() {
   D.mindJournal.unshift({ date:new Date().toISOString(), prompt:q.text, response:text, type:'reflection' });
   document.getElementById('mindReflection').value = '';
   addXP(50,'mind');
-  showToast('+50 XP — Reflection saved');
+  addArchetypeXP('magician', 5);
+  showToast('+50 XP — Reflection saved · Magician +5');
   renderMindHistory();
   saveData();
 }
@@ -2216,7 +2220,8 @@ function saveMindCheckin() {
   document.getElementById('mindOneThing').value='';
   document.getElementById('mindWin').value='';
   addXP(40,'mind');
-  showToast('+40 XP — Check-in logged');
+  addArchetypeXP('magician', 3);
+  showToast('+40 XP — Check-in logged · Magician +3');
   renderMindHistory();
   saveData();
 }
@@ -2338,7 +2343,8 @@ function saveMetrics() {
   D.bodyMetrics.unshift({ date:new Date().toISOString(), weight, bf, chest, waist, arms, notes });
   ['metWeight','metBF','metChest','metWaist','metArms','metNotes'].forEach(id => document.getElementById(id).value='');
   addXP(30,'body');
-  showToast('+30 XP — Metrics logged');
+  addArchetypeXP('warrior', 3);
+  showToast('+30 XP — Metrics logged · Warrior +3');
   renderMetrics();
   saveData();
 }
@@ -2409,7 +2415,9 @@ function saveShadowEntry() {
   D.shadowJournal.unshift({ date:new Date().toISOString(), prompt, response:res });
   document.getElementById('shadowResponse').value = '';
   addXP(75,'shadow');
-  showToast('+75 XP — Shadow entry saved');
+  addArchetypeXP('magician', 6);
+  addArchetypeXP('lover', 4);
+  showToast('+75 XP — Shadow entry saved · Magician +6 · Lover +4');
   renderShadowHistory();
   saveData();
 }
@@ -2561,7 +2569,7 @@ function renderArchetypeManualSliders(scores) {
       '</div>' +
       '<input type="range" id="manualSlider_' + k + '" min="-20" max="50" value="' + (manual[k]||0) + '"' +
       ' style="width:100%;accent-color:var(--gold);"' +
-      ' oninput="document.getElementById(this.dataset.val).textContent=this.value"/>' +
+      ' oninput="document.getElementById(\'manualVal_' + k + '\').textContent=this.value"/>' +
       '<div style="display:flex;justify-content:space-between;font-size:0.58rem;color:var(--dim);margin-top:0.2rem;">' +
       '<span>Weaker than quiz suggests</span><span>Stronger</span>' +
       '</div>' +
@@ -2726,7 +2734,8 @@ function logIncome() {
   document.getElementById('incomeAmount').value='';
   document.getElementById('incomeSource').value='';
   addXP(30,'wealth');
-  showToast('+30 XP — £'+amount+' logged');
+  addArchetypeXP('king', 4);
+  showToast('+30 XP — £'+amount+' logged · King +4');
   renderIncomeHistory(); updateIncomeBar();
   saveData();
 }
@@ -2772,7 +2781,8 @@ function toggleTimer() {
         D.deepWork.unshift({ date:new Date().toISOString(), duration:90, focus });
         document.getElementById('dwFocus').value='';
         addXP(50,'wealth');
-        showToast('+50 XP — Forge Session complete 🔥');
+        addArchetypeXP('king', 5);
+        showToast('+50 XP — Forge Session complete 🔥 · King +5');
         renderDWHistory(); saveData();
         document.getElementById('timerBtn').textContent='Start Session';
         timerSecs=90*60;
@@ -2843,7 +2853,8 @@ function saveBlueprint() {
   if (!vision && !mission) { showToast('Fill in at least your vision or purpose statement.'); return; }
   D.blueprint = { values, vision, mission, legacy, date:new Date().toISOString() };
   addXP(100,'purpose');
-  showToast('+100 XP — Blueprint saved');
+  addArchetypeXP('king', 10);
+  showToast('+100 XP — Blueprint saved · King +10');
   document.getElementById('blueprintSaved').style.display='block';
   saveData();
 }
@@ -2866,7 +2877,8 @@ function addMilestone() {
   document.getElementById('msTitle').value='';
   document.getElementById('msDesc').value='';
   addXP(60,'purpose');
-  showToast('+60 XP — Added to the Vault');
+  addArchetypeXP('king', 6);
+  showToast('+60 XP — Added to the Vault · King +6');
   renderMilestones(); saveData();
 }
 
@@ -2898,7 +2910,8 @@ function saveValuesAudit() {
   D.valuesAudit.unshift({ date:new Date().toISOString(), values, aligned, drift, score, correction });
   ['vaValues','vaAligned','vaDrift','vaScore','vaCorrection'].forEach(id=>document.getElementById(id).value='');
   addXP(80,'purpose');
-  showToast('+80 XP — Values Audit saved');
+  addArchetypeXP('king', 8);
+  showToast('+80 XP — Values Audit saved · King +8');
   renderValuesHistory(); saveData();
 }
 
