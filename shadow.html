@@ -243,17 +243,32 @@ textarea,input,select{font-family:inherit;}
 .entry-tag{ font-family:var(--font-m); font-size:.58rem; letter-spacing:.1em; color:var(--gold); border:1px solid var(--border-hi); padding:.25rem .6rem; border-radius:100px; height:fit-content; white-space:nowrap; }
 
 @media (max-width:900px){
-  .sb{ transform:translateX(-100%); }
+  .sb{ transform:translateX(-100%); z-index:300; }
   .sb.mobile-open{ transform:translateX(0); }
   .main{ margin-left:0; }
   .main.collapsed{ margin-left:0; }
   .content{ padding:1.3rem; }
+  .sb-toggle{ display:none; }
+  #mobile-hamburger{ display:flex; }
+  .topbar{ padding-left:3.6rem; }
 }
+#mobile-hamburger{
+  display:none; position:fixed; top:.9rem; left:1rem; z-index:400;
+  width:38px; height:38px; align-items:center; justify-content:center;
+  background:var(--graphite-2); border:1px solid var(--border-hi); border-radius:8px;
+  color:var(--gold); font-size:1rem;
+}
+#mobile-backdrop{
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:250;
+}
+#mobile-backdrop.show{ display:block; }
 </style>
 </head>
 <body>
 
 <canvas id="starfield"></canvas>
+<button id="mobile-hamburger" aria-label="Open menu">☰</button>
+<div id="mobile-backdrop"></div>
 
 <!-- LOADER -->
 <div id="loader">
@@ -998,7 +1013,7 @@ document.querySelectorAll('.sb-item').forEach(item=>{
     document.getElementById('page-'+page).classList.add('active');
     document.getElementById('topbar-title').textContent = item.textContent.trim();
     if(window.onPageShow && window.onPageShow[page]) window.onPageShow[page]();
-    if(window.innerWidth<=900) document.getElementById('sidebar').classList.remove('mobile-open');
+    if(window.innerWidth<=900) closeMobileSidebar();
   });
 });
 window.goToPage = function(p){
@@ -1010,6 +1025,23 @@ document.getElementById('sb-toggle').addEventListener('click', ()=>{
   document.getElementById('sidebar').classList.toggle('collapsed');
   document.getElementById('main').classList.toggle('collapsed');
 });
+
+/* ---------- MOBILE SIDEBAR (hamburger + backdrop) ---------- */
+const mobileHamburger = document.getElementById('mobile-hamburger');
+const mobileBackdrop = document.getElementById('mobile-backdrop');
+function openMobileSidebar(){
+  document.getElementById('sidebar').classList.add('mobile-open');
+  mobileBackdrop.classList.add('show');
+}
+function closeMobileSidebar(){
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  mobileBackdrop.classList.remove('show');
+}
+mobileHamburger.addEventListener('click', ()=>{
+  const sb = document.getElementById('sidebar');
+  if(sb.classList.contains('mobile-open')) closeMobileSidebar(); else openMobileSidebar();
+});
+mobileBackdrop.addEventListener('click', closeMobileSidebar);
 
 /* ---------- MODULE GRID (dashboard) ---------- */
 const MODULES = [
