@@ -69,6 +69,7 @@ textarea,input,select{font-family:inherit;}
 .btn-gold:hover{ transform:translateY(-2px); box-shadow:0 10px 34px var(--gold-glow); background-position:100% 50%; }
 .btn-ghost{ border:1px solid var(--border-hi); color:var(--white); }
 .btn-ghost:hover{ background:rgba(201,168,96,.06); transform:translateY(-2px); }
+.btn-ghost.active{ background:var(--gold-glow); border-color:var(--gold); color:var(--gold); }
 .btn-sm{ padding:.55rem 1.1rem; font-size:.62rem; }
 .hidden{ display:none !important; }
 .disclaimer{
@@ -242,6 +243,10 @@ textarea,input,select{font-family:inherit;}
 .entry-body{ font-size:.82rem; color:var(--dim-hi); line-height:1.6; }
 .entry-tag{ font-family:var(--font-m); font-size:.58rem; letter-spacing:.1em; color:var(--gold); border:1px solid var(--border-hi); padding:.25rem .6rem; border-radius:100px; height:fit-content; white-space:nowrap; }
 
+#topbar-menu-btn{
+  display:none; width:32px; height:32px; align-items:center; justify-content:center;
+  border:1px solid var(--border-hi); border-radius:6px; color:var(--gold); font-size:1rem; background:var(--graphite-2); flex-shrink:0;
+}
 @media (max-width:900px){
   .sb{ transform:translateX(-100%); z-index:300; }
   .sb.mobile-open{ transform:translateX(0); }
@@ -249,14 +254,7 @@ textarea,input,select{font-family:inherit;}
   .main.collapsed{ margin-left:0; }
   .content{ padding:1.3rem; }
   .sb-toggle{ display:none; }
-  #mobile-hamburger{ display:flex; }
-  .topbar{ padding-left:3.6rem; }
-}
-#mobile-hamburger{
-  display:none; position:fixed; top:.9rem; left:1rem; z-index:400;
-  width:38px; height:38px; align-items:center; justify-content:center;
-  background:var(--graphite-2); border:1px solid var(--border-hi); border-radius:8px;
-  color:var(--gold); font-size:1rem;
+  #topbar-menu-btn{ display:flex; }
 }
 #mobile-backdrop{
   display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:250;
@@ -267,7 +265,6 @@ textarea,input,select{font-family:inherit;}
 <body>
 
 <canvas id="starfield"></canvas>
-<button id="mobile-hamburger" aria-label="Open menu">☰</button>
 <div id="mobile-backdrop"></div>
 
 <!-- LOADER -->
@@ -283,6 +280,24 @@ textarea,input,select{font-family:inherit;}
   <h1 class="entry-title">IRON MIND<br>SHADOW</h1>
   <p class="entry-quote">"The cave you fear to enter holds the treasure you seek."</p>
   <button class="btn btn-gold" id="enter-btn">Enter The Shadow</button>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen" class="hidden" style="position:fixed; inset:0; z-index:500; display:none; align-items:center; justify-content:center; padding:2rem;">
+  <div class="glass" style="width:100%; max-width:380px; padding:2.4rem;">
+    <div class="entry-eyebrow" style="text-align:center;">Iron Mind Account</div>
+    <h2 style="font-family:var(--font-d); font-size:1.3rem; text-align:center; letter-spacing:.05em; text-transform:uppercase; margin:.6rem 0 1.6rem; color:var(--gold);">Sign In To Continue</h2>
+    <p style="font-size:.75rem; color:var(--dim); text-align:center; margin-bottom:1.4rem;">The same account you use for Iron Forge works here — your progress stays with you across the ecosystem.</p>
+    <div style="display:flex; gap:.5rem; margin-bottom:1.2rem;">
+      <button class="btn btn-ghost btn-sm active" id="signinBtn" style="flex:1;" onclick="setAuthMode('signin')">Sign In</button>
+      <button class="btn btn-ghost btn-sm" id="signupBtn" style="flex:1;" onclick="setAuthMode('signup')">Create Account</button>
+    </div>
+    <div class="field"><label>Email</label><input type="text" id="authEmail" placeholder="you@example.com"/></div>
+    <div class="field"><label>Password</label><input type="password" id="authPassword" placeholder="At least 6 characters"/></div>
+    <div id="authError" style="font-size:.75rem; color:#e57373; margin-bottom:1rem; min-height:1em;"></div>
+    <button class="btn btn-gold" id="authSubmitBtn" style="width:100%;" onclick="doAuth()">Enter The Forge</button>
+    <button class="btn btn-ghost btn-sm" style="width:100%; margin-top:.8rem;" onclick="backToEntry()">← Back</button>
+  </div>
 </div>
 
 <!-- APP -->
@@ -324,13 +339,18 @@ textarea,input,select{font-family:inherit;}
       </ul>
       <div class="sb-foot">
         <div class="sb-streak">🔥 <span id="streak-display">0</span> day streak</div>
+        <div style="font-family:var(--font-m); font-size:.62rem; color:var(--dim); margin-top:.6rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="sync-status">Not signed in</div>
+        <button class="btn btn-ghost btn-sm" id="signout-btn" style="width:100%; margin-top:.6rem; display:none;">Sign Out</button>
       </div>
     </nav>
 
     <!-- MAIN -->
     <div class="main" id="main">
       <div class="topbar">
-        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <button id="topbar-menu-btn" aria-label="Open menu">☰</button>
+          <div class="topbar-title" id="topbar-title">Dashboard</div>
+        </div>
         <div class="topbar-stats">
           <div class="tstat">LVL <b id="tb-level">1</b></div>
           <div class="tstat">XP <b id="tb-xp">0</b></div>
@@ -735,6 +755,134 @@ textarea,input,select{font-family:inherit;}
 ================================================================= */
 "use strict";
 
+/* ================================================================
+   SUPABASE — shared account with Iron Forge
+   Same project, same anon key, same session storage key, so a user
+   already signed in on Iron Forge is automatically recognized here.
+================================================================= */
+const SB_URL = 'https://yiadmxoafcyxeqjpvxfq.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpYWRteG9hZmN5eGVxanB2eGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjUwMTgsImV4cCI6MjA5ODMwMTAxOH0.z--MpEskebYS6vVRrqzj3qEnlnYDnBHFFuaJ0uquVmU';
+const SESSION_KEY = 'if_session'; // shared key with Iron Forge — same origin, same login
+let currentUser = null;
+let accessToken = null;
+let cloudSyncTimer = null;
+
+function sbHeaders(token){
+  return { 'apikey': SB_KEY, 'Authorization': `Bearer ${token||SB_KEY}`, 'Content-Type':'application/json' };
+}
+async function sbSignIn(email, password){
+  const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+    method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+    body: JSON.stringify({email, password})
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error_description || data.message || data.msg || 'Sign in failed');
+  return data;
+}
+async function sbSignUp(email, password){
+  const res = await fetch(`${SB_URL}/auth/v1/signup`, {
+    method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+    body: JSON.stringify({email, password})
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error_description || data.message || data.msg || 'Sign up failed');
+  return data;
+}
+async function sbSignOut(){
+  try{ await fetch(`${SB_URL}/auth/v1/logout`, {method:'POST', headers:sbHeaders(accessToken)}); }catch(e){}
+}
+async function sbGetShadowData(userId){
+  const res = await fetch(`${SB_URL}/rest/v1/shadow_data?id=eq.${userId}&select=data`, { headers: sbHeaders(accessToken) });
+  const rows = await res.json();
+  return Array.isArray(rows) && rows[0] ? rows[0].data : null;
+}
+async function sbSaveShadowData(userId){
+  await fetch(`${SB_URL}/rest/v1/shadow_data`, {
+    method:'POST',
+    headers:{ ...sbHeaders(accessToken), 'Prefer':'resolution=merge-duplicates' },
+    body: JSON.stringify({ id:userId, data:D, updated_at:new Date().toISOString() })
+  });
+}
+function saveSession(data){ localStorage.setItem(SESSION_KEY, JSON.stringify({access_token:data.access_token, user:data.user})); }
+function loadSession(){ try{ return JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){ return null; } }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
+function setSyncStatus(text){ const el=document.getElementById('sync-status'); if(el) el.textContent=text; }
+function scheduleCloudSync(){
+  if(!currentUser) return;
+  setSyncStatus('Syncing…');
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(async ()=>{
+    try{ await sbSaveShadowData(currentUser.id); setSyncStatus('Synced just now'); }
+    catch(e){ setSyncStatus('Sync failed — will retry'); }
+  }, 1500);
+}
+
+/* ---------- AUTH SCREEN LOGIC ---------- */
+let authMode = 'signin';
+window.setAuthMode = function(mode){
+  authMode = mode;
+  document.getElementById('signinBtn').classList.toggle('active', mode==='signin');
+  document.getElementById('signupBtn').classList.toggle('active', mode==='signup');
+  document.getElementById('authSubmitBtn').textContent = mode==='signin' ? 'Enter The Forge' : 'Create Account';
+  document.getElementById('authError').textContent = '';
+};
+window.backToEntry = function(){
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('entry').classList.remove('hidden');
+};
+window.doAuth = async function(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authSubmitBtn');
+  const errEl = document.getElementById('authError');
+  if(!email || !password){ errEl.textContent='Enter your email and password.'; return; }
+  if(password.length < 6){ errEl.textContent='Password must be at least 6 characters.'; return; }
+  btn.disabled = true; btn.textContent = authMode==='signin' ? 'Signing In…' : 'Creating Account…';
+  errEl.textContent='';
+  try{
+    let data;
+    if(authMode==='signin') data = await sbSignIn(email, password);
+    else data = await sbSignUp(email, password);
+    if(!data.access_token){
+      errEl.style.color='var(--gold)';
+      errEl.textContent='Account created — check your email to confirm, then sign in.';
+      btn.disabled=false; btn.textContent='Enter The Forge';
+      return;
+    }
+    accessToken = data.access_token; currentUser = data.user;
+    saveSession(data);
+    await enterAppAfterAuth();
+  }catch(e){
+    errEl.style.color='#e57373';
+    errEl.textContent = e.message || 'Something went wrong.';
+    btn.disabled=false; btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
+  }
+};
+async function enterAppAfterAuth(){
+  try{
+    const cloud = await sbGetShadowData(currentUser.id);
+    if(cloud){
+      D = Object.assign(defaultData(), cloud, {
+        user: Object.assign(defaultData().user, cloud.user||{}),
+        innerChild: Object.assign(defaultData().innerChild, cloud.innerChild||{}),
+        bodyScan: Object.assign(defaultData().bodyScan, cloud.bodyScan||{}),
+        purpose: Object.assign(defaultData().purpose, cloud.purpose||{}),
+        labyrinth: Object.assign(defaultData().labyrinth, cloud.labyrinth||{}),
+      });
+      localStorage.setItem(STORE_KEY, JSON.stringify(D));
+    }
+  }catch(e){ /* offline or table not ready yet — fall back to local data */ }
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('entry').classList.add('hidden');
+  document.getElementById('app').classList.add('active');
+  document.getElementById('signout-btn').style.display = 'block';
+  setSyncStatus(currentUser.email);
+  addXP(0); // triggers streak calc without granting points
+  renderTopStats(); renderModuleGrid(); renderDailyMission(); renderMoodState(); renderRecentBreakthroughs();
+  Object.keys(window.onPageShow||{}).forEach(k=>{}); // no-op, pages render lazily on click
+}
+
 const STORE_KEY = 'ironMindShadow_v1';
 function defaultData(){
   return {
@@ -774,6 +922,7 @@ function loadData(){
 function saveData(){
   localStorage.setItem(STORE_KEY, JSON.stringify(D));
   renderTopStats();
+  scheduleCloudSync();
 }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 function todayStr(){ return new Date().toISOString().slice(0,10); }
@@ -996,11 +1145,22 @@ window.addEventListener('DOMContentLoaded', ()=>{
   renderRecentBreakthroughs();
 });
 
-document.getElementById('enter-btn').addEventListener('click', ()=>{
-  document.getElementById('entry').classList.add('hidden');
-  document.getElementById('app').classList.add('active');
-  addXP(0); // triggers streak calc without granting points
-  renderAllModules();
+document.getElementById('enter-btn').addEventListener('click', async ()=>{
+  const session = loadSession();
+  if(session && session.access_token && session.user){
+    accessToken = session.access_token; currentUser = session.user;
+    document.getElementById('entry').classList.add('hidden');
+    await enterAppAfterAuth();
+  } else {
+    document.getElementById('entry').classList.add('hidden');
+    document.getElementById('authScreen').style.display = 'flex';
+  }
+});
+document.getElementById('signout-btn').addEventListener('click', async ()=>{
+  await sbSignOut();
+  clearSession();
+  currentUser = null; accessToken = null;
+  location.reload();
 });
 
 /* ---------- SIDEBAR NAV ---------- */
@@ -1026,8 +1186,8 @@ document.getElementById('sb-toggle').addEventListener('click', ()=>{
   document.getElementById('main').classList.toggle('collapsed');
 });
 
-/* ---------- MOBILE SIDEBAR (hamburger + backdrop) ---------- */
-const mobileHamburger = document.getElementById('mobile-hamburger');
+/* ---------- MOBILE SIDEBAR (topbar menu button + backdrop) ---------- */
+const topbarMenuBtn = document.getElementById('topbar-menu-btn');
 const mobileBackdrop = document.getElementById('mobile-backdrop');
 function openMobileSidebar(){
   document.getElementById('sidebar').classList.add('mobile-open');
@@ -1037,7 +1197,7 @@ function closeMobileSidebar(){
   document.getElementById('sidebar').classList.remove('mobile-open');
   mobileBackdrop.classList.remove('show');
 }
-mobileHamburger.addEventListener('click', ()=>{
+topbarMenuBtn.addEventListener('click', ()=>{
   const sb = document.getElementById('sidebar');
   if(sb.classList.contains('mobile-open')) closeMobileSidebar(); else openMobileSidebar();
 });
