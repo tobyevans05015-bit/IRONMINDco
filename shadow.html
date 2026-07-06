@@ -274,20 +274,14 @@ textarea,input,select{font-family:inherit;}
   <div class="loader-sub" id="loader-status">Calibrating the instrument…</div>
 </div>
 
-<!-- ENTRY SCREEN -->
+<!-- ENTRY SCREEN (with embedded sign in / sign up) -->
 <div id="entry">
   <div class="entry-eyebrow">Forge The Mind. Integrate The Shadow.</div>
   <h1 class="entry-title">IRON MIND<br>SHADOW</h1>
   <p class="entry-quote">"The cave you fear to enter holds the treasure you seek."</p>
-  <button class="btn btn-gold" id="enter-btn">Enter The Shadow</button>
-</div>
 
-<!-- AUTH SCREEN -->
-<div id="authScreen" class="hidden" style="position:fixed; inset:0; z-index:500; display:none; align-items:center; justify-content:center; padding:2rem;">
-  <div class="glass" style="width:100%; max-width:380px; padding:2.4rem;">
-    <div class="entry-eyebrow" style="text-align:center;">Iron Mind Account</div>
-    <h2 style="font-family:var(--font-d); font-size:1.3rem; text-align:center; letter-spacing:.05em; text-transform:uppercase; margin:.6rem 0 1.6rem; color:var(--gold);">Sign In To Continue</h2>
-    <p style="font-size:.75rem; color:var(--dim); text-align:center; margin-bottom:1.4rem;">The same account you use for Iron Forge works here — your progress stays with you across the ecosystem.</p>
+  <div class="glass" style="width:100%; max-width:380px; padding:2rem; margin:0 auto; text-align:left;">
+    <p style="font-size:.75rem; color:var(--dim); text-align:center; margin-bottom:1.3rem;">The same account you use for Iron Forge works here — your progress is saved to your account, not just this device.</p>
     <div style="display:flex; gap:.5rem; margin-bottom:1.2rem;">
       <button class="btn btn-ghost btn-sm active" id="signinBtn" style="flex:1;" onclick="setAuthMode('signin')">Sign In</button>
       <button class="btn btn-ghost btn-sm" id="signupBtn" style="flex:1;" onclick="setAuthMode('signup')">Create Account</button>
@@ -295,8 +289,7 @@ textarea,input,select{font-family:inherit;}
     <div class="field"><label>Email</label><input type="text" id="authEmail" placeholder="you@example.com"/></div>
     <div class="field"><label>Password</label><input type="password" id="authPassword" placeholder="At least 6 characters"/></div>
     <div id="authError" style="font-size:.75rem; color:#e57373; margin-bottom:1rem; min-height:1em;"></div>
-    <button class="btn btn-gold" id="authSubmitBtn" style="width:100%;" onclick="doAuth()">Enter The Forge</button>
-    <button class="btn btn-ghost btn-sm" style="width:100%; margin-top:.8rem;" onclick="backToEntry()">← Back</button>
+    <button class="btn btn-gold" id="enter-btn" style="width:100%;" onclick="doAuth()">Enter The Shadow</button>
   </div>
 </div>
 
@@ -824,17 +817,13 @@ window.setAuthMode = function(mode){
   authMode = mode;
   document.getElementById('signinBtn').classList.toggle('active', mode==='signin');
   document.getElementById('signupBtn').classList.toggle('active', mode==='signup');
-  document.getElementById('authSubmitBtn').textContent = mode==='signin' ? 'Enter The Forge' : 'Create Account';
+  document.getElementById('enter-btn').textContent = mode==='signin' ? 'Enter The Shadow' : 'Create Account';
   document.getElementById('authError').textContent = '';
-};
-window.backToEntry = function(){
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('entry').classList.remove('hidden');
 };
 window.doAuth = async function(){
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
-  const btn = document.getElementById('authSubmitBtn');
+  const btn = document.getElementById('enter-btn');
   const errEl = document.getElementById('authError');
   if(!email || !password){ errEl.textContent='Enter your email and password.'; return; }
   if(password.length < 6){ errEl.textContent='Password must be at least 6 characters.'; return; }
@@ -847,7 +836,7 @@ window.doAuth = async function(){
     if(!data.access_token){
       errEl.style.color='var(--gold)';
       errEl.textContent='Account created — check your email to confirm, then sign in.';
-      btn.disabled=false; btn.textContent='Enter The Forge';
+      btn.disabled=false; btn.textContent='Enter The Shadow';
       return;
     }
     accessToken = data.access_token; currentUser = data.user;
@@ -856,7 +845,7 @@ window.doAuth = async function(){
   }catch(e){
     errEl.style.color='#e57373';
     errEl.textContent = e.message || 'Something went wrong.';
-    btn.disabled=false; btn.textContent = authMode==='signin' ? 'Enter The Forge' : 'Create Account';
+    btn.disabled=false; btn.textContent = authMode==='signin' ? 'Enter The Shadow' : 'Create Account';
   }
 };
 async function enterAppAfterAuth(){
@@ -873,7 +862,6 @@ async function enterAppAfterAuth(){
       localStorage.setItem(STORE_KEY, JSON.stringify(D));
     }
   }catch(e){ /* offline or table not ready yet — fall back to local data */ }
-  document.getElementById('authScreen').style.display = 'none';
   document.getElementById('entry').classList.add('hidden');
   document.getElementById('app').classList.add('active');
   document.getElementById('signout-btn').style.display = 'block';
@@ -1145,17 +1133,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
   renderRecentBreakthroughs();
 });
 
-document.getElementById('enter-btn').addEventListener('click', async ()=>{
+/* Auto-login: if a session already exists (e.g. signed in via Iron Forge), skip the form entirely */
+(async function tryAutoLogin(){
   const session = loadSession();
   if(session && session.access_token && session.user){
     accessToken = session.access_token; currentUser = session.user;
-    document.getElementById('entry').classList.add('hidden');
     await enterAppAfterAuth();
-  } else {
-    document.getElementById('entry').classList.add('hidden');
-    document.getElementById('authScreen').style.display = 'flex';
   }
-});
+})();
+
 document.getElementById('signout-btn').addEventListener('click', async ()=>{
   await sbSignOut();
   clearSession();
