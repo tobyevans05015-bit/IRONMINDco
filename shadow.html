@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IRON MIND SHADOW</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ================================================================
+   IRON MIND SHADOW — DESIGN SYSTEM
+   Palette: deep charcoal black / graphite / metallic gold / white
+   Type: Cinzel (display) · Inter (body) · JetBrains Mono (data)
+   Signature: the Mandala Compass — Jung's symbol of the Self,
+   rendered as a rotating instrument-grade dial, reused across
+   the hero, the dashboard core score, and the Labyrinth path.
+================================================================= */
+:root{
+  --void:#08080a;
+  --graphite:#131316;
+  --graphite-2:#1b1b1f;
+  --graphite-3:#232328;
+  --gold:#c9a860;
+  --gold-bright:#f0d98c;
+  --gold-deep:#8a6f34;
+  --gold-glow:rgba(201,168,96,.14);
+  --white:#f2efe8;
+  --dim:rgba(242,239,232,.55);
+  --dim-hi:rgba(242,239,232,.78);
+  --border:rgba(201,168,96,.14);
+  --border-hi:rgba(201,168,96,.42);
+  --danger:#c96060;
+  --font-d:'Cinzel',serif;
+  --font-b:'Inter',sans-serif;
+  --font-m:'JetBrains Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --sb-w:260px;
+  --sb-c:68px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--void); color:var(--white); font-family:var(--font-b);
+  min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;}
+textarea,input,select{font-family:inherit;}
+::selection{background:var(--gold-glow);color:var(--white);}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+:focus-visible{outline:1.5px solid var(--gold);outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+
+/* ============ UTILITIES ============ */
+.eyebrow{font-family:var(--font-m);font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);}
+.glass{
+  background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.01));
+  border:1px solid var(--border); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border-radius:14px;
+}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.55rem;
+  padding:.85rem 1.7rem; border-radius:6px; font-family:var(--font-d); font-weight:600;
+  font-size:.72rem; letter-spacing:.18em; text-transform:uppercase;
+  transition:transform .35s var(--ease), box-shadow .35s var(--ease), background .35s var(--ease);
+}
+.btn-gold{ background:linear-gradient(120deg,var(--gold-deep),var(--gold-bright) 50%,var(--gold-deep)); color:#100c02; background-size:220% 100%; }
+.btn-gold:hover{ transform:translateY(-2px); box-shadow:0 10px 34px var(--gold-glow); background-position:100% 50%; }
+.btn-ghost{ border:1px solid var(--border-hi); color:var(--white); }
+.btn-ghost:hover{ background:rgba(201,168,96,.06); transform:translateY(-2px); }
+.btn-sm{ padding:.55rem 1.1rem; font-size:.62rem; }
+.hidden{ display:none !important; }
+.disclaimer{
+  font-family:var(--font-b); font-size:11.5px; color:var(--dim); line-height:1.6;
+  border-left:2px solid var(--border-hi); padding:.7rem 1rem; background:rgba(201,168,96,.04);
+  border-radius:0 8px 8px 0; margin-top:1.4rem;
+}
+
+/* ============ STARFIELD CANVAS ============ */
+#starfield{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+/* ============ LOADER ============ */
+#loader{
+  position:fixed; inset:0; background:var(--void); z-index:10000;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.8rem;
+  transition:opacity .9s var(--ease), visibility .9s;
+}
+#loader.hidden-loader{ opacity:0; visibility:hidden; }
+#loader-mandala{ width:110px; height:110px; }
+.loader-word{ font-family:var(--font-d); letter-spacing:.35em; font-size:.85rem; text-transform:uppercase; color:var(--gold); }
+.loader-sub{ font-family:var(--font-m); font-size:10px; letter-spacing:.2em; color:var(--dim); text-transform:uppercase; }
+
+/* ============ HERO / ENTRY SCREEN ============ */
+#entry{
+  position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:2rem;
+}
+#entry.hidden{ display:none; }
+.entry-eyebrow{ font-family:var(--font-m); font-size:11px; letter-spacing:.32em; color:var(--dim-hi); text-transform:uppercase; margin-bottom:1.4rem; }
+.entry-title{
+  font-family:var(--font-d); font-weight:700; letter-spacing:.02em; text-transform:uppercase;
+  font-size:clamp(2rem,6vw,4rem); line-height:1.05;
+  background:linear-gradient(100deg,#8a6f34 0%,#e9c675 25%,#f7ecc8 45%,#c9a860 65%,#8a6f34 100%);
+  background-size:220% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  animation:shine 8s linear infinite;
+}
+@keyframes shine{ 0%{background-position:0% 50%;} 100%{background-position:220% 50%;} }
+.entry-quote{
+  font-family:var(--font-d); font-style:italic; font-size:clamp(1rem,2vw,1.3rem); color:var(--dim-hi);
+  max-width:560px; margin:1.8rem auto 2.6rem; line-height:1.6;
+}
+#entry .btn{ font-size:.78rem; padding:1.05rem 2.4rem; }
+
+/* ============ APP SHELL ============ */
+#app{ display:none; }
+#app.active{ display:flex; }
+.app-wrap{ position:relative; z-index:1; display:flex; width:100%; min-height:100vh; }
+
+/* SIDEBAR */
+.sb{
+  width:var(--sb-w); flex-shrink:0; background:var(--graphite);
+  border-right:1px solid var(--border); display:flex; flex-direction:column;
+  position:fixed; top:0; left:0; bottom:0; z-index:200; overflow:hidden;
+  transition:width .3s var(--ease);
+}
+.sb.collapsed{ width:var(--sb-c); }
+.sb-head{ display:flex; align-items:center; gap:.75rem; padding:1.3rem 1.1rem; border-bottom:1px solid var(--border); flex-shrink:0; overflow:hidden; white-space:nowrap; }
+.sb-mark{ width:36px; height:36px; flex-shrink:0; }
+.sb-brand{ font-family:var(--font-d); font-size:.75rem; letter-spacing:.2em; color:var(--gold); white-space:nowrap; }
+.sb-brand small{ display:block; font-family:var(--font-m); font-size:.5rem; letter-spacing:.24em; color:var(--dim); margin-top:.15rem; }
+.sb-toggle{ margin-left:auto; width:26px; height:26px; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:.9rem; flex-shrink:0; }
+.sb-toggle:hover{ color:var(--gold); }
+
+.sb-nav{ flex:1; overflow-y:auto; overflow-x:hidden; padding:.6rem 0; list-style:none; }
+.sb-label{ font-family:var(--font-m); font-size:.48rem; letter-spacing:.3em; text-transform:uppercase; color:var(--gold-deep); padding:.9rem 1.1rem .3rem; white-space:nowrap; }
+.sb.collapsed .sb-label{ opacity:0; }
+.sb-item{
+  display:flex; align-items:center; gap:.85rem; width:100%; padding:.65rem 1.1rem;
+  border-left:2px solid transparent; color:var(--dim); font-size:.8rem;
+  white-space:nowrap; overflow:hidden; transition:all .2s;
+}
+.sb-item:hover{ background:var(--graphite-2); color:var(--white); }
+.sb-item.active{ background:var(--gold-glow); color:var(--gold); border-left-color:var(--gold); }
+.sb-icon{ width:18px; text-align:center; flex-shrink:0; font-size:.95rem; }
+.sb-foot{ border-top:1px solid var(--border); padding:.9rem 1.1rem; flex-shrink:0; overflow:hidden; }
+.sb-streak{ display:flex; align-items:center; gap:.5rem; font-family:var(--font-m); font-size:.68rem; color:var(--gold); white-space:nowrap; }
+
+/* MAIN */
+.main{ flex:1; margin-left:var(--sb-w); transition:margin-left .3s var(--ease); min-width:0; position:relative; z-index:1; }
+.main.collapsed{ margin-left:var(--sb-c); }
+.topbar{
+  position:sticky; top:0; z-index:100; background:rgba(8,8,10,.86); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border); padding:.9rem 2rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+}
+.topbar-title{ font-family:var(--font-d); font-size:.8rem; letter-spacing:.16em; text-transform:uppercase; }
+.topbar-stats{ display:flex; gap:1.6rem; flex-wrap:wrap; }
+.tstat{ font-family:var(--font-m); font-size:.66rem; color:var(--dim); display:flex; align-items:center; gap:.4rem; }
+.tstat b{ color:var(--gold); font-size:.78rem; }
+.content{ padding:2.2rem; max-width:1320px; }
+
+/* PAGES */
+.page{ display:none; animation:pgIn .4s var(--ease); }
+.page.active{ display:block; }
+@keyframes pgIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+.page-eyebrow{ font-family:var(--font-m); font-size:.55rem; letter-spacing:.35em; color:var(--gold); text-transform:uppercase; display:block; margin-bottom:.5rem; }
+.page-title{ font-family:var(--font-d); font-size:clamp(1.4rem,2.6vw,2.1rem); font-weight:700; letter-spacing:.03em; text-transform:uppercase; margin-bottom:.5rem; }
+.page-sub{ color:var(--dim-hi); font-weight:300; max-width:640px; line-height:1.7; font-size:.92rem; margin-bottom:2rem; }
+
+/* GRIDS & CARDS */
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:1.3rem; }
+.grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; }
+.grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.1rem; }
+@media (max-width:1100px){ .grid-3,.grid-4{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:700px){ .grid-2,.grid-3,.grid-4{ grid-template-columns:1fr; } }
+
+.card{ background:var(--graphite); border:1px solid var(--border); border-radius:12px; padding:1.5rem; position:relative; overflow:hidden; transition:border-color .3s, transform .3s; }
+.card:hover{ border-color:var(--border-hi); }
+.card-title{ font-family:var(--font-d); font-size:.62rem; letter-spacing:.24em; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:.9rem; }
+.card-lg{ padding:2rem; }
+
+/* dashboard module cards */
+.mod-card{
+  background:var(--graphite); border:1px solid var(--border); border-radius:14px; padding:1.6rem;
+  display:flex; flex-direction:column; gap:.7rem; cursor:pointer; transition:transform .35s var(--ease), border-color .35s;
+  min-height:150px; position:relative; overflow:hidden;
+}
+.mod-card::after{ content:''; position:absolute; inset:0; opacity:0; transition:opacity .4s; background:radial-gradient(circle at 25% 15%, var(--gold-glow), transparent 60%); }
+.mod-card:hover{ transform:translateY(-4px); border-color:var(--border-hi); }
+.mod-card:hover::after{ opacity:1; }
+.mod-icon{ font-size:1.5rem; }
+.mod-name{ font-family:var(--font-d); font-size:.95rem; letter-spacing:.03em; position:relative; z-index:1; }
+.mod-desc{ font-size:.76rem; color:var(--dim); font-weight:300; line-height:1.5; position:relative; z-index:1; }
+
+/* PROGRESS RINGS */
+.ring-wrap{ display:flex; flex-direction:column; align-items:center; gap:.5rem; }
+.ring-val{ font-family:var(--font-m); font-size:1.1rem; color:var(--gold); }
+.ring-label{ font-family:var(--font-m); font-size:.58rem; letter-spacing:.16em; color:var(--dim); text-transform:uppercase; }
+
+/* BARS */
+.bar-track{ height:6px; border-radius:6px; background:var(--graphite-3); overflow:hidden; }
+.bar-fill{ height:100%; background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright)); border-radius:6px; transition:width 1.1s var(--ease); }
+
+/* FORM ELEMENTS */
+.field{ margin-bottom:1.2rem; }
+.field label{ display:block; font-family:var(--font-m); font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim-hi); margin-bottom:.5rem; }
+.field textarea, .field input[type=text], .field input[type=number], .field select{
+  width:100%; background:var(--graphite-2); border:1px solid var(--border); border-radius:8px; color:var(--white);
+  padding:.75rem .9rem; font-size:.85rem; font-family:var(--font-b); resize:vertical;
+}
+.field textarea:focus, .field input:focus, .field select:focus{ outline:none; border-color:var(--gold); }
+.field textarea{ min-height:110px; }
+.chip-row{ display:flex; flex-wrap:wrap; gap:.5rem; }
+.chip{ padding:.45rem .95rem; border-radius:100px; border:1px solid var(--border); font-size:.72rem; color:var(--dim-hi); transition:.3s; }
+.chip:hover{ border-color:var(--gold); color:var(--white); }
+.chip.selected{ background:var(--gold-glow); border-color:var(--gold); color:var(--gold); }
+
+/* ACCORDION */
+.acc-item{ border:1px solid var(--border); border-radius:10px; margin-bottom:.7rem; overflow:hidden; background:var(--graphite); }
+.acc-head{ display:flex; align-items:center; justify-content:space-between; padding:1rem 1.2rem; cursor:pointer; }
+.acc-head h4{ font-family:var(--font-d); font-size:.85rem; letter-spacing:.03em; }
+.acc-chev{ transition:transform .3s var(--ease); color:var(--gold); }
+.acc-item.open .acc-chev{ transform:rotate(180deg); }
+.acc-body{ max-height:0; overflow:hidden; transition:max-height .4s var(--ease); }
+.acc-item.open .acc-body{ max-height:900px; }
+.acc-body-inner{ padding:0 1.2rem 1.2rem; color:var(--dim-hi); font-size:.85rem; line-height:1.75; font-weight:300; }
+.acc-body-inner p{ margin-bottom:.8rem; }
+
+/* TOAST */
+#toast{ position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(20px); z-index:9000; padding:.85rem 1.5rem; border-radius:100px; font-size:.78rem; opacity:0; pointer-events:none; transition:.4s var(--ease); background:var(--graphite-2); border:1px solid var(--border-hi); color:var(--gold-bright); font-family:var(--font-m); }
+#toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* EMPTY STATE */
+.empty{ text-align:center; padding:2.5rem 1rem; color:var(--dim); font-size:.85rem; }
+.empty-icon{ font-size:1.6rem; display:block; margin-bottom:.6rem; opacity:.6; }
+
+/* ENTRY LIST (journal/dream/timeline) */
+.entry-list{ display:flex; flex-direction:column; gap:.8rem; }
+.entry{ display:grid; grid-template-columns:90px 1fr auto; gap:1rem; align-items:start; padding:.9rem 0; border-bottom:1px solid var(--border); }
+.entry:last-child{ border-bottom:none; }
+.entry-date{ font-family:var(--font-m); font-size:.65rem; color:var(--dim); }
+.entry-body{ font-size:.82rem; color:var(--dim-hi); line-height:1.6; }
+.entry-tag{ font-family:var(--font-m); font-size:.58rem; letter-spacing:.1em; color:var(--gold); border:1px solid var(--border-hi); padding:.25rem .6rem; border-radius:100px; height:fit-content; white-space:nowrap; }
+
+@media (max-width:900px){
+  .sb{ transform:translateX(-100%); }
+  .sb.mobile-open{ transform:translateX(0); }
+  .main{ margin-left:0; }
+  .main.collapsed{ margin-left:0; }
+  .content{ padding:1.3rem; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<!-- LOADER -->
+<div id="loader">
+  <svg id="loader-mandala" viewBox="0 0 200 200"></svg>
+  <div class="loader-word">Iron Mind Shadow</div>
+  <div class="loader-sub" id="loader-status">Calibrating the instrument…</div>
+</div>
+
+<!-- ENTRY SCREEN -->
+<div id="entry">
+  <div class="entry-eyebrow">Forge The Mind. Integrate The Shadow.</div>
+  <h1 class="entry-title">IRON MIND<br>SHADOW</h1>
+  <p class="entry-quote">"The cave you fear to enter holds the treasure you seek."</p>
+  <button class="btn btn-gold" id="enter-btn">Enter The Shadow</button>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="app-wrap">
+
+    <!-- SIDEBAR -->
+    <nav class="sb" id="sidebar">
+      <div class="sb-head">
+        <svg class="sb-mark" id="sb-mark" viewBox="0 0 100 100"></svg>
+        <div class="sb-brand">IRON MIND<small>SHADOW</small></div>
+        <button class="sb-toggle" id="sb-toggle">◂</button>
+      </div>
+      <ul class="sb-nav" id="sb-nav">
+        <div class="sb-label">Command</div>
+        <li class="sb-item active" data-page="dashboard"><span class="sb-icon">◆</span><span>Dashboard</span></li>
+
+        <div class="sb-label">Understand</div>
+        <li class="sb-item" data-page="shadow"><span class="sb-icon">☾</span><span>The Shadow</span></li>
+        <li class="sb-item" data-page="symptoms"><span class="sb-icon">◈</span><span>Symptom Finder</span></li>
+        <li class="sb-item" data-page="guide"><span class="sb-icon">✦</span><span>Iron Guide</span></li>
+        <li class="sb-item" data-page="trauma"><span class="sb-icon">⚡</span><span>Trauma Explorer</span></li>
+        <li class="sb-item" data-page="body"><span class="sb-icon">◉</span><span>Body Scan</span></li>
+        <li class="sb-item" data-page="innerchild"><span class="sb-icon">✧</span><span>Inner Child</span></li>
+
+        <div class="sb-label">Explore</div>
+        <li class="sb-item" data-page="dreams"><span class="sb-icon">☽</span><span>Dream Journal</span></li>
+        <li class="sb-item" data-page="archetype"><span class="sb-icon">♜</span><span>Archetype Test</span></li>
+        <li class="sb-item" data-page="purpose"><span class="sb-icon">⊕</span><span>Values &amp; Purpose</span></li>
+
+        <div class="sb-label">Practice</div>
+        <li class="sb-item" data-page="journal"><span class="sb-icon">✎</span><span>Journal</span></li>
+        <li class="sb-item" data-page="timeline"><span class="sb-icon">◷</span><span>Breakthroughs</span></li>
+        <li class="sb-item" data-page="library"><span class="sb-icon">▤</span><span>Knowledge Library</span></li>
+        <li class="sb-item" data-page="labyrinth"><span class="sb-icon">◍</span><span>The Labyrinth</span></li>
+        <li class="sb-item" data-page="breathwork"><span class="sb-icon">◌</span><span>Breathwork</span></li>
+        <li class="sb-item" data-page="morning"><span class="sb-icon">☀</span><span>Morning Ritual</span></li>
+        <li class="sb-item" data-page="evening"><span class="sb-icon">☾</span><span>Evening Integration</span></li>
+      </ul>
+      <div class="sb-foot">
+        <div class="sb-streak">🔥 <span id="streak-display">0</span> day streak</div>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <div class="main" id="main">
+      <div class="topbar">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-stats">
+          <div class="tstat">LVL <b id="tb-level">1</b></div>
+          <div class="tstat">XP <b id="tb-xp">0</b></div>
+          <div class="tstat">INTEGRATION <b id="tb-integration">0%</b></div>
+        </div>
+      </div>
+      <div class="content" id="content">
+
+        <!-- ============ DASHBOARD ============ -->
+        <section class="page active" id="page-dashboard">
+          <span class="page-eyebrow">Command Centre</span>
+          <h1 class="page-title">Today's Position</h1>
+          <p class="page-sub">A daily reading of where you actually are — not where you performed being, for anyone.</p>
+
+          <div class="grid-2" style="margin-bottom:1.3rem;">
+            <div class="card card-lg" style="display:flex; align-items:center; gap:1.6rem;">
+              <svg id="dash-mandala" viewBox="0 0 200 200" style="width:140px;height:140px;flex-shrink:0;"></svg>
+              <div>
+                <span class="card-title">Integration Score</span>
+                <div style="font-family:var(--font-d); font-size:2.1rem; color:var(--gold);" id="dash-integration-num">0%</div>
+                <p style="color:var(--dim); font-size:.78rem; margin-top:.4rem; max-width:280px;">A composite reading across shadow work, purpose, journaling, and daily practice.</p>
+              </div>
+            </div>
+            <div class="card card-lg">
+              <span class="card-title">Today's Mission</span>
+              <div id="daily-mission" style="font-family:var(--font-d); font-size:1.05rem; line-height:1.5; margin-bottom:1rem;">—</div>
+              <button class="btn btn-ghost btn-sm" id="new-mission-btn">Draw Another</button>
+            </div>
+          </div>
+
+          <div class="grid-4" style="margin-bottom:1.3rem;">
+            <div class="card" style="text-align:center;">
+              <span class="card-title">Shadow</span>
+              <div class="bar-track"><div class="bar-fill" id="score-shadow" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-shadow-val" style="margin-top:.6rem;">0%</div>
+            </div>
+            <div class="card" style="text-align:center;">
+              <span class="card-title">Purpose</span>
+              <div class="bar-track"><div class="bar-fill" id="score-purpose" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-purpose-val" style="margin-top:.6rem;">0%</div>
+            </div>
+            <div class="card" style="text-align:center;">
+              <span class="card-title">Energy</span>
+              <div class="bar-track"><div class="bar-fill" id="score-energy" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-energy-val" style="margin-top:.6rem;">0%</div>
+            </div>
+            <div class="card" style="text-align:center;">
+              <span class="card-title">Authenticity</span>
+              <div class="bar-track"><div class="bar-fill" id="score-authenticity" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-authenticity-val" style="margin-top:.6rem;">0%</div>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom:1.3rem;">
+            <div class="card card-lg">
+              <span class="card-title">Mood Check</span>
+              <div class="chip-row" id="mood-chips">
+                <span class="chip" data-mood="Grounded">Grounded</span>
+                <span class="chip" data-mood="Anxious">Anxious</span>
+                <span class="chip" data-mood="Numb">Numb</span>
+                <span class="chip" data-mood="Driven">Driven</span>
+                <span class="chip" data-mood="Heavy">Heavy</span>
+                <span class="chip" data-mood="Clear">Clear</span>
+                <span class="chip" data-mood="Restless">Restless</span>
+              </div>
+              <p style="color:var(--dim); font-size:.72rem; margin-top:1rem;" id="mood-last">No check-in yet today.</p>
+            </div>
+            <div class="card card-lg">
+              <span class="card-title">Quick Journal</span>
+              <textarea id="quick-journal" placeholder="What's actually true right now?" style="width:100%; min-height:90px; background:var(--graphite-2); border:1px solid var(--border); border-radius:8px; color:var(--white); padding:.75rem; font-family:var(--font-b); font-size:.85rem;"></textarea>
+              <button class="btn btn-gold btn-sm" style="margin-top:.8rem;" id="quick-journal-save">Save Entry</button>
+            </div>
+          </div>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">Recent Breakthroughs</span>
+            <div id="dash-recent-breakthroughs"><div class="empty"><span class="empty-icon">◷</span>Nothing logged yet. Your record starts the moment you act.</div></div>
+          </div>
+
+          <span class="page-eyebrow" style="display:block; margin-top:2.4rem;">All Modules</span>
+          <div class="grid-4" id="module-grid" style="margin-top:1rem;"></div>
+
+          <div class="disclaimer">This application is educational and designed for guided self-reflection. It is not a replacement for professional mental health care. If you are in crisis, please reach out to a licensed professional or local emergency service.</div>
+        </section>
+
+        <!-- MODULE PLACEHOLDER PAGES (filled in progressively) -->
+        <section class="page" id="page-shadow">
+          <span class="page-eyebrow">Module 01</span>
+          <h1 class="page-title">The Shadow</h1>
+          <p class="page-sub">Everything you've disowned about yourself doesn't disappear. It goes underground, and runs your life from there — through the people you envy, the reactions you can't explain, and the things you swear you'd never do.</p>
+
+          <div id="shadow-accordion"></div>
+
+          <div class="card card-lg" style="margin-top:2rem;">
+            <span class="card-title">Integration Check — 5 Questions</span>
+            <div id="shadow-quiz"></div>
+            <button class="btn btn-gold btn-sm" id="shadow-quiz-submit" style="margin-top:1rem;">Submit</button>
+            <div id="shadow-quiz-result" style="margin-top:1rem; font-family:var(--font-m); font-size:.85rem; color:var(--gold);"></div>
+          </div>
+
+          <div class="disclaimer">This module is educational. It describes patterns, not diagnoses. If any of this surfaces something overwhelming, a licensed therapist is the right next step — not this app.</div>
+        </section>
+        <section class="page" id="page-symptoms">
+          <span class="page-eyebrow">Module 02</span>
+          <h1 class="page-title">Symptom Finder</h1>
+          <p class="page-sub">Select what you actually struggle with. Not the socially acceptable version — the real one. What follows is a map of the unconscious dynamics that commonly sit underneath.</p>
+
+          <div class="card card-lg">
+            <span class="card-title">Select What Applies</span>
+            <div class="chip-row" id="symptom-chips"></div>
+            <button class="btn btn-gold btn-sm" id="symptom-analyze" style="margin-top:1.3rem;">Analyze</button>
+          </div>
+
+          <div id="symptom-results" style="margin-top:1.5rem;"></div>
+        </section>
+        <section class="page" id="page-guide">
+          <span class="page-eyebrow">Module 03</span>
+          <h1 class="page-title">Iron Guide</h1>
+          <p class="page-sub">A reflective dialogue partner, not an oracle. It won't tell you what's wrong with you — it will ask the question that gets you there yourself.</p>
+
+          <div class="card card-lg" style="display:flex; flex-direction:column; height:560px;">
+            <div id="chat-window" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:.9rem; padding-right:.4rem;"></div>
+            <div class="chip-row" id="chat-suggestions" style="margin:1rem 0 .8rem;"></div>
+            <div style="display:flex; gap:.6rem;">
+              <input type="text" id="chat-input" placeholder="What's actually going on?" style="flex:1; background:var(--graphite-2); border:1px solid var(--border); border-radius:8px; color:var(--white); padding:.8rem 1rem; font-size:.85rem;"/>
+              <button class="btn btn-gold btn-sm" id="chat-send">Send</button>
+            </div>
+          </div>
+          <div class="disclaimer">Iron Guide is a reflective prompt engine, not a licensed clinician, and does not diagnose. It is designed to widen the question, not supply a certainty.</div>
+        </section>
+        <section class="page" id="page-trauma">
+          <span class="page-eyebrow">Module 04</span>
+          <h1 class="page-title">Trauma Explorer</h1>
+          <p class="page-sub">Not every wound comes from a single catastrophic event. Some are built slowly, from a thousand small moments of not being seen.</p>
+
+          <div class="grid-2" style="margin-bottom:1.3rem;">
+            <div class="card card-lg">
+              <span class="card-title">What Trauma Actually Means</span>
+              <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">The word <i>trauma</i> comes from the Greek τραῦμα — meaning "wound." Originally a purely physical term for a piercing injury, it was later extended to describe a psychological wound: an experience that overwhelms the nervous system's capacity to process it in the moment, leaving a residue that keeps activating long after the danger has passed.</p>
+              <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75; margin-top:.8rem;">Trauma isn't defined by the size of the event. It's defined by whether the nervous system had the support to complete its response at the time. A "small" event without support can wound more deeply than a "big" one with it.</p>
+            </div>
+            <div class="card card-lg">
+              <span class="card-title">The Nervous System</span>
+              <svg id="nervous-system-svg" viewBox="0 0 200 260" style="width:100%; max-width:220px; display:block; margin:0 auto;"></svg>
+              <p style="font-size:.78rem; color:var(--dim); text-align:center; margin-top:.6rem;">The autonomic nervous system runs the threat response beneath conscious control — which is why willpower alone rarely resolves it.</p>
+            </div>
+          </div>
+
+          <span class="card-title" style="display:block; margin-bottom:1rem;">The Four Responses</span>
+          <div class="grid-4" style="margin-bottom:1.5rem;">
+            <div class="card"><span class="card-title">Fight</span><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.6;">Mobilizing aggression to meet the threat head-on. Shows up later as irritability, control, or a hair-trigger temper.</p></div>
+            <div class="card"><span class="card-title">Flight</span><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.6;">Mobilizing escape. Shows up later as restlessness, overworking, or an inability to sit still with discomfort.</p></div>
+            <div class="card"><span class="card-title">Freeze</span><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.6;">Shutting down when neither fight nor flight is possible. Shows up later as numbness, dissociation, or chronic fatigue.</p></div>
+            <div class="card"><span class="card-title">Fawn</span><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.6;">Appeasing the threat to stay safe. Shows up later as people-pleasing and a lost sense of one's own needs.</p></div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card card-lg">
+              <span class="card-title">Developmental Trauma &amp; Attachment</span>
+              <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">Developmental trauma accumulates across childhood rather than arriving in one event — inconsistent caregiving, emotional neglect, or an environment where a child's needs were routinely deprioritized. This shapes attachment style: the largely unconscious blueprint for how safe closeness feels in adulthood (secure, anxious, avoidant, or disorganized).</p>
+            </div>
+            <div class="card card-lg">
+              <span class="card-title">Core Wounds &amp; Body Memory</span>
+              <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">A core wound is the earliest, most formative version of a recurring pain — abandonment, rejection, betrayal, injustice. The body often remembers what the conscious mind has filed away: chronic tension in the jaw, chest, or gut can be somatic memory long after the narrative memory has faded. See Body Scan for a guided version of this.</p>
+            </div>
+          </div>
+        </section>
+        <section class="page" id="page-body">
+          <span class="page-eyebrow">Module 05</span>
+          <h1 class="page-title">Body Scan</h1>
+          <p class="page-sub">The body keeps what the mind won't say out loud. Click each area to see what it commonly holds.</p>
+
+          <div class="grid-2">
+            <div class="card card-lg" style="display:flex; align-items:center; justify-content:center;">
+              <svg id="body-svg" viewBox="0 0 200 420" style="width:100%; max-width:240px;"></svg>
+            </div>
+            <div class="card card-lg" id="body-info">
+              <span class="card-title">Select An Area</span>
+              <p style="color:var(--dim); font-size:.85rem;">Click a highlighted region on the figure to see what it commonly holds emotionally, and a grounding exercise for it.</p>
+            </div>
+          </div>
+        </section>
+        <section class="page" id="page-innerchild">
+          <span class="page-eyebrow">Module 06</span>
+          <h1 class="page-title">Inner Child</h1>
+          <p class="page-sub">A gentler room. The boy you were is still in there, and he's usually the one running the reaction you can't explain as an adult.</p>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">Childhood Timeline</span>
+            <div class="grid-2">
+              <div class="field"><label>Approximate age</label><input type="number" id="ic-age" placeholder="e.g. 8" min="0" max="18"/></div>
+              <div class="field"><label>What happened</label><input type="text" id="ic-title" placeholder="A short title"/></div>
+            </div>
+            <div class="field"><label>Describe it</label><textarea id="ic-desc" placeholder="What happened, and how it felt at the time"></textarea></div>
+            <button class="btn btn-gold btn-sm" id="ic-add-memory">Add To Timeline</button>
+            <div id="ic-timeline" style="margin-top:1.4rem;"></div>
+          </div>
+
+          <div class="card card-lg">
+            <span class="card-title">Write A Letter To Your Inner Child</span>
+            <p style="font-size:.8rem; color:var(--dim); margin-bottom:.8rem;">No structure required. Say what he needed to hear then, that you can say to him now.</p>
+            <textarea id="ic-letter" placeholder="Dear younger me…" style="min-height:160px;"></textarea>
+            <button class="btn btn-gold btn-sm" style="margin-top:.8rem;" id="ic-save-letter">Save Letter</button>
+            <div id="ic-letters" style="margin-top:1.4rem;"></div>
+          </div>
+        </section>
+        <section class="page" id="page-dreams">
+          <span class="page-eyebrow">Module 07</span>
+          <h1 class="page-title">Dream Journal</h1>
+          <p class="page-sub">The unconscious speaks in symbol, not sentence. Log what you remember before it fades — and see what the recurring images tend to mean.</p>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">Log A Dream</span>
+            <div class="field"><label>Title</label><input type="text" id="dream-title" placeholder="A short title for the dream"/></div>
+            <div class="field"><label>Description</label><textarea id="dream-text" placeholder="Describe what you remember"></textarea></div>
+            <div class="field">
+              <label>Symbols Present</label>
+              <div class="chip-row" id="dream-symbol-chips"></div>
+            </div>
+            <button class="btn btn-gold btn-sm" id="dream-save">Save Dream</button>
+          </div>
+
+          <div class="grid-2">
+            <div class="card card-lg">
+              <span class="card-title">Your Dreams</span>
+              <div id="dream-list"></div>
+            </div>
+            <div class="card card-lg">
+              <span class="card-title">Symbol Dictionary</span>
+              <div id="symbol-dictionary"></div>
+            </div>
+          </div>
+        </section>
+        <section class="page" id="page-archetype">
+          <span class="page-eyebrow">Module 08</span>
+          <h1 class="page-title">Archetype Test</h1>
+          <p class="page-sub">Which pattern is actually running you? Answer honestly — not aspirationally.</p>
+
+          <div class="card card-lg" id="archetype-quiz-card">
+            <div id="archetype-questions"></div>
+            <button class="btn btn-gold btn-sm" id="archetype-submit" style="margin-top:1rem;">See My Results</button>
+          </div>
+
+          <div id="archetype-results" style="margin-top:1.5rem;"></div>
+        </section>
+        <section class="page" id="page-purpose">
+          <span class="page-eyebrow">Module 09</span>
+          <h1 class="page-title">Values &amp; Purpose</h1>
+          <p class="page-sub">Direction matters more than speed. A man moving fast with no bearing is still lost — just more efficiently.</p>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">Core Values — Choose Your Top 5</span>
+            <div class="chip-row" id="values-chips"></div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:1rem;" id="values-save">Save Values</button>
+          </div>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">Ikigai — Four Questions</span>
+            <div class="grid-2">
+              <div class="field"><label>What you love</label><textarea id="ikigai-love" placeholder="What genuinely lights you up"></textarea></div>
+              <div class="field"><label>What you're good at</label><textarea id="ikigai-good" placeholder="Skills, real ones, not modest ones"></textarea></div>
+              <div class="field"><label>What the world needs</label><textarea id="ikigai-needs" placeholder="A problem worth solving"></textarea></div>
+              <div class="field"><label>What you can be paid for</label><textarea id="ikigai-paid" placeholder="Where value meets viability"></textarea></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="ikigai-save">Save Ikigai</button>
+          </div>
+
+          <div class="grid-2">
+            <div class="card card-lg">
+              <span class="card-title">Mission Statement</span>
+              <div class="field"><label>Draft it</label><textarea id="mission-text" placeholder="One or two sentences on why you're here"></textarea></div>
+              <button class="btn btn-gold btn-sm" id="mission-save">Save Mission</button>
+            </div>
+            <div class="card card-lg">
+              <span class="card-title">Future Vision &amp; Legacy</span>
+              <div class="field"><label>Ten years from now</label><textarea id="vision-text" placeholder="What does the man you're building actually look like"></textarea></div>
+              <button class="btn btn-gold btn-sm" id="vision-save">Save Vision</button>
+            </div>
+          </div>
+        </section>
+        <section class="page" id="page-journal">
+          <span class="page-eyebrow">Module 10</span>
+          <h1 class="page-title">Journal</h1>
+          <p class="page-sub">Free writing, mood-tagged, searchable. No prompt required — sometimes the point is just to get it out of your head and onto the page.</p>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">New Entry</span>
+            <textarea id="journal-text" placeholder="Write whatever's true right now"></textarea>
+            <div class="grid-2" style="margin-top:1rem;">
+              <div class="field"><label>Mood</label>
+                <select id="journal-mood">
+                  <option value="">— none —</option>
+                  <option>Grounded</option><option>Anxious</option><option>Numb</option><option>Driven</option><option>Heavy</option><option>Clear</option><option>Restless</option>
+                </select>
+              </div>
+              <div class="field"><label>Tags (comma separated)</label><input type="text" id="journal-tags" placeholder="e.g. work, shadow, relationship"/></div>
+            </div>
+            <button class="btn btn-gold btn-sm" id="journal-save">Save Entry</button>
+          </div>
+
+          <div class="card card-lg">
+            <span class="card-title">Your Entries</span>
+            <input type="text" id="journal-search" placeholder="Search entries…" style="width:100%; margin-bottom:1rem; background:var(--graphite-2); border:1px solid var(--border); border-radius:8px; color:var(--white); padding:.7rem .9rem; font-size:.85rem;"/>
+            <div id="journal-list"></div>
+          </div>
+        </section>
+        <section class="page" id="page-timeline">
+          <span class="page-eyebrow">Module 11</span>
+          <h1 class="page-title">Breakthroughs</h1>
+          <p class="page-sub">Every insight, journal entry, dream, and completed practice — automatically timestamped into one record, so progress stops being invisible.</p>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">Log A Breakthrough Manually</span>
+            <textarea id="breakthrough-text" placeholder="What just clicked?"></textarea>
+            <button class="btn btn-gold btn-sm" style="margin-top:.8rem;" id="breakthrough-save">Save Breakthrough</button>
+          </div>
+
+          <div class="card card-lg">
+            <span class="card-title">Full Timeline</span>
+            <div id="full-timeline"></div>
+          </div>
+        </section>
+        <section class="page" id="page-library">
+          <span class="page-eyebrow">Module 12</span>
+          <h1 class="page-title">Knowledge Library</h1>
+          <p class="page-sub">Concept primers drawn from the thinkers underneath this entire app — organized, not exhaustive. Follow what pulls you.</p>
+          <div id="library-content"></div>
+        </section>
+        <section class="page" id="page-labyrinth">
+          <span class="page-eyebrow">Module 13</span>
+          <h1 class="page-title">The Labyrinth</h1>
+          <p class="page-sub">A gamified path through the work that actually matters. Each level is a real task, not a checkbox for its own sake.</p>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem; display:flex; align-items:center; justify-content:center;">
+            <svg id="labyrinth-svg" viewBox="0 0 700 220" style="width:100%; max-width:720px;"></svg>
+          </div>
+
+          <div id="labyrinth-levels"></div>
+        </section>
+        <section class="page" id="page-breathwork">
+          <span class="page-eyebrow">Module 14</span>
+          <h1 class="page-title">Breathwork</h1>
+          <p class="page-sub">The fastest lever you have over the nervous system. No app subscription required — just attention and a few minutes.</p>
+
+          <div class="card card-lg" style="text-align:center;">
+            <div class="chip-row" id="breath-pattern-chips" style="justify-content:center; margin-bottom:1.6rem;">
+              <span class="chip selected" data-pattern="box">Box Breathing</span>
+              <span class="chip" data-pattern="sigh">Physiological Sigh</span>
+              <span class="chip" data-pattern="478">4-7-8 Calming</span>
+            </div>
+            <svg id="breath-circle" viewBox="0 0 220 220" style="width:220px; height:220px; margin:0 auto; display:block;"></svg>
+            <div id="breath-phase-label" style="font-family:var(--font-d); font-size:1.1rem; letter-spacing:.1em; color:var(--gold); margin-top:1rem; text-transform:uppercase;">Ready</div>
+            <div id="breath-cycle-count" style="font-family:var(--font-m); font-size:.75rem; color:var(--dim); margin-top:.4rem;">0 cycles completed</div>
+            <button class="btn btn-gold" id="breath-start" style="margin-top:1.4rem;">Begin</button>
+          </div>
+        </section>
+        <section class="page" id="page-morning">
+          <span class="page-eyebrow">Module 15</span>
+          <h1 class="page-title">Morning Ritual</h1>
+          <p class="page-sub">Set the day before the day sets you. Check off what you actually did — not what you intend to.</p>
+
+          <div class="card card-lg">
+            <span class="card-title" id="morning-date-label">Today</span>
+            <div id="morning-checklist"></div>
+            <div class="field" style="margin-top:1.2rem;"><label>Today's intention</label><input type="text" id="morning-intention" placeholder="One sentence — what today is actually about"/></div>
+            <button class="btn btn-gold btn-sm" id="morning-save">Save Ritual</button>
+          </div>
+        </section>
+        <section class="page" id="page-evening">
+          <span class="page-eyebrow">Module 16</span>
+          <h1 class="page-title">Evening Integration</h1>
+          <p class="page-sub">Close the day deliberately, rather than just letting it end. What got integrated today, and what's still sitting there unresolved?</p>
+
+          <div class="card card-lg">
+            <span class="card-title" id="evening-date-label">Tonight</span>
+            <div class="grid-2">
+              <div class="field"><label>Wins</label><textarea id="evening-wins" placeholder="What actually went right today"></textarea></div>
+              <div class="field"><label>Triggers</label><textarea id="evening-triggers" placeholder="What set you off, and why"></textarea></div>
+              <div class="field"><label>Lessons</label><textarea id="evening-lessons" placeholder="What today taught you"></textarea></div>
+              <div class="field"><label>Gratitude</label><textarea id="evening-gratitude" placeholder="What you're genuinely grateful for"></textarea></div>
+            </div>
+            <div class="field"><label>Shadow encounters</label><textarea id="evening-shadow" placeholder="Where did an old pattern show up today?"></textarea></div>
+            <div class="chip-row" style="margin-bottom:1rem;">
+              <span class="chip" data-sleep="Screens off">Screens off</span>
+              <span class="chip" data-sleep="Room dark">Room dark</span>
+              <span class="chip" data-sleep="Tomorrow planned">Tomorrow planned</span>
+            </div>
+            <button class="btn btn-gold btn-sm" id="evening-save">Save Integration</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================================================================
+   CORE: DATA STORE, MANDALA GENERATOR, STARFIELD, NAVIGATION
+================================================================= */
+"use strict";
+
+const STORE_KEY = 'ironMindShadow_v1';
+function defaultData(){
+  return {
+    user:{ totalXP:0, streak:0, lastActiveDate:null },
+    moods:[],                // {date, mood}
+    journal:[],              // {id,date,text,mood,tags}
+    dreams:[],               // {id,date,title,text,symbols}
+    innerChild:{ memories:[], letters:[] },
+    bodyScan:{ notes:{} },
+    symptomSessions:[],      // {date, symptoms:[]}
+    archetypeResult:null,    // {scores:{}, date}
+    purpose:{ values:[], ikigai:{}, mission:'', vision:'' },
+    labyrinth:{ completed:[] },
+    morning:{},              // {dateStr: {...checks}}
+    evening:{},              // {dateStr: {...fields}}
+    breakthroughs:[],        // manual entries {date,text}
+    shadowProgress:{ readConcepts:[], quizScore:null },
+    guideMessages:[]
+  };
+}
+let D = loadData();
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return defaultData();
+    const parsed = JSON.parse(raw);
+    const base = defaultData();
+    return Object.assign(base, parsed, {
+      user: Object.assign(base.user, parsed.user||{}),
+      innerChild: Object.assign(base.innerChild, parsed.innerChild||{}),
+      bodyScan: Object.assign(base.bodyScan, parsed.bodyScan||{}),
+      purpose: Object.assign(base.purpose, parsed.purpose||{}),
+      labyrinth: Object.assign(base.labyrinth, parsed.labyrinth||{}),
+    });
+  }catch(e){ return defaultData(); }
+}
+function saveData(){
+  localStorage.setItem(STORE_KEY, JSON.stringify(D));
+  renderTopStats();
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
+
+/* ---------- TOAST ---------- */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ---------- XP / LEVEL / STREAK ---------- */
+function addXP(amount){
+  D.user.totalXP += amount;
+  const today = todayStr();
+  if(D.user.lastActiveDate !== today){
+    const y = new Date(); y.setDate(y.getDate()-1);
+    const yStr = y.toISOString().slice(0,10);
+    D.user.streak = (D.user.lastActiveDate === yStr) ? D.user.streak+1 : 1;
+    D.user.lastActiveDate = today;
+  }
+  saveData();
+  renderScores();
+}
+function getLevel(xp){ return Math.max(1, Math.floor(xp/250)+1); }
+
+/* ---------- COMPOSITE SCORES ---------- */
+function renderScores(){
+  const shadowScore = Math.min(100, D.shadowProgress.readConcepts.length*8 + (D.shadowProgress.quizScore||0)*4 + D.symptomSessions.length*6);
+  const purposeScore = Math.min(100, (D.purpose.values.length*8) + (D.purpose.mission?25:0) + (D.purpose.vision?15:0) + Object.keys(D.purpose.ikigai||{}).length*6);
+  const energyDates = Object.keys(D.morning).length + Object.keys(D.evening).length;
+  const energyScore = Math.min(100, energyDates*10 + D.user.streak*4);
+  const authScore = Math.min(100, D.journal.length*5 + D.dreams.length*4 + D.innerChild.letters.length*8 + D.breakthroughs.length*6);
+  const integration = Math.round((shadowScore+purposeScore+energyScore+authScore)/4);
+
+  setBar('score-shadow', shadowScore); setBar('score-purpose', purposeScore);
+  setBar('score-energy', energyScore); setBar('score-authenticity', authScore);
+  document.getElementById('dash-integration-num').textContent = integration+'%';
+  document.getElementById('tb-integration').textContent = integration+'%';
+  drawMandala(document.getElementById('dash-mandala'), integration/100, true);
+}
+function setBar(id,val){
+  document.getElementById(id).style.width = val+'%';
+  document.getElementById(id+'-val').textContent = val+'%';
+}
+function renderTopStats(){
+  document.getElementById('tb-level').textContent = getLevel(D.user.totalXP);
+  document.getElementById('tb-xp').textContent = D.user.totalXP.toLocaleString();
+  document.getElementById('streak-display').textContent = D.user.streak;
+  renderScores();
+}
+
+/* ================================================================
+   MANDALA GENERATOR (signature visual — Jung's symbol of the Self)
+================================================================= */
+function drawMandala(svgEl, fillRatio, animated){
+  if(!svgEl) return;
+  fillRatio = fillRatio===undefined ? 1 : fillRatio;
+  const cx=100, cy=100, rings=[88,72,56];
+  let html = '';
+  rings.forEach((r,i)=>{
+    html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border-hi)" stroke-width="${i===0?1.4:.8}" opacity="${.55-i*.12}"/>`;
+  });
+  // progress ring
+  const R=88, circ=2*Math.PI*R;
+  html += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="url(#mandalaGrad)" stroke-width="2.4" stroke-linecap="round"
+    stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-fillRatio)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+  // tick marks
+  for(let i=0;i<24;i++){
+    const ang = (Math.PI*2*i/24);
+    const r1=64, r2 = i%6===0? 70:67;
+    const x1=cx+Math.cos(ang)*r1, y1=cy+Math.sin(ang)*r1;
+    const x2=cx+Math.cos(ang)*r2, y2=cy+Math.sin(ang)*r2;
+    html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--gold)" stroke-width="1" opacity=".4"/>`;
+  }
+  // 8-point star polygon (Self / wholeness)
+  const starPts=[]; const R2=40;
+  for(let i=0;i<8;i++){
+    const ang = (Math.PI*2*i/8) - Math.PI/2;
+    const rr = i%2===0? R2 : R2*.42;
+    starPts.push(`${cx+Math.cos(ang)*rr},${cy+Math.sin(ang)*rr}`);
+  }
+  html += `<polygon points="${starPts.join(' ')}" fill="var(--gold)" opacity=".16" stroke="var(--gold)" stroke-width="1"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="5" fill="var(--gold-bright)"/>`;
+  html = `<defs><linearGradient id="mandalaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#8a6f34"/><stop offset="50%" stop-color="#f0d98c"/><stop offset="100%" stop-color="#c9a860"/>
+  </linearGradient></defs>` + html;
+  svgEl.innerHTML = html;
+  if(animated){
+    svgEl.style.animation = 'spin 90s linear infinite';
+    if(!document.getElementById('spin-kf')){
+      const st=document.createElement('style'); st.id='spin-kf';
+      st.textContent='@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}';
+      document.head.appendChild(st);
+    }
+  }
+}
+
+/* ---------- STARFIELD + GALAXY + SHOOTING STARS ---------- */
+(function(){
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let W,H,stars=[],nebulae=[],shooters=[];
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+
+  function initStars(){
+    stars=[];
+    const count = Math.min(180, Math.floor(W/8));
+    for(let i=0;i<count;i++){
+      stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.3+.3,a:Math.random()*.6+.2,tw:Math.random()*.02+.005,dir:Math.random()>.5?1:-1});
+    }
+  }
+  function initNebulae(){
+    nebulae=[];
+    const colors = [
+      ['rgba(201,168,96,0.10)','rgba(201,168,96,0)'],   // gold
+      ['rgba(90,70,140,0.10)','rgba(90,70,140,0)'],      // deep violet
+      ['rgba(60,90,140,0.08)','rgba(60,90,140,0)'],      // faint blue
+      ['rgba(140,70,110,0.07)','rgba(140,70,110,0)'],    // faint magenta
+    ];
+    const count = 5;
+    for(let i=0;i<count;i++){
+      nebulae.push({
+        x:Math.random()*W, y:Math.random()*H,
+        r: Math.random()*260+220,
+        colors: colors[i%colors.length],
+        vx:(Math.random()-0.5)*0.06, vy:(Math.random()-0.5)*0.06,
+        pulse: Math.random()*Math.PI*2
+      });
+    }
+  }
+  function spawnShooter(){
+    const fromLeft = Math.random()>0.5;
+    const startY = Math.random()*H*0.6;
+    shooters.push({
+      x: fromLeft? -50 : W+50,
+      y: startY,
+      vx: (fromLeft? 1:-1) * (6+Math.random()*5),
+      vy: 2.5+Math.random()*2.2,
+      len: 90+Math.random()*70,
+      life: 1,
+      decay: 0.012+Math.random()*0.008
+    });
+  }
+  let nextShooterAt = performance.now()+randomShooterDelay();
+  function randomShooterDelay(){ return 2600 + Math.random()*4200; }
+
+  function drawNebulae(){
+    nebulae.forEach(n=>{
+      n.x += n.vx; n.y += n.vy; n.pulse += 0.004;
+      if(n.x < -n.r) n.x = W+n.r; if(n.x > W+n.r) n.x = -n.r;
+      if(n.y < -n.r) n.y = H+n.r; if(n.y > H+n.r) n.y = -n.r;
+      const pulseR = n.r * (1 + Math.sin(n.pulse)*0.06);
+      const grad = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,pulseR);
+      grad.addColorStop(0, n.colors[0]);
+      grad.addColorStop(1, n.colors[1]);
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(n.x,n.y,pulseR,0,Math.PI*2); ctx.fill();
+    });
+  }
+  function drawStars(){
+    stars.forEach(s=>{
+      s.a += s.tw*s.dir;
+      if(s.a>0.9||s.a<0.15) s.dir*=-1;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(240,239,232,${s.a})`; ctx.fill();
+    });
+  }
+  function drawShooters(now){
+    if(now > nextShooterAt){
+      spawnShooter();
+      nextShooterAt = now + randomShooterDelay();
+    }
+    shooters.forEach(s=>{
+      s.x += s.vx; s.y += s.vy; s.life -= s.decay;
+      const tailX = s.x - s.vx*s.len/8;
+      const tailY = s.y - s.vy*s.len/8;
+      const grad = ctx.createLinearGradient(s.x,s.y,tailX,tailY);
+      grad.addColorStop(0, `rgba(240,224,180,${Math.max(s.life,0)})`);
+      grad.addColorStop(1, 'rgba(240,224,180,0)');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(tailX,tailY); ctx.stroke();
+      ctx.beginPath(); ctx.arc(s.x,s.y,1.6,0,Math.PI*2);
+      ctx.fillStyle = `rgba(255,246,222,${Math.max(s.life,0)})`; ctx.fill();
+    });
+    shooters = shooters.filter(s=> s.life>0 && s.x>-100 && s.x<W+100 && s.y<H+100);
+  }
+  function draw(now){
+    ctx.clearRect(0,0,W,H);
+    drawNebulae();
+    drawStars();
+    if(!reduceMotion) drawShooters(now||0);
+    requestAnimationFrame(draw);
+  }
+  resize(); initStars(); initNebulae(); draw(0);
+  window.addEventListener('resize', ()=>{ resize(); initStars(); initNebulae(); });
+})();
+
+/* ---------- LOADER ---------- */
+window.addEventListener('DOMContentLoaded', ()=>{
+  drawMandala(document.getElementById('loader-mandala'), 1, true);
+  drawMandala(document.getElementById('sb-mark'), 1, false);
+  const statuses=['Calibrating the instrument…','Mapping the terrain…','Aligning the dial…','Ready.'];
+  let i=0;
+  const statusEl = document.getElementById('loader-status');
+  const si = setInterval(()=>{ i++; if(i<statuses.length) statusEl.textContent=statuses[i]; },550);
+  setTimeout(()=>{
+    clearInterval(si);
+    document.getElementById('loader').classList.add('hidden-loader');
+  }, 2400);
+  renderTopStats();
+  renderModuleGrid();
+  renderDailyMission();
+  renderMoodState();
+  renderRecentBreakthroughs();
+});
+
+document.getElementById('enter-btn').addEventListener('click', ()=>{
+  document.getElementById('entry').classList.add('hidden');
+  document.getElementById('app').classList.add('active');
+  addXP(0); // triggers streak calc without granting points
+  renderAllModules();
+});
+
+/* ---------- SIDEBAR NAV ---------- */
+document.querySelectorAll('.sb-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    const page = item.dataset.page;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+page).classList.add('active');
+    document.getElementById('topbar-title').textContent = item.textContent.trim();
+    if(window.onPageShow && window.onPageShow[page]) window.onPageShow[page]();
+    if(window.innerWidth<=900) document.getElementById('sidebar').classList.remove('mobile-open');
+  });
+});
+window.goToPage = function(p){
+  const item = document.querySelector(`.sb-item[data-page="${p}"]`);
+  if(item) item.click();
+};
+
+document.getElementById('sb-toggle').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.getElementById('main').classList.toggle('collapsed');
+});
+
+/* ---------- MODULE GRID (dashboard) ---------- */
+const MODULES = [
+  {id:'shadow', icon:'☾', name:'The Shadow', desc:'Projection, persona, ego, archetypes — the architecture beneath the self.'},
+  {id:'symptoms', icon:'◈', name:'Symptom Finder', desc:'Select what you struggle with. See the unconscious pattern underneath.'},
+  {id:'guide', icon:'✦', name:'Iron Guide', desc:'A reflective dialogue partner. Not certainty — exploration.'},
+  {id:'trauma', icon:'⚡', name:'Trauma Explorer', desc:'Fight, flight, freeze, fawn — and what the nervous system remembers.'},
+  {id:'body', icon:'◉', name:'Body Scan', desc:'Where the body holds what the mind won\'t say.'},
+  {id:'innerchild', icon:'✧', name:'Inner Child', desc:'A gentler room. Memory, compassion, and repair.'},
+  {id:'dreams', icon:'☽', name:'Dream Journal', desc:'Log dreams. Decode the symbols the unconscious keeps sending.'},
+  {id:'archetype', icon:'♜', name:'Archetype Test', desc:'Which pattern runs you — and where it becomes a blind spot.'},
+  {id:'purpose', icon:'⊕', name:'Values & Purpose', desc:'Ikigai-style exercises for direction, mission, and legacy.'},
+  {id:'journal', icon:'✎', name:'Journal', desc:'Free writing, mood-tagged, searchable.'},
+  {id:'timeline', icon:'◷', name:'Breakthroughs', desc:'Every insight, automatically timestamped into one record.'},
+  {id:'library', icon:'▤', name:'Knowledge Library', desc:'Jung, Frankl, Adler, Campbell, Stoicism — concept primers.'},
+  {id:'labyrinth', icon:'◍', name:'The Labyrinth', desc:'A gamified path through fear, shadow, and purpose.'},
+  {id:'breathwork', icon:'◌', name:'Breathwork', desc:'Box breathing, physiological sigh, nervous system down-regulation.'},
+  {id:'morning', icon:'☀', name:'Morning Ritual', desc:'Intention, movement, sunlight — set before the day sets you.'},
+  {id:'evening', icon:'☾', name:'Evening Integration', desc:'Wins, triggers, lessons — close the day deliberately.'},
+];
+function renderModuleGrid(){
+  const grid = document.getElementById('module-grid');
+  grid.innerHTML = MODULES.map(m=>`
+    <div class="mod-card" onclick="goToPage('${m.id}')">
+      <div class="mod-icon">${m.icon}</div>
+      <div class="mod-name">${m.name}</div>
+      <div class="mod-desc">${m.desc}</div>
+    </div>`).join('');
+}
+
+/* ---------- DAILY MISSION ---------- */
+const MISSIONS = [
+  "Name one thing you did today to avoid a feeling. Sit with it for sixty seconds.",
+  "Who did you perform for today? Who would you be without the audience?",
+  "Write the sentence you're most afraid is true about yourself.",
+  "What pattern from your father or mother did you swear you'd never repeat — and did you?",
+  "Where in your body are you holding tension right now? Breathe into it for ten breaths.",
+  "What would the man you're becoming think of the choices you made today?",
+  "Name one person you resent. What quality in them do you secretly want?",
+  "What are you calling 'laziness' that might actually be depletion?",
+  "Say the thing you've been avoiding saying — to yourself, in writing, right now.",
+  "What decision are you delaying because the clarity terrifies you more than the confusion?"
+];
+function renderDailyMission(){
+  const idx = Math.floor(Date.now()/86400000) % MISSIONS.length;
+  document.getElementById('daily-mission').textContent = MISSIONS[idx];
+}
+document.getElementById('new-mission-btn').addEventListener('click', ()=>{
+  const idx = Math.floor(Math.random()*MISSIONS.length);
+  document.getElementById('daily-mission').textContent = MISSIONS[idx];
+});
+
+/* ---------- MOOD CHECK ---------- */
+document.getElementById('mood-chips').addEventListener('click', (e)=>{
+  if(!e.target.classList.contains('chip')) return;
+  const mood = e.target.dataset.mood;
+  D.moods.push({date:new Date().toISOString(), mood});
+  addXP(5);
+  showToast('Logged: '+mood+' · +5 XP');
+  renderMoodState();
+});
+function renderMoodState(){
+  const last = D.moods[D.moods.length-1];
+  document.getElementById('mood-last').textContent = last ? `Last check-in: ${last.mood} — ${fmtDate(last.date)}` : 'No check-in yet today.';
+}
+
+/* ---------- QUICK JOURNAL (dashboard shortcut) ---------- */
+document.getElementById('quick-journal-save').addEventListener('click', ()=>{
+  const text = document.getElementById('quick-journal').value.trim();
+  if(!text){ showToast('Write something first.'); return; }
+  D.journal.unshift({id:uid(), date:new Date().toISOString(), text, mood:null, tags:[]});
+  document.getElementById('quick-journal').value='';
+  addXP(15);
+  showToast('Entry saved · +15 XP');
+  if(window.onPageShow && window.onPageShow.journal) window.onPageShow.journal();
+  renderRecentBreakthroughs();
+});
+
+/* ---------- RECENT BREAKTHROUGHS (dashboard preview) ---------- */
+function getAllBreakthroughEvents(){
+  const events = [];
+  D.breakthroughs.forEach(b=>events.push({date:b.date,label:b.text,tag:'BREAKTHROUGH'}));
+  D.journal.forEach(j=>events.push({date:j.date,label:j.text.slice(0,90)+(j.text.length>90?'…':''),tag:'JOURNAL'}));
+  D.dreams.forEach(d=>events.push({date:d.date,label:'Dream — '+d.title,tag:'DREAM'}));
+  if(D.archetypeResult) events.push({date:D.archetypeResult.date,label:'Archetype test completed',tag:'ARCHETYPE'});
+  if(D.purpose.mission) events.push({date:D.purpose.missionDate||new Date().toISOString(),label:'Mission statement drafted',tag:'PURPOSE'});
+  D.innerChild.letters.forEach(l=>events.push({date:l.date,label:'Letter to inner child written',tag:'INNER CHILD'}));
+  D.labyrinth.completed.forEach(c=>events.push({date:c.date,label:'Labyrinth: '+c.label,tag:'LABYRINTH'}));
+  return events.sort((a,b)=>new Date(b.date)-new Date(a.date));
+}
+function renderRecentBreakthroughs(){
+  const el = document.getElementById('dash-recent-breakthroughs');
+  const events = getAllBreakthroughEvents().slice(0,5);
+  if(!events.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◷</span>Nothing logged yet. Your record starts the moment you act.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+events.map(e=>`
+    <div class="entry"><span class="entry-date">${fmtDate(e.date)}</span><div class="entry-body">${e.label}</div><span class="entry-tag">${e.tag}</span></div>
+  `).join('')+'</div>';
+}
+
+window.onPageShow = {};
+
+/* ================================================================
+   MODULE: THE SHADOW
+================================================================= */
+const SHADOW_CONCEPTS = [
+  {id:'shadow', title:'The Shadow', body:`<p>The shadow is everything about yourself you've decided isn't acceptable — and pushed out of conscious awareness to keep the peace with your family, your culture, or your own self-image. It isn't inherently "evil." It's simply unlived. Rage you were never allowed to express, ambition that made others uncomfortable, softness that got mocked out of you — all of it goes into the shadow.</p><p>The danger isn't having a shadow. Everyone does. The danger is not knowing you have one, because what you don't see, you act out.</p>`, reflect:'What trait do you most dislike in other people? Where might that same trait exist, unacknowledged, in you?'},
+  {id:'persona', title:'The Persona', body:`<p>The persona is the mask — the version of you built for public consumption. It's not fake, exactly. It's a necessary social tool. The problem starts when a man forgets he's wearing one, and mistakes the mask for his actual face.</p><p>Over-identify with the persona (the "provider," the "strong one," the "guy who has it together") and the shadow grows heavier in proportion, because everything that doesn't fit the mask gets shoved further down.</p>`, reflect:'Which version of yourself do you present at work, with friends, and alone? How far apart are they?'},
+  {id:'ego', title:'The Ego', body:`<p>The ego is your centre of conscious identity — the "I" that experiences your life, makes decisions, and tells itself a story about who it is. It's necessary. It's also not the whole picture. Jung's core claim was that the ego is a small, lit room in a much larger, mostly dark house.</p>`, reflect:'When was the last time something you did surprised even you? What does that suggest about the size of the "you" you think you know?'},
+  {id:'self', title:'The Self', body:`<p>Capital-S Self, in Jung's model, is the totality of the psyche — conscious and unconscious combined. It's the organizing centre you're moving toward, not the one you start from. Individuation is the lifelong process of the ego coming into relationship with the Self, rather than mistaking itself for the whole show.</p>`, reflect:'If your unconscious patterns, your shadow, and your conscious values all agreed on one direction — what would you be doing differently tomorrow?'},
+  {id:'archetypes', title:'Archetypes', body:`<p>Archetypes are inherited, universal patterns of behaviour and image that show up across every culture and era — the King, the Warrior, the Magician, the Lover, and dozens more. You don't choose them; you're run by them until you can name them. Naming one is the first step to using it deliberately instead of unconsciously.</p>`, reflect:'Which archetype do you lean on most under pressure? Which one have you never let yourself access?'},
+  {id:'individuation', title:'Individuation', body:`<p>Individuation is the process of becoming who you actually are, as opposed to who your family, culture, or persona decided you should be. It requires confronting the shadow directly — not defeating it, integrating it. A man who individuates doesn't become "good." He becomes whole, which is a different and harder thing.</p>`, reflect:'What would you have to give up — an image, an approval, a comfort — to become more fully yourself?'},
+  {id:'anima', title:'Anima', body:`<p>In Jung's model, the anima is the unconscious feminine aspect within a man's psyche — the seat of mood, feeling, and relational intuition. An unintegrated anima shows up as unexplained moodiness, being blindsided by emotion, or projecting an idealized "she'll complete me" fantasy onto real women.</p>`, reflect:'Where in your life do emotions blindside you, seemingly out of nowhere?'},
+  {id:'animus', title:'Animus', body:`<p>The animus is the corresponding unconscious masculine aspect within a woman's psyche — associated with logic, conviction, and assertion in Jung's original framework. Understanding the concept matters for men too: it explains why the language of "logic vs. emotion" between partners is rarely as clean as it looks on the surface.</p>`, reflect:'Where have you assumed a partner or friend was "being emotional" when really a valid point was being dismissed because of how it was delivered?'},
+  {id:'complexes', title:'Complexes', body:`<p>A complex is an emotionally charged cluster of memories and beliefs organized around a single theme — the "not good enough" complex, the "abandonment" complex. Complexes act like a magnet: any event even loosely related gets pulled into the same old emotional reaction, disproportionate to what just happened.</p>`, reflect:'What reaction do you have that feels bigger than the situation deserves? What older story might it be plugged into?'},
+  {id:'defense', title:'Defense Mechanisms', body:`<p>Defense mechanisms are the mind's automatic strategies for keeping unbearable material out of awareness: denial, rationalization, intellectualizing, humor-as-deflection, displacement. They're not weakness — they're what got you through. The work isn't to demolish them, it's to notice when they're running the show without your consent.</p>`, reflect:'What defense do you reach for fastest when someone gets close to something true?'},
+  {id:'projection', title:'Projection', body:`<p>Projection is the mechanism by which unowned parts of yourself get attributed to someone else — usually with intense emotional charge attached. Real-life example: a man who's disowned his own ambition may find himself irrationally irritated by "arrogant" colleagues. A man who's disowned his need for tenderness may find himself contemptuous of men who show it.</p><p>The tell is the intensity. Mild dislike is just preference. Disproportionate charge is usually a mirror.</p>`, reflect:'Think of someone who irritates you far more than the situation warrants. What quality of theirs, if you are honest, might be unclaimed in you?'},
+];
+function renderShadowAccordion(){
+  const el = document.getElementById('shadow-accordion');
+  el.innerHTML = SHADOW_CONCEPTS.map(c=>`
+    <div class="acc-item" data-id="${c.id}">
+      <div class="acc-head" onclick="toggleShadowAcc('${c.id}')">
+        <h4>${c.title}</h4><span class="acc-chev">⌄</span>
+      </div>
+      <div class="acc-body"><div class="acc-body-inner">
+        ${c.body}
+        <div class="field" style="margin-top:1rem;">
+          <label>Reflection</label>
+          <textarea id="reflect-${c.id}" placeholder="${c.reflect}"></textarea>
+          <button class="btn btn-ghost btn-sm" style="margin-top:.6rem;" onclick="saveShadowReflection('${c.id}')">Save Reflection</button>
+        </div>
+      </div></div>
+    </div>`).join('');
+}
+window.toggleShadowAcc = function(id){
+  const item = document.querySelector(`.acc-item[data-id="${id}"]`);
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('#shadow-accordion .acc-item').forEach(i=>i.classList.remove('open'));
+  if(!wasOpen){
+    item.classList.add('open');
+    if(!D.shadowProgress.readConcepts.includes(id)){
+      D.shadowProgress.readConcepts.push(id);
+      addXP(10);
+      showToast('+10 XP — concept explored');
+    }
+  }
+};
+window.saveShadowReflection = function(id){
+  const text = document.getElementById('reflect-'+id).value.trim();
+  if(!text){ showToast('Write a reflection first.'); return; }
+  D.journal.unshift({id:uid(), date:new Date().toISOString(), text:`[Shadow — ${id}] `+text, mood:null, tags:['shadow']});
+  addXP(15); saveData();
+  showToast('Reflection saved to journal · +15 XP');
+  renderRecentBreakthroughs();
+};
+
+const SHADOW_QUIZ = [
+  {q:'The shadow, in Jungian terms, primarily consists of:', options:['Evil impulses only','Disowned or unacceptable parts of the self','Childhood memories','Physical illness'], correct:1},
+  {q:'Projection typically involves:', options:['Predicting the future','Attributing your own unowned traits to someone else','Meditation technique','A type of dream'], correct:1},
+  {q:'The persona is best described as:', options:['Your true self','The social mask you present publicly','A mental illness','Your childhood personality'], correct:1},
+  {q:'Individuation refers to:', options:['Becoming more isolated','The lifelong process of integrating conscious and unconscious into a whole self','Becoming famous','Following strict rules'], correct:1},
+  {q:'A "complex" in this framework is:', options:['A building','An emotionally-charged cluster of memories organized around a theme','A compliment','A type of dream symbol'], correct:1},
+];
+function renderShadowQuiz(){
+  const el = document.getElementById('shadow-quiz');
+  el.innerHTML = SHADOW_QUIZ.map((q,i)=>`
+    <div style="margin-bottom:1.2rem;">
+      <p style="font-size:.85rem; margin-bottom:.6rem;">${i+1}. ${q.q}</p>
+      <div class="chip-row">${q.options.map((o,oi)=>`<span class="chip" data-q="${i}" data-o="${oi}" onclick="selectQuizOption(this)">${o}</span>`).join('')}</div>
+    </div>`).join('');
+}
+window.selectQuizOption = function(el){
+  const q = el.dataset.q;
+  document.querySelectorAll(`.chip[data-q="${q}"]`).forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+};
+document.getElementById('shadow-quiz-submit').addEventListener('click', ()=>{
+  let score=0;
+  SHADOW_QUIZ.forEach((q,i)=>{
+    const sel = document.querySelector(`.chip[data-q="${i}"].selected`);
+    if(sel && parseInt(sel.dataset.o)===q.correct) score++;
+  });
+  D.shadowProgress.quizScore = score;
+  saveData();
+  document.getElementById('shadow-quiz-result').textContent = `${score} / ${SHADOW_QUIZ.length} correct.`;
+  addXP(score*8);
+  showToast(`Quiz complete · +${score*8} XP`);
+});
+window.onPageShow.shadow = function(){ renderShadowAccordion(); renderShadowQuiz(); };
+renderShadowAccordion(); renderShadowQuiz();
+
+/* ================================================================
+   MODULE: SYMPTOM FINDER
+================================================================= */
+const SYMPTOMS = {
+  'People pleasing': {dynamic:'Usually a childhood adaptation — love or safety once depended on being agreeable. The shadow holds the anger and needs you were never allowed to express.', prompt:'Whose approval were you taught was non-negotiable to survive?', exercise:'Today, say one true "no" — small, low-stakes, and out loud.'},
+  'Low confidence': {dynamic:'Often an internalized voice — a parent, teacher, or early failure — that never got updated with adult evidence. The gap between competence and self-belief is usually an old data problem, not a current one.', prompt:'Whose voice is actually speaking when you doubt yourself?', exercise:'List three things you\'ve done competently in the last month. Read them aloud.'},
+  'Fear of judgement': {dynamic:'Points to a persona under threat — the mask feels load-bearing, so any perceived crack feels existential rather than social.', prompt:'What do you imagine would happen if people saw the unedited version of you?', exercise:'Share one unpolished opinion with someone today, and observe that nothing collapses.'},
+  'Need for validation': {dynamic:'Often reflects an underdeveloped internal reference point — self-worth was outsourced early and never brought back in-house.', prompt:'When did you last make a decision purely because it was right for you, with no audience?', exercise:'Do one thing today you will tell no one about.'},
+  'Perfectionism': {dynamic:'Frequently a shadow-side control strategy — if everything is flawless, nothing can be criticized, and criticism once felt dangerous.', prompt:'What are you actually afraid people would see if the work were merely "good enough"?', exercise:'Ship something imperfect on purpose today.'},
+  'Self sabotage': {dynamic:'Often the ego protecting an old identity — succeeding would require becoming someone unfamiliar, and the unconscious resists that more than it resists failure.', prompt:'What would you have to give up about your current identity if you actually succeeded?', exercise:'Notice the exact moment today you feel the urge to self-sabotage, and just name it out loud: "This is the pattern."'},
+  'Porn addiction': {dynamic:'Commonly functions as a fast, low-risk substitute for real intimacy or emotional regulation — the shadow of unmet connection wearing a compulsive mask.', prompt:'What feeling are you actually trying to escape in the moments right before?', exercise:'Next urge, delay 10 minutes and journal what you\'re feeling instead.'},
+  'Avoidance': {dynamic:'Usually protects against an emotion too large to feel safely alone — avoidance isn\'t laziness, it\'s an old nervous system strategy.', prompt:'What specific feeling are you avoiding right now by staying busy?', exercise:'Pick the one task you\'re avoiding. Do the first five minutes only.'},
+  'Anger': {dynamic:'Frequently a secondary emotion masking something more vulnerable underneath — hurt, fear, or grief that felt unsafe to show directly.', prompt:'Under the anger, what softer feeling is actually there?', exercise:'Next time anger spikes, pause and ask: "What am I actually afraid of right now?"'},
+  'Jealousy': {dynamic:'Often projection in reverse — pointing directly at an unclaimed desire or unlived potential in yourself.', prompt:'What does the person you\'re jealous of have that you\'ve told yourself you\'re not allowed to want?', exercise:'Write down the exact thing you envy. Ask what one step toward it would look like.'},
+  'Laziness': {dynamic:'Often mislabeled depletion, unprocessed grief, or a nervous system stuck in freeze — rarely a character flaw.', prompt:'What have you been carrying that you\'ve never actually put down?', exercise:'Rest deliberately for 20 minutes with zero guilt, then reassess.'},
+  'Commitment issues': {dynamic:'Frequently rooted in an early experience where trust was broken, making permanence feel like exposure to future loss.', prompt:'Who taught you that commitment leads to disappointment?', exercise:'Name one small commitment you can keep this week, and keep it.'},
+  'Relationship anxiety': {dynamic:'Often an attachment pattern formed early, now running on autopilot in every close bond regardless of actual safety.', prompt:'Does this fear belong to this relationship, or to an earlier one?', exercise:'The next anxious spiral — name it as "the pattern," not "the truth."'},
+  'Emotional numbness': {dynamic:'Usually a nervous system\'s long-term solution to overwhelm — numbness protected you when feeling wasn\'t safe or possible.', prompt:'When was the last time you remember feeling fully, before the numbness set in?', exercise:'Try naming three physical sensations in your body right now, without judging them.'},
+  'Overthinking': {dynamic:'Often the mind\'s attempt to control what feels emotionally uncontrollable — thinking as a substitute for feeling.', prompt:'What feeling would surface if you stopped thinking about this for one minute?', exercise:'Set a 2-minute timer, write the thought spiral out fully, then physically close the notebook.'},
+  'Imposter syndrome': {dynamic:'Often a persona-Self gap — competence is real, but it hasn\'t been internalized into identity yet.', prompt:'What evidence are you dismissing because it doesn\'t match the old story?', exercise:'Write down one skill you have that you\'d readily credit in someone else.'},
+  'Fear of success': {dynamic:'Can reflect an unconscious loyalty — succeeding beyond a parent or peer group can feel like betrayal or exposure.', prompt:'Who in your life might feel threatened, consciously or not, if you succeeded fully?', exercise:'Name one goal you\'ve quietly capped. Ask why.'},
+  'Fear of intimacy': {dynamic:'Frequently protects against the vulnerability of being truly known and still risking rejection — safer to be wanted for the mask.', prompt:'What part of yourself have you never let a partner see?', exercise:'Share one true, slightly uncomfortable thing with someone you trust this week.'},
+};
+function renderSymptomChips(){
+  const el = document.getElementById('symptom-chips');
+  el.innerHTML = Object.keys(SYMPTOMS).map(s=>`<span class="chip" data-symptom="${s}">${s}</span>`).join('');
+}
+document.getElementById('symptom-chips').addEventListener('click', e=>{
+  if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
+});
+document.getElementById('symptom-analyze').addEventListener('click', ()=>{
+  const selected = Array.from(document.querySelectorAll('#symptom-chips .chip.selected')).map(c=>c.dataset.symptom);
+  if(!selected.length){ showToast('Select at least one symptom.'); return; }
+  D.symptomSessions.push({date:new Date().toISOString(), symptoms:selected});
+  addXP(12*selected.length); saveData();
+  showToast(`Analysis complete · +${12*selected.length} XP`);
+  renderSymptomResults(selected);
+});
+function renderSymptomResults(selected){
+  const el = document.getElementById('symptom-results');
+  const cards = selected.map(s=>{
+    const d = SYMPTOMS[s];
+    return `<div class="card">
+      <span class="card-title">${s}</span>
+      <p style="font-size:.82rem; color:var(--dim-hi); line-height:1.65; margin-bottom:.8rem;">${d.dynamic}</p>
+      <p style="font-size:.78rem; color:var(--gold); margin-bottom:.4rem;"><b>Journal prompt:</b> ${d.prompt}</p>
+      <p style="font-size:.78rem; color:var(--dim);"><b>Exercise:</b> ${d.exercise}</p>
+    </div>`;
+  }).join('');
+  el.innerHTML = `
+    <div class="card card-lg" style="margin-bottom:1.3rem;">
+      <span class="card-title">The Interconnected Web</span>
+      <svg id="symptom-web" viewBox="0 0 500 340" style="width:100%; max-width:600px; display:block; margin:0 auto;"></svg>
+    </div>
+    <div class="grid-2">${cards}</div>`;
+  drawSymptomWeb(selected);
+}
+function drawSymptomWeb(selected){
+  const svg = document.getElementById('symptom-web');
+  const cx=250, cy=170, n=selected.length;
+  let html = `<circle cx="${cx}" cy="${cy}" r="42" fill="var(--gold-glow)" stroke="var(--gold)" stroke-width="1.4"/>
+    <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="var(--gold-bright)" font-family="JetBrains Mono" font-size="10">UNCONSCIOUS</text>`;
+  selected.forEach((s,i)=>{
+    const ang = (Math.PI*2*i/n) - Math.PI/2;
+    const r = 145;
+    const x = cx+Math.cos(ang)*r, y = cy+Math.sin(ang)*r;
+    html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--border-hi)" stroke-width="1"/>`;
+    html += `<circle cx="${x}" cy="${y}" r="34" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1"/>`;
+    const words = s.split(' ');
+    words.forEach((w,wi)=>{
+      html += `<text x="${x}" y="${y+wi*11-(words.length-1)*5.5+4}" text-anchor="middle" fill="var(--dim-hi)" font-family="Inter" font-size="9.5">${w}</text>`;
+    });
+  });
+  svg.innerHTML = html;
+}
+window.onPageShow.symptoms = function(){ if(!document.getElementById('symptom-chips').innerHTML) renderSymptomChips(); };
+renderSymptomChips();
+
+/* ================================================================
+   MODULE: IRON GUIDE (reflective chat)
+================================================================= */
+const GUIDE_SUGGESTIONS = ["I keep sabotaging relationships","I explode with anger","I don't know who I am","My childhood still affects me"];
+const GUIDE_PATTERNS = [
+  {keys:['sabotag'], responses:[
+    "Self-sabotage usually isn't self-destruction — it's the ego protecting an old, familiar identity from a new one it doesn't recognize yet. What would you have to give up about who you currently are, if the relationship actually worked?",
+    "Notice the timing of it. Does the sabotage tend to show up right after things start going well? What might that timing be protecting you from?"
+  ]},
+  {keys:['anger','explode','rage'], responses:[
+    "Anger is rarely the first emotion — it's usually the loudest one, covering something quieter underneath: hurt, fear, or powerlessness. In the moment right before the explosion, what's the feeling anger is standing in front of?",
+    "What did you learn, growing up, about what happened to people who showed anger directly? Sometimes explosive anger is what happens when direct anger was never allowed."
+  ]},
+  {keys:["don't know who i am",'identity','who am i'], responses:[
+    "That question usually means the persona — the mask built for other people — has gotten louder than the Self underneath it. If no one else's expectations existed for one week, what would you actually do with your time?",
+    "Identity confusion often isn't absence, it's overcrowding — too many inherited scripts running at once. Whose definition of 'who you should be' are you currently trying to satisfy?"
+  ]},
+  {keys:['childhood','parents','father','mother','mum','dad'], responses:[
+    "The nervous system doesn't distinguish well between 'then' and 'now' — a present-day trigger can borrow all its intensity from an old, unresolved moment. What does this current situation actually remind you of?",
+    "What's one rule you absorbed as a child about what was safe to feel or say — that you're still unconsciously obeying as an adult?"
+  ]},
+  {keys:['people please','validation','approval'], responses:[
+    "Whose approval did survival once depend on? That's usually where the pattern was built, long before it generalized to everyone else.",
+    "What might happen — really, specifically — if you disappointed that person on purpose, once, on something small?"
+  ]},
+  {keys:['relationship','partner','girlfriend','boyfriend'], responses:[
+    "Relationship patterns are often the clearest mirror available — they surface exactly what's unresolved elsewhere. What does this conflict have in common with a much older one?",
+    "Is the fear you're feeling about this relationship, or is it wearing this relationship's clothes while actually belonging to an earlier one?"
+  ]},
+  {keys:['numb','nothing','empty'], responses:[
+    "Numbness is rarely the absence of feeling — it's usually the nervous system's way of protecting you from feeling too much, too fast. When did the numbness first show up, as best you can recall?",
+    "If the numbness lifted for just one minute, what do you imagine would be underneath it?"
+  ]},
+  {keys:['purpose','meaning','pointless','lost'], responses:[
+    "Viktor Frankl's core claim was that meaning isn't found lying around — it's constructed, through what you create, who you love, and how you meet unavoidable suffering. Which of those three feels most absent right now?",
+    "What would you be doing differently this month if you fully believed your life had to matter to no one but you?"
+  ]},
+];
+const GUIDE_DEFAULT = [
+  "Say more about that. What's underneath the first thing you said?",
+  "If you had to guess — not know, guess — what's the oldest version of this feeling you can remember?",
+  "What would you tell a friend who said exactly what you just said?",
+  "What are you not saying, that's actually the real thing?"
+];
+function guideRespond(text){
+  const lower = text.toLowerCase();
+  for(const p of GUIDE_PATTERNS){
+    if(p.keys.some(k=>lower.includes(k))) return p.responses[Math.floor(Math.random()*p.responses.length)];
+  }
+  return GUIDE_DEFAULT[Math.floor(Math.random()*GUIDE_DEFAULT.length)];
+}
+function renderChat(){
+  const win = document.getElementById('chat-window');
+  if(!D.guideMessages.length){
+    win.innerHTML = `<div class="empty"><span class="empty-icon">✦</span>Say what's actually on your mind. Iron Guide won't hand you an answer — it'll hand you a better question.</div>`;
+  } else {
+    win.innerHTML = D.guideMessages.map(m=>`
+      <div style="align-self:${m.role==='user'?'flex-end':'flex-start'}; max-width:78%;">
+        <div style="background:${m.role==='user'?'var(--gold-glow)':'var(--graphite-2)'}; border:1px solid ${m.role==='user'?'var(--border-hi)':'var(--border)'}; border-radius:12px; padding:.75rem 1rem; font-size:.85rem; line-height:1.6; color:${m.role==='user'?'var(--white)':'var(--dim-hi)'};">${m.text}</div>
+      </div>`).join('');
+  }
+  win.scrollTop = win.scrollHeight;
+}
+function renderGuideSuggestions(){
+  document.getElementById('chat-suggestions').innerHTML = GUIDE_SUGGESTIONS.map(s=>`<span class="chip" onclick="sendGuideMessage('${s.replace(/'/g,"\\'")}')">${s}</span>`).join('');
+}
+window.sendGuideMessage = function(presetText){
+  const input = document.getElementById('chat-input');
+  const text = presetText || input.value.trim();
+  if(!text) return;
+  D.guideMessages.push({role:'user', text});
+  const reply = guideRespond(text);
+  D.guideMessages.push({role:'guide', text:reply});
+  input.value='';
+  addXP(10); saveData();
+  renderChat();
+};
+document.getElementById('chat-send').addEventListener('click', ()=>sendGuideMessage());
+document.getElementById('chat-input').addEventListener('keydown', e=>{ if(e.key==='Enter') sendGuideMessage(); });
+window.onPageShow.guide = function(){ renderChat(); };
+renderGuideSuggestions(); renderChat();
+
+/* ================================================================
+   MODULE: TRAUMA EXPLORER — nervous system diagram
+================================================================= */
+function drawNervousSystem(){
+  const svg = document.getElementById('nervous-system-svg');
+  if(!svg) return;
+  let html = `<line x1="100" y1="20" x2="100" y2="230" stroke="var(--gold)" stroke-width="2.4" opacity=".8"/>
+    <circle cx="100" cy="18" r="14" fill="none" stroke="var(--gold)" stroke-width="2"/>`;
+  const branchY = [45,70,95,120,145,170,195,215];
+  branchY.forEach((y,i)=>{
+    const len = 30 + (i%3)*10;
+    [-1,1].forEach(dir=>{
+      html += `<path class="nerve-branch" d="M100,${y} Q${100+dir*len*.5},${y+8} ${100+dir*len},${y+18}"
+        fill="none" stroke="var(--gold)" stroke-width="1.2" opacity=".5" style="animation:nervePulse 3.2s ease-in-out infinite; animation-delay:${i*.25}s;"/>`;
+    });
+  });
+  svg.innerHTML = html;
+  if(!document.getElementById('nerve-kf')){
+    const st=document.createElement('style'); st.id='nerve-kf';
+    st.textContent='@keyframes nervePulse{0%,100%{opacity:.3;}50%{opacity:.9;}}';
+    document.head.appendChild(st);
+  }
+}
+window.onPageShow.trauma = function(){ drawNervousSystem(); };
+drawNervousSystem();
+
+/* ================================================================
+   MODULE: BODY SCAN
+================================================================= */
+const BODY_AREAS = {
+  jaw:{label:'Jaw', emotion:'Frequently holds suppressed anger and unspoken words — clenching is often the body doing, silently, what the mouth was never allowed to do.', exercise:'Let your jaw hang fully open for 10 seconds, then slowly close it. Repeat 3 times.'},
+  neck:{label:'Neck', emotion:'Often holds the weight of responsibility, or words swallowed rather than spoken.', exercise:'Slowly roll your head in a full circle, one direction then the other, 3 times each.'},
+  chest:{label:'Chest', emotion:'Commonly holds grief and heartbreak — a tight chest is one of the most literal places the body stores emotional weight.', exercise:'Place a hand on your chest, take 5 slow breaths, and notice the rise and fall under your palm.'},
+  shoulders:{label:'Shoulders', emotion:'Often carry a sense of over-responsibility — "carrying the weight of the world" is rarely just a figure of speech.', exercise:'Shrug your shoulders up to your ears, hold 5 seconds, then drop them fully. Repeat 3 times.'},
+  gut:{label:'Gut', emotion:'Frequently holds fear and intuition simultaneously — the "gut feeling" is a real nervous system signal, not a metaphor.', exercise:'Place both hands on your stomach and breathe so your hands rise, not your chest.'},
+  pelvis:{label:'Pelvis', emotion:'Can hold shame, particularly around sexuality or perceived inadequacy — often the most defended area in the body.', exercise:'Stand and gently rock your hips side to side for 20 seconds, staying soft in the knees.'},
+  hands:{label:'Hands', emotion:'Often hold the urge to act, fight, or reach for something that was never within reach.', exercise:'Clench both fists tightly for 5 seconds, then release fully and shake them out.'},
+  legs:{label:'Legs', emotion:'Frequently hold the impulse to flee, or the exhaustion of standing your ground for too long.', exercise:'Stand and gently bounce on the balls of your feet for 15 seconds.'},
+};
+function drawBodySvg(){
+  const svg = document.getElementById('body-svg');
+  if(!svg) return;
+  const hot = (x,y,key)=>`<circle cx="${x}" cy="${y}" r="9" fill="var(--gold-glow)" stroke="var(--gold)" stroke-width="1.4" style="cursor:pointer;" onclick="selectBodyArea('${key}')" class="body-hotspot"/>`;
+  svg.innerHTML = `
+    <ellipse cx="100" cy="38" rx="24" ry="28" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1.2"/>
+    <path d="M70,80 Q100,60 130,80 L138,220 Q100,240 62,220 Z" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1.2"/>
+    <rect x="55" y="215" width="20" height="130" rx="9" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1.2"/>
+    <rect x="125" y="215" width="20" height="130" rx="9" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1.2"/>
+    <rect x="35" y="85" width="18" height="90" rx="8" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1.2"/>
+    <rect x="147" y="85" width="18" height="90" rx="8" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1.2"/>
+    ${hot(100,64,'jaw')}
+    ${hot(100,78,'neck')}
+    ${hot(72,90,'shoulders')}
+    ${hot(128,90,'shoulders')}
+    ${hot(100,120,'chest')}
+    ${hot(100,175,'gut')}
+    ${hot(100,205,'pelvis')}
+    ${hot(41,178,'hands')}
+    ${hot(159,178,'hands')}
+    ${hot(65,335,'legs')}
+    ${hot(135,335,'legs')}
+  `;
+}
+window.selectBodyArea = function(key){
+  const a = BODY_AREAS[key];
+  document.getElementById('body-info').innerHTML = `
+    <span class="card-title">${a.label}</span>
+    <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.7; margin-bottom:1rem;">${a.emotion}</p>
+    <p style="font-size:.8rem; color:var(--gold);"><b>Grounding exercise:</b> ${a.exercise}</p>
+    <button class="btn btn-ghost btn-sm" style="margin-top:1rem;" onclick="goToPage('breathwork')">Open Breathwork →</button>
+  `;
+  D.bodyScan.notes[key] = (D.bodyScan.notes[key]||0)+1;
+  addXP(8); saveData();
+};
+window.onPageShow.body = function(){ drawBodySvg(); };
+drawBodySvg();
+
+/* ================================================================
+   MODULE: INNER CHILD
+================================================================= */
+document.getElementById('ic-add-memory').addEventListener('click', ()=>{
+  const age = document.getElementById('ic-age').value;
+  const title = document.getElementById('ic-title').value.trim();
+  const desc = document.getElementById('ic-desc').value.trim();
+  if(!title){ showToast('Give this memory a title.'); return; }
+  D.innerChild.memories.push({id:uid(), age:age||'?', title, desc, date:new Date().toISOString()});
+  document.getElementById('ic-age').value=''; document.getElementById('ic-title').value=''; document.getElementById('ic-desc').value='';
+  addXP(20); saveData();
+  showToast('Added to timeline · +20 XP');
+  renderICTimeline();
+});
+function renderICTimeline(){
+  const el = document.getElementById('ic-timeline');
+  const sorted = [...D.innerChild.memories].sort((a,b)=>(parseInt(a.age)||99)-(parseInt(b.age)||99));
+  if(!sorted.length){ el.innerHTML='<div class="empty"><span class="empty-icon">✧</span>No memories added yet.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+sorted.map(m=>`
+    <div class="entry"><span class="entry-date">Age ${m.age}</span><div class="entry-body"><b>${m.title}</b><br>${m.desc}</div><span class="entry-tag">MEMORY</span></div>
+  `).join('')+'</div>';
+}
+document.getElementById('ic-save-letter').addEventListener('click', ()=>{
+  const text = document.getElementById('ic-letter').value.trim();
+  if(!text){ showToast('Write something first.'); return; }
+  D.innerChild.letters.push({id:uid(), text, date:new Date().toISOString()});
+  document.getElementById('ic-letter').value='';
+  addXP(35); saveData();
+  showToast('Letter saved · +35 XP');
+  renderRecentBreakthroughs();
+  renderICLetters();
+});
+function renderICLetters(){
+  const el = document.getElementById('ic-letters');
+  if(!D.innerChild.letters.length){ el.innerHTML=''; return; }
+  el.innerHTML = '<span class="card-title">Previous Letters</span><div class="entry-list">'+D.innerChild.letters.slice().reverse().map(l=>`
+    <div class="entry"><span class="entry-date">${fmtDate(l.date)}</span><div class="entry-body">${l.text.slice(0,140)}${l.text.length>140?'…':''}</div><span class="entry-tag">LETTER</span></div>
+  `).join('')+'</div>';
+}
+window.onPageShow.innerchild = function(){ renderICTimeline(); renderICLetters(); };
+renderICTimeline(); renderICLetters();
+
+/* ================================================================
+   MODULE: DREAM JOURNAL
+================================================================= */
+const DREAM_SYMBOLS = {
+  Water:'Represents the unconscious itself — its clarity or turbulence often mirrors your current relationship to your own emotional depths.',
+  Snake:'A classic symbol of transformation and hidden knowledge — often appearing at moments of psychological shedding or threat.',
+  Mountain:'Represents a challenge, a goal, or the Self as a distant, attainable height — the journey up matters more than the summit.',
+  Ocean:'The vast collective unconscious — dreaming of the ocean often signals contact with something larger than personal experience.',
+  House:'Frequently a symbol for the psyche itself — different rooms can represent different parts of the self, some unvisited for years.',
+  Forest:'Represents the unknown, the unconscious terrain still unexplored — easy to feel lost in, necessary to enter anyway.',
+  Child:'Often symbolizes a new, undeveloped potential within you — or literally, your inner child seeking attention.',
+  Shadow:'A direct appearance of disowned material — often frightening in dreams precisely because it is unfamiliar to the ego.',
+  Death:'Rarely literal — usually signals the end of one phase of identity and the beginning of another.',
+  Fire:'Represents transformation, destruction, and purification simultaneously — old structures burning to make room.',
+  Journey:'Represents individuation itself — the psychological path from where you are to who you are becoming.',
+};
+function renderDreamSymbolChips(){
+  document.getElementById('dream-symbol-chips').innerHTML = Object.keys(DREAM_SYMBOLS).map(s=>`<span class="chip" data-symbol="${s}">${s}</span>`).join('');
+}
+document.getElementById('dream-symbol-chips').addEventListener('click', e=>{
+  if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
+});
+document.getElementById('dream-save').addEventListener('click', ()=>{
+  const title = document.getElementById('dream-title').value.trim();
+  const text = document.getElementById('dream-text').value.trim();
+  const symbols = Array.from(document.querySelectorAll('#dream-symbol-chips .chip.selected')).map(c=>c.dataset.symbol);
+  if(!title && !text){ showToast('Add a title or description.'); return; }
+  D.dreams.unshift({id:uid(), title:title||'Untitled dream', text, symbols, date:new Date().toISOString()});
+  document.getElementById('dream-title').value=''; document.getElementById('dream-text').value='';
+  document.querySelectorAll('#dream-symbol-chips .chip.selected').forEach(c=>c.classList.remove('selected'));
+  addXP(25); saveData();
+  showToast('Dream logged · +25 XP');
+  renderDreamList();
+  renderRecentBreakthroughs();
+});
+function renderDreamList(){
+  const el = document.getElementById('dream-list');
+  if(!D.dreams.length){ el.innerHTML='<div class="empty"><span class="empty-icon">☽</span>No dreams logged yet.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+D.dreams.map(d=>`
+    <div class="entry"><span class="entry-date">${fmtDate(d.date)}</span><div class="entry-body"><b>${d.title}</b><br>${d.text}${d.symbols.length?'<br><i style="color:var(--gold);">Symbols: '+d.symbols.join(', ')+'</i>':''}</div><span class="entry-tag">DREAM</span></div>
+  `).join('')+'</div>';
+}
+function renderSymbolDictionary(){
+  const el = document.getElementById('symbol-dictionary');
+  el.innerHTML = Object.entries(DREAM_SYMBOLS).map(([sym,meaning])=>`
+    <div class="acc-item" data-sym="${sym}">
+      <div class="acc-head" onclick="toggleSymbolAcc('${sym}')"><h4 style="font-size:.78rem;">${sym}</h4><span class="acc-chev">⌄</span></div>
+      <div class="acc-body"><div class="acc-body-inner" style="font-size:.78rem;">${meaning}</div></div>
+    </div>`).join('');
+}
+window.toggleSymbolAcc = function(sym){
+  const item = document.querySelector(`#symbol-dictionary .acc-item[data-sym="${sym}"]`);
+  item.classList.toggle('open');
+};
+window.onPageShow.dreams = function(){ renderDreamSymbolChips(); renderDreamList(); renderSymbolDictionary(); };
+renderDreamSymbolChips(); renderDreamList(); renderSymbolDictionary();
+
+/* ================================================================
+   MODULE: ARCHETYPE TEST
+================================================================= */
+const ARCHETYPES = {
+  Warrior:{q:'I push through difficulty through sheer discipline and force of will.', strengths:'Courage, discipline, resilience under pressure.', blind:'Can suppress vulnerability and struggle to rest or ask for help.', dev:'Practice strength that includes softness — recovery is part of the fight, not a break from it.'},
+  King:{q:'I feel a strong pull to take responsibility and bring order to chaotic situations.', strengths:'Vision, order, the ability to hold a group together.', blind:'Can tip into control, or a need to be the sole authority.', dev:'Practice delegating real power, not just tasks.'},
+  Magician:{q:'I\'m drawn to understanding how things work at a deep, almost hidden level.', strengths:'Insight, transformation, seeing patterns others miss.', blind:'Can intellectualize feelings instead of experiencing them.', dev:'Let yourself not-know something for a while before analyzing it.'},
+  Lover:{q:'I experience the world intensely through emotion, beauty, and connection.', strengths:'Passion, empathy, aliveness.', blind:'Can become consumed by feeling, or addicted to intensity.', dev:'Build structure that holds the intensity rather than being ruled by it.'},
+  Explorer:{q:'I get restless with routine and need new territory, ideas, or experiences.', strengths:'Independence, curiosity, adaptability.', blind:'Can avoid commitment or run from discomfort disguised as "seeking."', dev:'Practice staying somewhere uncomfortable a little longer than instinct wants.'},
+  Creator:{q:'I feel most alive when I\'m making something that didn\'t exist before.', strengths:'Imagination, originality, tolerance for uncertainty.', blind:'Can spiral into perfectionism or never finish what\'s started.', dev:'Ship something unfinished on purpose, regularly.'},
+  Sage:{q:'I value understanding and truth more than being liked or agreeable.', strengths:'Objectivity, wisdom, clear thinking under pressure.', blind:'Can become detached, or hide behind analysis instead of acting.', dev:'Let a decision be made from the gut once in a while, not just the head.'},
+  Rebel:{q:'I instinctively question or resist rules and authority, even when it costs me.', strengths:'Independence, honesty, willingness to challenge the status quo.', blind:'Can rebel reflexively, even against things that would actually help.', dev:'Ask whether you\'re resisting the rule, or resisting being told anything at all.'},
+  Caregiver:{q:'I feel a strong pull to look after and support the people around me.', strengths:'Compassion, generosity, reliability.', blind:'Can neglect your own needs entirely, or enable others\' dysfunction.', dev:'Practice receiving care as often as you give it.'},
+  Ruler:{q:'I naturally take charge and organize situations that feel chaotic.', strengths:'Leadership, structure, accountability.', blind:'Can become rigid or unable to tolerate not being in control.', dev:'Deliberately let someone else lead something you care about.'},
+  Jester:{q:'I use humor to defuse tension, connect with people, or cope with hard moments.', strengths:'Levity, connection, resilience through hard times.', blind:'Can use humor to avoid ever being fully serious or vulnerable.', dev:'Say one true, unfunny thing in a moment you\'d normally joke through.'},
+  Orphan:{q:'I feel a deep need to belong, and a fear of being left out or abandoned.', strengths:'Empathy for others who struggle, realism, humility.', blind:'Can settle for unhealthy belonging just to avoid being alone.', dev:'Practice tolerating brief periods of not belonging anywhere, on purpose.'},
+  Innocent:{q:'I want to believe things will work out, and prefer optimism over cynicism.', strengths:'Hope, trust, the ability to start fresh.', blind:'Can deny real danger or avoid necessary conflict.', dev:'Practice naming a hard truth even when it threatens the optimism.'},
+  Hero:{q:'I feel compelled to prove myself through achievement and overcoming challenges.', strengths:'Drive, courage, the ability to rise to a moment.', blind:'Can tie self-worth entirely to winning, and struggle with ordinary days.', dev:'Practice finding worth in a day where nothing was proven.'},
+};
+function renderArchetypeQuestions(){
+  const el = document.getElementById('archetype-questions');
+  el.innerHTML = Object.entries(ARCHETYPES).map(([name,data],i)=>`
+    <div style="margin-bottom:1.3rem;">
+      <p style="font-size:.85rem; margin-bottom:.6rem;">${i+1}. ${data.q}</p>
+      <div class="chip-row" data-arch="${name}">
+        ${[1,2,3,4,5].map(v=>`<span class="chip" data-val="${v}" onclick="selectArchetypeVal(this)">${v}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+window.selectArchetypeVal = function(el){
+  const row = el.parentElement;
+  row.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+};
+document.getElementById('archetype-submit').addEventListener('click', ()=>{
+  const scores = {};
+  let answered=0;
+  document.querySelectorAll('#archetype-questions [data-arch]').forEach(row=>{
+    const sel = row.querySelector('.chip.selected');
+    const val = sel ? parseInt(sel.dataset.val) : 3;
+    if(sel) answered++;
+    scores[row.dataset.arch] = val;
+  });
+  if(answered < 5){ showToast('Answer at least a few questions honestly.'); return; }
+  D.archetypeResult = {scores, date:new Date().toISOString()};
+  saveData();
+  addXP(80);
+  showToast('Archetype profile generated · +80 XP');
+  renderArchetypeResults();
+});
+function renderArchetypeResults(){
+  const el = document.getElementById('archetype-results');
+  if(!D.archetypeResult){ el.innerHTML=''; return; }
+  const scores = D.archetypeResult.scores;
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const top3 = sorted.slice(0,3);
+  el.innerHTML = `
+    <div class="card card-lg" style="margin-bottom:1.3rem;">
+      <span class="card-title">Full Profile</span>
+      ${sorted.map(([name,val])=>`
+        <div style="margin-bottom:.75rem;">
+          <div style="display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:.3rem;"><span>${name}</span><span>${Math.round(val/total*100)}%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(val/total*100)}%;"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="grid-3">
+      ${top3.map(([name])=>`
+        <div class="card">
+          <span class="card-title">${name}</span>
+          <p style="font-size:.78rem; color:var(--dim-hi); margin-bottom:.6rem;"><b>Strengths:</b> ${ARCHETYPES[name].strengths}</p>
+          <p style="font-size:.78rem; color:var(--dim-hi); margin-bottom:.6rem;"><b>Blind spot:</b> ${ARCHETYPES[name].blind}</p>
+          <p style="font-size:.78rem; color:var(--gold);"><b>Develop:</b> ${ARCHETYPES[name].dev}</p>
+        </div>`).join('')}
+    </div>`;
+}
+window.onPageShow.archetype = function(){ if(D.archetypeResult) renderArchetypeResults(); };
+renderArchetypeQuestions();
+if(D.archetypeResult) renderArchetypeResults();
+
+/* ================================================================
+   MODULE: VALUES & PURPOSE
+================================================================= */
+const VALUE_OPTIONS = ['Discipline','Freedom','Family','Honesty','Mastery','Courage','Loyalty','Growth','Health','Legacy','Adventure','Faith','Justice','Creativity','Service','Wealth','Peace','Excellence'];
+function renderValuesChips(){
+  document.getElementById('values-chips').innerHTML = VALUE_OPTIONS.map(v=>`<span class="chip ${D.purpose.values.includes(v)?'selected':''}" data-val="${v}">${v}</span>`).join('');
+}
+document.getElementById('values-chips').addEventListener('click', e=>{
+  if(!e.target.classList.contains('chip')) return;
+  const selectedCount = document.querySelectorAll('#values-chips .chip.selected').length;
+  if(!e.target.classList.contains('selected') && selectedCount>=5){ showToast('Max 5 — deselect one first.'); return; }
+  e.target.classList.toggle('selected');
+});
+document.getElementById('values-save').addEventListener('click', ()=>{
+  D.purpose.values = Array.from(document.querySelectorAll('#values-chips .chip.selected')).map(c=>c.dataset.val);
+  if(!D.purpose.values.length){ showToast('Select up to 5 values first.'); return; }
+  saveData(); addXP(20); showToast('Values saved · +20 XP');
+});
+document.getElementById('ikigai-save').addEventListener('click', ()=>{
+  D.purpose.ikigai = {
+    love: document.getElementById('ikigai-love').value.trim(),
+    good: document.getElementById('ikigai-good').value.trim(),
+    needs: document.getElementById('ikigai-needs').value.trim(),
+    paid: document.getElementById('ikigai-paid').value.trim(),
+  };
+  saveData(); addXP(40); showToast('Ikigai saved · +40 XP');
+});
+document.getElementById('mission-save').addEventListener('click', ()=>{
+  const text = document.getElementById('mission-text').value.trim();
+  if(!text){ showToast('Write a draft first.'); return; }
+  D.purpose.mission = text; D.purpose.missionDate = new Date().toISOString();
+  saveData(); addXP(50); showToast('Mission saved · +50 XP');
+  renderRecentBreakthroughs();
+});
+document.getElementById('vision-save').addEventListener('click', ()=>{
+  const text = document.getElementById('vision-text').value.trim();
+  if(!text){ showToast('Write a draft first.'); return; }
+  D.purpose.vision = text;
+  saveData(); addXP(30); showToast('Vision saved · +30 XP');
+});
+function loadPurposeFields(){
+  if(D.purpose.ikigai){
+    document.getElementById('ikigai-love').value = D.purpose.ikigai.love||'';
+    document.getElementById('ikigai-good').value = D.purpose.ikigai.good||'';
+    document.getElementById('ikigai-needs').value = D.purpose.ikigai.needs||'';
+    document.getElementById('ikigai-paid').value = D.purpose.ikigai.paid||'';
+  }
+  document.getElementById('mission-text').value = D.purpose.mission||'';
+  document.getElementById('vision-text').value = D.purpose.vision||'';
+}
+window.onPageShow.purpose = function(){ renderValuesChips(); loadPurposeFields(); };
+renderValuesChips(); loadPurposeFields();
+
+/* ================================================================
+   MODULE: JOURNAL
+================================================================= */
+document.getElementById('journal-save').addEventListener('click', ()=>{
+  const text = document.getElementById('journal-text').value.trim();
+  const mood = document.getElementById('journal-mood').value;
+  const tags = document.getElementById('journal-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  if(!text){ showToast('Write something first.'); return; }
+  D.journal.unshift({id:uid(), date:new Date().toISOString(), text, mood:mood||null, tags});
+  document.getElementById('journal-text').value=''; document.getElementById('journal-mood').value=''; document.getElementById('journal-tags').value='';
+  addXP(15); saveData();
+  showToast('Entry saved · +15 XP');
+  renderJournalList();
+  renderRecentBreakthroughs();
+});
+function renderJournalList(filter){
+  const el = document.getElementById('journal-list');
+  filter = (filter||'').toLowerCase();
+  const items = D.journal.filter(j => !filter || j.text.toLowerCase().includes(filter) || (j.tags||[]).some(t=>t.toLowerCase().includes(filter)));
+  if(!items.length){ el.innerHTML='<div class="empty"><span class="empty-icon">✎</span>No entries yet.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+items.map(j=>`
+    <div class="entry"><span class="entry-date">${fmtDate(j.date)}</span><div class="entry-body">${j.text}${j.mood?'<br><i style="color:var(--gold);">Mood: '+j.mood+'</i>':''}${(j.tags&&j.tags.length)?'<br><span style="color:var(--dim);">#'+j.tags.join(' #')+'</span>':''}</div><span class="entry-tag">JOURNAL</span></div>
+  `).join('')+'</div>';
+}
+document.getElementById('journal-search').addEventListener('input', e=>renderJournalList(e.target.value));
+window.onPageShow.journal = function(){ renderJournalList(document.getElementById('journal-search').value); };
+renderJournalList();
+
+/* ================================================================
+   MODULE: BREAKTHROUGH TIMELINE
+================================================================= */
+document.getElementById('breakthrough-save').addEventListener('click', ()=>{
+  const text = document.getElementById('breakthrough-text').value.trim();
+  if(!text){ showToast('Write what happened first.'); return; }
+  D.breakthroughs.unshift({date:new Date().toISOString(), text});
+  document.getElementById('breakthrough-text').value='';
+  addXP(40); saveData();
+  showToast('Breakthrough logged · +40 XP');
+  renderFullTimeline();
+  renderRecentBreakthroughs();
+});
+function renderFullTimeline(){
+  const el = document.getElementById('full-timeline');
+  const events = getAllBreakthroughEvents();
+  if(!events.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◷</span>Your record starts the moment you act.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+events.map(e=>`
+    <div class="entry"><span class="entry-date">${fmtDate(e.date)}</span><div class="entry-body">${e.label}</div><span class="entry-tag">${e.tag}</span></div>
+  `).join('')+'</div>';
+}
+window.onPageShow.timeline = function(){ renderFullTimeline(); };
+renderFullTimeline();
+
+/* ================================================================
+   MODULE: KNOWLEDGE LIBRARY
+================================================================= */
+const LIBRARY = {
+  'Carl Jung':[
+    {t:'The Collective Unconscious', d:'A layer of the psyche shared across all humans, holding inherited patterns (archetypes) rather than personal memories — the reason certain symbols and stories recur across every unrelated culture.'},
+    {t:'Individuation', d:'The lifelong process of integrating conscious and unconscious material into a coherent, whole self — becoming who you actually are rather than who you were assigned to be.'},
+    {t:'Active Imagination', d:'A technique Jung developed for consciously engaging with unconscious material — images, figures, or dreams — through dialogue rather than passive analysis.'},
+  ],
+  'Viktor Frankl':[
+    {t:'Meaning Over Pleasure', d:'Frankl\'s central claim, forged in the concentration camps of WWII: humans are driven primarily by a search for meaning, not pleasure or power — and meaning can be found even in unavoidable suffering.'},
+    {t:'The Last Freedom', d:'Even when every external circumstance is stripped away, Frankl argued one freedom remains: the choice of attitude toward what happens to you.'},
+  ],
+  'Alfred Adler':[
+    {t:'Inferiority &amp; Compensation', d:'Adler proposed that early feelings of inferiority drive a lifelong compensatory striving — healthy when channeled into growth, unhealthy when it curdles into a superiority complex.'},
+    {t:'Social Interest', d:'Adler considered genuine contribution to others, not personal achievement alone, the clearest marker of psychological health.'},
+  ],
+  'Freud':[
+    {t:'The Unconscious', d:'Freud\'s foundational claim that much of mental life operates outside conscious awareness, and that behavior often serves hidden motives the conscious mind doesn\'t recognize.'},
+    {t:'Defense Mechanisms', d:'Freud (and later his daughter Anna) mapped the unconscious strategies the mind uses to protect itself from unbearable thoughts — repression, denial, projection, and more.'},
+  ],
+  'Joseph Campbell':[
+    {t:'The Hero\'s Journey', d:'Campbell\'s synthesis of mythology across cultures into a single recurring structure: the call to adventure, the descent into the unknown, and the return transformed.'},
+    {t:'Follow Your Bliss', d:'Campbell\'s frequently misunderstood phrase — not hedonism, but the discipline of pursuing what genuinely animates you, trusting the path opens as a result.'},
+  ],
+  'Stoicism':[
+    {t:'The Dichotomy of Control', d:'The Stoic foundation: separate what is within your control (your judgments, actions, effort) from what isn\'t (outcomes, others\' opinions, the past) — and direct all energy toward the former.'},
+    {t:'Memento Mori', d:'The practice of remembering mortality, not as morbidity but as clarifying force — used to cut through trivial anxieties and focus on what actually matters.'},
+  ],
+  'Greek Philosophy':[
+    {t:'Know Thyself', d:'Inscribed at the Temple of Delphi, this became the foundation of Socratic philosophy — the claim that self-knowledge precedes any other kind of wisdom.'},
+    {t:'Eudaimonia', d:'Often mistranslated as "happiness," Aristotle\'s concept is closer to "flourishing through the exercise of virtue" — a life well-lived, not merely a pleasant one.'},
+  ],
+  'Trauma Research':[
+    {t:'The Body Keeps Score (concept)', d:'Modern trauma research confirms what Jung intuited: traumatic memory is often stored somatically, not just narratively — which is why talking alone doesn\'t always resolve it.'},
+    {t:'Polyvagal Theory (concept)', d:'Stephen Porges\' framework describing how the autonomic nervous system moves between safety, mobilization (fight/flight), and shutdown (freeze) states, largely outside conscious control.'},
+  ],
+  'Neuroscience':[
+    {t:'Neuroplasticity', d:'The brain\'s capacity to physically rewire itself in response to repeated thought and behavior — the biological basis for why deliberate practice actually changes who you are.'},
+    {t:'The Negativity Bias', d:'Human brains are wired to register threats and negative experiences more strongly than positive ones — an evolutionary survival trait that now often overreacts to modern, non-lethal stress.'},
+  ],
+};
+function renderLibrary(){
+  const el = document.getElementById('library-content');
+  el.innerHTML = Object.entries(LIBRARY).map(([cat,items])=>`
+    <div style="margin-bottom:2rem;">
+      <span class="card-title" style="font-size:.7rem;">${cat}</span>
+      <div class="grid-3" style="margin-top:.8rem;">
+        ${items.map(i=>`<div class="card"><h4 style="font-family:var(--font-d); font-size:.85rem; margin-bottom:.6rem;">${i.t}</h4><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.65;">${i.d}</p></div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+window.onPageShow.library = function(){ if(!document.getElementById('library-content').innerHTML) renderLibrary(); };
+renderLibrary();
+
+/* ================================================================
+   MODULE: THE LABYRINTH
+================================================================= */
+const LABYRINTH_LEVELS = [
+  {id:'fear', label:'Confront Fear', task:'Name, in writing, the single thing you\'re most avoiding right now — and why.', xp:40},
+  {id:'shadow', label:'Face Shadow', task:'Complete at least one full reflection in The Shadow module.', xp:50, requires:m=>m.shadowProgress.readConcepts.length>0},
+  {id:'archetypes', label:'Meet Archetypes', task:'Complete the Archetype Test.', xp:60, requires:m=>!!m.archetypeResult},
+  {id:'emotions', label:'Integrate Emotions', task:'Log one Body Scan area and one Journal entry in the same day.', xp:55, requires:m=>Object.keys(m.bodyScan.notes).length>0 && m.journal.length>0},
+  {id:'purpose', label:'Find Purpose', task:'Draft a Mission Statement in Values & Purpose.', xp:80, requires:m=>!!m.purpose.mission},
+];
+function isLabyrinthUnlocked(i){
+  if(i===0) return true;
+  return D.labyrinth.completed.some(c=>c.id===LABYRINTH_LEVELS[i-1].id);
+}
+function isLabyrinthComplete(id){ return D.labyrinth.completed.some(c=>c.id===id); }
+function drawLabyrinthPath(){
+  const svg = document.getElementById('labyrinth-svg');
+  const n = LABYRINTH_LEVELS.length;
+  const spacing = 640/(n-1);
+  let html='';
+  for(let i=0;i<n-1;i++){
+    const x1=30+i*spacing, x2=30+(i+1)*spacing;
+    const done = isLabyrinthComplete(LABYRINTH_LEVELS[i].id);
+    html += `<line x1="${x1}" y1="110" x2="${x2}" y2="110" stroke="${done?'var(--gold)':'var(--border)'}" stroke-width="2"/>`;
+  }
+  LABYRINTH_LEVELS.forEach((lvl,i)=>{
+    const x=30+i*spacing;
+    const complete = isLabyrinthComplete(lvl.id);
+    const unlocked = isLabyrinthUnlocked(i);
+    const fill = complete? 'var(--gold)' : (unlocked? 'var(--graphite-2)' : 'var(--graphite)');
+    const stroke = complete||unlocked ? 'var(--gold)' : 'var(--border)';
+    html += `<circle cx="${x}" cy="110" r="22" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/>`;
+    html += `<text x="${x}" y="115" text-anchor="middle" fill="${complete?'#100c02':'var(--dim-hi)'}" font-family="JetBrains Mono" font-size="13">${i+1}</text>`;
+    html += `<text x="${x}" y="150" text-anchor="middle" fill="var(--dim-hi)" font-family="Inter" font-size="11">${lvl.label}</text>`;
+  });
+  svg.innerHTML = html;
+}
+function renderLabyrinthLevels(){
+  const el = document.getElementById('labyrinth-levels');
+  el.innerHTML = LABYRINTH_LEVELS.map((lvl,i)=>{
+    const complete = isLabyrinthComplete(lvl.id);
+    const unlocked = isLabyrinthUnlocked(i);
+    const autoOk = !lvl.requires || lvl.requires(D);
+    return `<div class="card" style="margin-bottom:1rem; opacity:${unlocked?1:.45};">
+      <span class="card-title">Level ${i+1} — ${lvl.label} ${complete?'✓':''}</span>
+      <p style="font-size:.85rem; color:var(--dim-hi); margin-bottom:.9rem;">${lvl.task}</p>
+      ${complete
+        ? `<span style="font-family:var(--font-m); font-size:.72rem; color:var(--gold);">COMPLETE</span>`
+        : unlocked
+          ? `<button class="btn btn-gold btn-sm" onclick="completeLabyrinthLevel('${lvl.id}')" ${autoOk?'':'disabled'}>${autoOk? 'Mark Complete +'+lvl.xp+' XP' : 'Complete the linked module first'}</button>`
+          : `<span style="font-family:var(--font-m); font-size:.7rem; color:var(--dim);">LOCKED — complete the previous level</span>`
+      }
+    </div>`;
+  }).join('');
+}
+window.completeLabyrinthLevel = function(id){
+  const lvl = LABYRINTH_LEVELS.find(l=>l.id===id);
+  if(isLabyrinthComplete(id)) return;
+  D.labyrinth.completed.push({id, label:lvl.label, date:new Date().toISOString()});
+  addXP(lvl.xp); saveData();
+  showToast(`Level complete — ${lvl.label} · +${lvl.xp} XP`);
+  drawLabyrinthPath(); renderLabyrinthLevels(); renderRecentBreakthroughs();
+};
+window.onPageShow.labyrinth = function(){ drawLabyrinthPath(); renderLabyrinthLevels(); };
+drawLabyrinthPath(); renderLabyrinthLevels();
+
+/* ================================================================
+   MODULE: BREATHWORK
+================================================================= */
+const BREATH_PATTERNS = {
+  box:{ phases:[{l:'Inhale',s:4},{l:'Hold',s:4},{l:'Exhale',s:4},{l:'Hold',s:4}] },
+  sigh:{ phases:[{l:'Inhale',s:2},{l:'Inhale Again',s:1.5},{l:'Long Exhale',s:6}] },
+  478:{ phases:[{l:'Inhale',s:4},{l:'Hold',s:7},{l:'Exhale',s:8}] },
+};
+let breathState = {running:false, pattern:'box', phaseIdx:0, cycles:0, timer:null};
+function drawBreathCircle(scale){
+  const svg = document.getElementById('breath-circle');
+  const r = 40 + scale*50;
+  svg.innerHTML = `
+    <circle cx="110" cy="110" r="95" fill="none" stroke="var(--border)" stroke-width="1"/>
+    <circle cx="110" cy="110" r="${r}" fill="var(--gold-glow)" stroke="var(--gold)" stroke-width="2" style="transition:r 1s linear;"/>`;
+}
+document.getElementById('breath-pattern-chips').addEventListener('click', e=>{
+  if(!e.target.classList.contains('chip')) return;
+  document.querySelectorAll('#breath-pattern-chips .chip').forEach(c=>c.classList.remove('selected'));
+  e.target.classList.add('selected');
+  breathState.pattern = e.target.dataset.pattern;
+  stopBreathing();
+});
+function runBreathPhase(){
+  const pattern = BREATH_PATTERNS[breathState.pattern];
+  const phase = pattern.phases[breathState.phaseIdx];
+  document.getElementById('breath-phase-label').textContent = phase.l;
+  const isInhale = phase.l.toLowerCase().includes('inhale');
+  const isExhale = phase.l.toLowerCase().includes('exhale');
+  drawBreathCircle(isInhale?1:isExhale?0:0.55);
+  breathState.timer = setTimeout(()=>{
+    breathState.phaseIdx++;
+    if(breathState.phaseIdx >= pattern.phases.length){
+      breathState.phaseIdx = 0; breathState.cycles++;
+      document.getElementById('breath-cycle-count').textContent = breathState.cycles+' cycles completed';
+      if(breathState.cycles % 3 === 0){ addXP(10); showToast('+10 XP — steady breathing'); }
+    }
+    if(breathState.running) runBreathPhase();
+  }, phase.s*1000);
+}
+function stopBreathing(){
+  breathState.running = false;
+  clearTimeout(breathState.timer);
+  document.getElementById('breath-start').textContent = 'Begin';
+  document.getElementById('breath-phase-label').textContent = 'Ready';
+  drawBreathCircle(0.3);
+}
+document.getElementById('breath-start').addEventListener('click', ()=>{
+  if(breathState.running){ stopBreathing(); return; }
+  breathState.running = true; breathState.phaseIdx = 0;
+  document.getElementById('breath-start').textContent = 'Stop';
+  runBreathPhase();
+});
+window.onPageShow.breathwork = function(){ drawBreathCircle(0.3); };
+drawBreathCircle(0.3);
+
+/* ================================================================
+   MODULE: MORNING RITUAL
+================================================================= */
+const MORNING_ITEMS = [
+  {id:'movement', label:'Movement'},
+  {id:'sunlight', label:'Sunlight'},
+  {id:'purpose', label:'Purpose reminder read'},
+  {id:'journal', label:'Journal opened'},
+  {id:'hydration', label:'Hydration'},
+  {id:'coldshower', label:'Cold shower'},
+  {id:'workout', label:'Workout logged'},
+];
+function renderMorningChecklist(){
+  const today = todayStr();
+  document.getElementById('morning-date-label').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'});
+  const rec = D.morning[today] || {checks:{}, intention:''};
+  document.getElementById('morning-intention').value = rec.intention||'';
+  document.getElementById('morning-checklist').innerHTML = MORNING_ITEMS.map(item=>`
+    <label style="display:flex; align-items:center; gap:.7rem; padding:.6rem 0; border-bottom:1px solid var(--border); cursor:pointer; font-size:.85rem;">
+      <input type="checkbox" data-item="${item.id}" ${rec.checks[item.id]?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);"/> ${item.label}
+    </label>`).join('');
+}
+document.getElementById('morning-save').addEventListener('click', ()=>{
+  const today = todayStr();
+  const checks = {};
+  document.querySelectorAll('#morning-checklist input[type=checkbox]').forEach(cb=>{ checks[cb.dataset.item] = cb.checked; });
+  const intention = document.getElementById('morning-intention').value.trim();
+  D.morning[today] = {checks, intention};
+  const completedCount = Object.values(checks).filter(Boolean).length;
+  addXP(completedCount*8); saveData();
+  showToast(`Ritual saved · +${completedCount*8} XP`);
+});
+window.onPageShow.morning = function(){ renderMorningChecklist(); };
+renderMorningChecklist();
+
+/* ================================================================
+   MODULE: EVENING INTEGRATION
+================================================================= */
+function renderEveningState(){
+  const today = todayStr();
+  document.getElementById('evening-date-label').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'});
+  const rec = D.evening[today] || {};
+  document.getElementById('evening-wins').value = rec.wins||'';
+  document.getElementById('evening-triggers').value = rec.triggers||'';
+  document.getElementById('evening-lessons').value = rec.lessons||'';
+  document.getElementById('evening-gratitude').value = rec.gratitude||'';
+  document.getElementById('evening-shadow').value = rec.shadow||'';
+  document.querySelectorAll('[data-sleep]').forEach(chip=>{
+    chip.classList.toggle('selected', (rec.sleep||[]).includes(chip.dataset.sleep));
+  });
+}
+document.querySelectorAll('[data-sleep]').forEach(chip=>{
+  chip.addEventListener('click', ()=>chip.classList.toggle('selected'));
+});
+document.getElementById('evening-save').addEventListener('click', ()=>{
+  const today = todayStr();
+  const sleep = Array.from(document.querySelectorAll('[data-sleep].selected')).map(c=>c.dataset.sleep);
+  D.evening[today] = {
+    wins: document.getElementById('evening-wins').value.trim(),
+    triggers: document.getElementById('evening-triggers').value.trim(),
+    lessons: document.getElementById('evening-lessons').value.trim(),
+    gratitude: document.getElementById('evening-gratitude').value.trim(),
+    shadow: document.getElementById('evening-shadow').value.trim(),
+    sleep,
+  };
+  addXP(35); saveData();
+  showToast('Integration saved · +35 XP');
+  if(D.evening[today].shadow){
+    D.breakthroughs.unshift({date:new Date().toISOString(), text:'Shadow encounter: '+D.evening[today].shadow});
+    saveData();
+  }
+  renderRecentBreakthroughs();
+});
+window.onPageShow.evening = function(){ renderEveningState(); };
+renderEveningState();
+</script>
+</body>
+</html>
