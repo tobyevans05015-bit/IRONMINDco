@@ -205,7 +205,7 @@ textarea,input,select{font-family:inherit;}
 /* FORM ELEMENTS */
 .field{ margin-bottom:1.2rem; }
 .field label{ display:block; font-family:var(--font-m); font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim-hi); margin-bottom:.5rem; }
-.field textarea, .field input[type=text], .field input[type=number], .field select{
+.field textarea, .field input[type=text], .field input[type=password], .field input[type=number], .field select{
   width:100%; background:var(--graphite-2); border:1px solid var(--border); border-radius:8px; color:var(--white);
   padding:.75rem .9rem; font-size:.85rem; font-family:var(--font-b); resize:vertical;
 }
@@ -311,7 +311,6 @@ textarea,input,select{font-family:inherit;}
         <div class="sb-label">Understand</div>
         <li class="sb-item" data-page="shadow"><span class="sb-icon">☾</span><span>The Shadow</span></li>
         <li class="sb-item" data-page="symptoms"><span class="sb-icon">◈</span><span>Symptom Finder</span></li>
-        <li class="sb-item" data-page="guide"><span class="sb-icon">✦</span><span>Iron Guide</span></li>
         <li class="sb-item" data-page="trauma"><span class="sb-icon">⚡</span><span>Trauma Explorer</span></li>
         <li class="sb-item" data-page="body"><span class="sb-icon">◉</span><span>Body Scan</span></li>
         <li class="sb-item" data-page="innerchild"><span class="sb-icon">✧</span><span>Inner Child</span></li>
@@ -377,45 +376,52 @@ textarea,input,select{font-family:inherit;}
           <div class="grid-4" style="margin-bottom:1.3rem;">
             <div class="card" style="text-align:center;">
               <span class="card-title">Shadow</span>
-              <div class="bar-track"><div class="bar-fill" id="score-shadow" style="width:0%;"></div></div>
-              <div class="ring-val" id="score-shadow-val" style="margin-top:.6rem;">0%</div>
+              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-shadow-num">Lvl 1</div>
+              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-shadow" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-shadow-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
             </div>
             <div class="card" style="text-align:center;">
               <span class="card-title">Purpose</span>
-              <div class="bar-track"><div class="bar-fill" id="score-purpose" style="width:0%;"></div></div>
-              <div class="ring-val" id="score-purpose-val" style="margin-top:.6rem;">0%</div>
+              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-purpose-num">Lvl 1</div>
+              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-purpose" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-purpose-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
             </div>
             <div class="card" style="text-align:center;">
               <span class="card-title">Energy</span>
-              <div class="bar-track"><div class="bar-fill" id="score-energy" style="width:0%;"></div></div>
-              <div class="ring-val" id="score-energy-val" style="margin-top:.6rem;">0%</div>
+              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-energy-num">Lvl 1</div>
+              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-energy" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-energy-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
             </div>
             <div class="card" style="text-align:center;">
               <span class="card-title">Authenticity</span>
-              <div class="bar-track"><div class="bar-fill" id="score-authenticity" style="width:0%;"></div></div>
-              <div class="ring-val" id="score-authenticity-val" style="margin-top:.6rem;">0%</div>
+              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-authenticity-num">Lvl 1</div>
+              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-authenticity" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-authenticity-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
             </div>
           </div>
 
-          <div class="grid-2" style="margin-bottom:1.3rem;">
-            <div class="card card-lg">
-              <span class="card-title">Mood Check</span>
-              <div class="chip-row" id="mood-chips">
-                <span class="chip" data-mood="Grounded">Grounded</span>
-                <span class="chip" data-mood="Anxious">Anxious</span>
-                <span class="chip" data-mood="Numb">Numb</span>
-                <span class="chip" data-mood="Driven">Driven</span>
-                <span class="chip" data-mood="Heavy">Heavy</span>
-                <span class="chip" data-mood="Clear">Clear</span>
-                <span class="chip" data-mood="Restless">Restless</span>
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">Mood Check</span>
+            <p style="font-size:.72rem; color:var(--dim); margin-bottom:.9rem;">Select as many as apply — no need to pick just one.</p>
+            <div class="chip-row" id="mood-chips"></div>
+            <button class="btn btn-gold btn-sm" id="mood-save" style="margin-top:1rem;">Log Check-In</button>
+
+            <div style="margin-top:1.8rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+              <span class="card-title">Where On The Scale?</span>
+              <p style="font-size:.72rem; color:var(--dim); margin-bottom:1rem;">Based on Hawkins' Map of Consciousness — a scale from the heaviest states to the lightest. Drag to where you actually are, not where you'd like to be.</p>
+              <input type="range" id="consciousness-slider" min="0" max="16" step="1" value="8" style="width:100%; accent-color:var(--gold);"/>
+              <div style="display:flex; justify-content:space-between; margin-top:.7rem;">
+                <div style="font-family:var(--font-d); font-size:1.1rem; color:var(--gold);" id="consciousness-label">Courage</div>
+                <div style="font-family:var(--font-m); font-size:.75rem; color:var(--dim);" id="consciousness-value">200</div>
               </div>
-              <p style="color:var(--dim); font-size:.72rem; margin-top:1rem;" id="mood-last">No check-in yet today.</p>
             </div>
-            <div class="card card-lg">
-              <span class="card-title">Quick Journal</span>
-              <textarea id="quick-journal" placeholder="What's actually true right now?" style="width:100%; min-height:90px; background:var(--graphite-2); border:1px solid var(--border); border-radius:8px; color:var(--white); padding:.75rem; font-family:var(--font-b); font-size:.85rem;"></textarea>
-              <button class="btn btn-gold btn-sm" style="margin-top:.8rem;" id="quick-journal-save">Save Entry</button>
-            </div>
+            <p style="color:var(--dim); font-size:.72rem; margin-top:1.2rem;" id="mood-last">No check-in yet today.</p>
+          </div>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">Quick Journal</span>
+            <div class="field"><textarea id="quick-journal" placeholder="Journal your thoughts — whatever's actually on your mind" style="min-height:90px;"></textarea></div>
+            <button class="btn btn-gold btn-sm" id="quick-journal-save">Save Entry</button>
           </div>
 
           <div class="card card-lg" style="margin-bottom:1.3rem;">
@@ -454,28 +460,14 @@ textarea,input,select{font-family:inherit;}
           <div class="card card-lg">
             <span class="card-title">Select What Applies</span>
             <div class="chip-row" id="symptom-chips"></div>
-            <button class="btn btn-gold btn-sm" id="symptom-analyze" style="margin-top:1.3rem;">Analyze</button>
+            <div class="field" style="margin-top:1.3rem;"><label>Why do you think these show up? (optional, but makes the analysis sharper)</label><textarea id="symptom-reflection" placeholder="Any thoughts on where this comes from, or when it started"></textarea></div>
+            <button class="btn btn-gold btn-sm" id="symptom-analyze">Analyze</button>
           </div>
 
           <div id="symptom-results" style="margin-top:1.5rem;"></div>
         </section>
-        <section class="page" id="page-guide">
-          <span class="page-eyebrow">Module 03</span>
-          <h1 class="page-title">Iron Guide</h1>
-          <p class="page-sub">A reflective dialogue partner, not an oracle. It won't tell you what's wrong with you — it will ask the question that gets you there yourself.</p>
-
-          <div class="card card-lg" style="display:flex; flex-direction:column; height:560px;">
-            <div id="chat-window" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:.9rem; padding-right:.4rem;"></div>
-            <div class="chip-row" id="chat-suggestions" style="margin:1rem 0 .8rem;"></div>
-            <div style="display:flex; gap:.6rem;">
-              <input type="text" id="chat-input" placeholder="What's actually going on?" style="flex:1; background:var(--graphite-2); border:1px solid var(--border); border-radius:8px; color:var(--white); padding:.8rem 1rem; font-size:.85rem;"/>
-              <button class="btn btn-gold btn-sm" id="chat-send">Send</button>
-            </div>
-          </div>
-          <div class="disclaimer">Iron Guide is a reflective prompt engine, not a licensed clinician, and does not diagnose. It is designed to widen the question, not supply a certainty.</div>
-        </section>
         <section class="page" id="page-trauma">
-          <span class="page-eyebrow">Module 04</span>
+          <span class="page-eyebrow">Module 03</span>
           <h1 class="page-title">Trauma Explorer</h1>
           <p class="page-sub">Not every wound comes from a single catastrophic event. Some are built slowly, from a thousand small moments of not being seen.</p>
 
@@ -500,7 +492,7 @@ textarea,input,select{font-family:inherit;}
             <div class="card"><span class="card-title">Fawn</span><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.6;">Appeasing the threat to stay safe. Shows up later as people-pleasing and a lost sense of one's own needs.</p></div>
           </div>
 
-          <div class="grid-2">
+          <div class="grid-2" style="margin-bottom:1.3rem;">
             <div class="card card-lg">
               <span class="card-title">Developmental Trauma &amp; Attachment</span>
               <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">Developmental trauma accumulates across childhood rather than arriving in one event — inconsistent caregiving, emotional neglect, or an environment where a child's needs were routinely deprioritized. This shapes attachment style: the largely unconscious blueprint for how safe closeness feels in adulthood (secure, anxious, avoidant, or disorganized).</p>
@@ -510,9 +502,23 @@ textarea,input,select{font-family:inherit;}
               <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">A core wound is the earliest, most formative version of a recurring pain — abandonment, rejection, betrayal, injustice. The body often remembers what the conscious mind has filed away: chronic tension in the jaw, chest, or gut can be somatic memory long after the narrative memory has faded. See Body Scan for a guided version of this.</p>
             </div>
           </div>
+
+          <div class="card card-lg">
+            <span class="card-title">Task — Identify Your Default Response</span>
+            <p style="font-size:.85rem; color:var(--dim-hi); margin-bottom:1rem;">Under real pressure, most people default to one or two of these responses more than the others. Pick the one(s) that feel most familiar, then name a recent moment it showed up.</p>
+            <div class="chip-row" id="trauma-response-chips">
+              <span class="chip" data-r="Fight">Fight</span>
+              <span class="chip" data-r="Flight">Flight</span>
+              <span class="chip" data-r="Freeze">Freeze</span>
+              <span class="chip" data-r="Fawn">Fawn</span>
+            </div>
+            <div class="field" style="margin-top:1rem;"><label>Where did this show up recently?</label><textarea id="trauma-reflection" placeholder="Describe a specific recent moment"></textarea></div>
+            <button class="btn btn-gold btn-sm" id="trauma-task-save">Save Reflection</button>
+            <div id="trauma-task-status" style="margin-top:.8rem; font-family:var(--font-m); font-size:.72rem; color:var(--gold);"></div>
+          </div>
         </section>
         <section class="page" id="page-body">
-          <span class="page-eyebrow">Module 05</span>
+          <span class="page-eyebrow">Module 04</span>
           <h1 class="page-title">Body Scan</h1>
           <p class="page-sub">The body keeps what the mind won't say out loud. Click each area to see what it commonly holds.</p>
 
@@ -527,7 +533,7 @@ textarea,input,select{font-family:inherit;}
           </div>
         </section>
         <section class="page" id="page-innerchild">
-          <span class="page-eyebrow">Module 06</span>
+          <span class="page-eyebrow">Module 05</span>
           <h1 class="page-title">Inner Child</h1>
           <p class="page-sub">A gentler room. The boy you were is still in there, and he's usually the one running the reaction you can't explain as an adult.</p>
 
@@ -545,24 +551,24 @@ textarea,input,select{font-family:inherit;}
           <div class="card card-lg">
             <span class="card-title">Write A Letter To Your Inner Child</span>
             <p style="font-size:.8rem; color:var(--dim); margin-bottom:.8rem;">No structure required. Say what he needed to hear then, that you can say to him now.</p>
-            <textarea id="ic-letter" placeholder="Dear younger me…" style="min-height:160px;"></textarea>
+            <div class="field"><textarea id="ic-letter" placeholder="Dear younger me…" style="min-height:160px;"></textarea></div>
             <button class="btn btn-gold btn-sm" style="margin-top:.8rem;" id="ic-save-letter">Save Letter</button>
             <div id="ic-letters" style="margin-top:1.4rem;"></div>
           </div>
         </section>
         <section class="page" id="page-dreams">
-          <span class="page-eyebrow">Module 07</span>
+          <span class="page-eyebrow">Module 06</span>
           <h1 class="page-title">Dream Journal</h1>
           <p class="page-sub">The unconscious speaks in symbol, not sentence. Log what you remember before it fades — and see what the recurring images tend to mean.</p>
 
           <div class="card card-lg" style="margin-bottom:1.3rem;">
             <span class="card-title">Log A Dream</span>
             <div class="field"><label>Title</label><input type="text" id="dream-title" placeholder="A short title for the dream"/></div>
-            <div class="field"><label>Description</label><textarea id="dream-text" placeholder="Describe what you remember"></textarea></div>
-            <div class="field">
-              <label>Symbols Present</label>
-              <div class="chip-row" id="dream-symbol-chips"></div>
-            </div>
+            <div class="field"><label>What happened</label><textarea id="dream-text" placeholder="Describe what you remember"></textarea></div>
+            <div class="field"><label>Who was in it</label><textarea id="dream-people" placeholder="Anyone recognizable — or strangers who felt significant"></textarea></div>
+            <div class="field"><label>What you felt</label><textarea id="dream-feelings" placeholder="The emotional tone — even if the plot doesn't fully make sense"></textarea></div>
+            <div class="field"><label>The plot / actions</label><textarea id="dream-plot" placeholder="What actually happened, step by step, as best you remember"></textarea></div>
+            <div class="field"><label>How might this connect to something you're not facing awake?</label><textarea id="dream-connection" placeholder="Take a guess — there's no wrong answer here"></textarea></div>
             <button class="btn btn-gold btn-sm" id="dream-save">Save Dream</button>
           </div>
 
@@ -572,13 +578,14 @@ textarea,input,select{font-family:inherit;}
               <div id="dream-list"></div>
             </div>
             <div class="card card-lg">
-              <span class="card-title">Symbol Dictionary</span>
+              <span class="card-title">Symbol Dictionary — For Reference</span>
+              <p style="font-size:.72rem; color:var(--dim); margin-bottom:1rem;">Most dreams don't hand you a snake or a mountain — they're built from ordinary people and places. This is just a reference if a classic symbol does show up.</p>
               <div id="symbol-dictionary"></div>
             </div>
           </div>
         </section>
         <section class="page" id="page-archetype">
-          <span class="page-eyebrow">Module 08</span>
+          <span class="page-eyebrow">Module 07</span>
           <h1 class="page-title">Archetype Test</h1>
           <p class="page-sub">Which pattern is actually running you? Answer honestly — not aspirationally.</p>
 
@@ -590,7 +597,7 @@ textarea,input,select{font-family:inherit;}
           <div id="archetype-results" style="margin-top:1.5rem;"></div>
         </section>
         <section class="page" id="page-purpose">
-          <span class="page-eyebrow">Module 09</span>
+          <span class="page-eyebrow">Module 08</span>
           <h1 class="page-title">Values &amp; Purpose</h1>
           <p class="page-sub">Direction matters more than speed. A man moving fast with no bearing is still lost — just more efficiently.</p>
 
@@ -625,13 +632,13 @@ textarea,input,select{font-family:inherit;}
           </div>
         </section>
         <section class="page" id="page-journal">
-          <span class="page-eyebrow">Module 10</span>
+          <span class="page-eyebrow">Module 09</span>
           <h1 class="page-title">Journal</h1>
           <p class="page-sub">Free writing, mood-tagged, searchable. No prompt required — sometimes the point is just to get it out of your head and onto the page.</p>
 
           <div class="card card-lg" style="margin-bottom:1.3rem;">
             <span class="card-title">New Entry</span>
-            <textarea id="journal-text" placeholder="Write whatever's true right now"></textarea>
+            <div class="field"><textarea id="journal-text" placeholder="Journal your thoughts — whatever's actually on your mind" style="min-height:120px;"></textarea></div>
             <div class="grid-2" style="margin-top:1rem;">
               <div class="field"><label>Mood</label>
                 <select id="journal-mood">
@@ -651,13 +658,13 @@ textarea,input,select{font-family:inherit;}
           </div>
         </section>
         <section class="page" id="page-timeline">
-          <span class="page-eyebrow">Module 11</span>
+          <span class="page-eyebrow">Module 10</span>
           <h1 class="page-title">Breakthroughs</h1>
           <p class="page-sub">Every insight, journal entry, dream, and completed practice — automatically timestamped into one record, so progress stops being invisible.</p>
 
           <div class="card card-lg" style="margin-bottom:1.3rem;">
             <span class="card-title">Log A Breakthrough Manually</span>
-            <textarea id="breakthrough-text" placeholder="What just clicked?"></textarea>
+            <div class="field"><textarea id="breakthrough-text" placeholder="What just clicked?" style="min-height:100px;"></textarea></div>
             <button class="btn btn-gold btn-sm" style="margin-top:.8rem;" id="breakthrough-save">Save Breakthrough</button>
           </div>
 
@@ -667,13 +674,19 @@ textarea,input,select{font-family:inherit;}
           </div>
         </section>
         <section class="page" id="page-library">
-          <span class="page-eyebrow">Module 12</span>
+          <span class="page-eyebrow">Module 11</span>
           <h1 class="page-title">Knowledge Library</h1>
           <p class="page-sub">Concept primers drawn from the thinkers underneath this entire app — organized, not exhaustive. Follow what pulls you.</p>
           <div id="library-content"></div>
+          <div class="card card-lg" style="margin-top:1.5rem;">
+            <span class="card-title">Task — Apply One Idea</span>
+            <p style="font-size:.85rem; color:var(--dim-hi); margin-bottom:1rem;">Pick the single concept above that hit hardest, and write down exactly how it applies to your actual life right now — not in theory.</p>
+            <div class="field"><label>Which concept, and how does it apply to you?</label><textarea id="library-reflection" placeholder="Name the concept and connect it to something real"></textarea></div>
+            <button class="btn btn-gold btn-sm" id="library-task-save">Save Reflection</button>
+          </div>
         </section>
         <section class="page" id="page-labyrinth">
-          <span class="page-eyebrow">Module 13</span>
+          <span class="page-eyebrow">Module 12</span>
           <h1 class="page-title">The Labyrinth</h1>
           <p class="page-sub">A gamified path through the work that actually matters. Each level is a real task, not a checkbox for its own sake.</p>
 
@@ -684,7 +697,7 @@ textarea,input,select{font-family:inherit;}
           <div id="labyrinth-levels"></div>
         </section>
         <section class="page" id="page-breathwork">
-          <span class="page-eyebrow">Module 14</span>
+          <span class="page-eyebrow">Module 13</span>
           <h1 class="page-title">Breathwork</h1>
           <p class="page-sub">The fastest lever you have over the nervous system. No app subscription required — just attention and a few minutes.</p>
 
@@ -701,7 +714,7 @@ textarea,input,select{font-family:inherit;}
           </div>
         </section>
         <section class="page" id="page-morning">
-          <span class="page-eyebrow">Module 15</span>
+          <span class="page-eyebrow">Module 14</span>
           <h1 class="page-title">Morning Ritual</h1>
           <p class="page-sub">Set the day before the day sets you. Check off what you actually did — not what you intend to.</p>
 
@@ -713,7 +726,7 @@ textarea,input,select{font-family:inherit;}
           </div>
         </section>
         <section class="page" id="page-evening">
-          <span class="page-eyebrow">Module 16</span>
+          <span class="page-eyebrow">Module 15</span>
           <h1 class="page-title">Evening Integration</h1>
           <p class="page-sub">Close the day deliberately, rather than just letting it end. What got integrated today, and what's still sitting there unresolved?</p>
 
@@ -858,6 +871,7 @@ async function enterAppAfterAuth(){
         bodyScan: Object.assign(defaultData().bodyScan, cloud.bodyScan||{}),
         purpose: Object.assign(defaultData().purpose, cloud.purpose||{}),
         labyrinth: Object.assign(defaultData().labyrinth, cloud.labyrinth||{}),
+        shadowProgress: Object.assign(defaultData().shadowProgress, cloud.shadowProgress||{}),
       });
       localStorage.setItem(STORE_KEY, JSON.stringify(D));
     }
@@ -875,20 +889,21 @@ const STORE_KEY = 'ironMindShadow_v1';
 function defaultData(){
   return {
     user:{ totalXP:0, streak:0, lastActiveDate:null },
-    moods:[],                // {date, mood}
+    moods:[],                // {date, moods:[], consciousnessLevel}
     journal:[],              // {id,date,text,mood,tags}
-    dreams:[],               // {id,date,title,text,symbols}
+    dreams:[],               // {id,date,title,text,people,feelings,plot,connection}
     innerChild:{ memories:[], letters:[] },
-    bodyScan:{ notes:{} },
-    symptomSessions:[],      // {date, symptoms:[]}
+    bodyScan:{ notes:{}, feelings:{} },
+    symptomSessions:[],      // {date, symptoms:[], reflection, analysis}
     archetypeResult:null,    // {scores:{}, date}
     purpose:{ values:[], ikigai:{}, mission:'', vision:'' },
     labyrinth:{ completed:[] },
     morning:{},              // {dateStr: {...checks}}
     evening:{},              // {dateStr: {...fields}}
     breakthroughs:[],        // manual entries {date,text}
-    shadowProgress:{ readConcepts:[], quizScore:null },
-    guideMessages:[]
+    shadowProgress:{ readConcepts:[], quizScore:null, traumaTaskDone:false, libraryTaskDone:false },
+    breathSessionsCompleted:0,
+    archetypeWeakTask:null   // {archetype, task, done}
   };
 }
 let D = loadData();
@@ -904,6 +919,7 @@ function loadData(){
       bodyScan: Object.assign(base.bodyScan, parsed.bodyScan||{}),
       purpose: Object.assign(base.purpose, parsed.purpose||{}),
       labyrinth: Object.assign(base.labyrinth, parsed.labyrinth||{}),
+      shadowProgress: Object.assign(base.shadowProgress, parsed.shadowProgress||{}),
     });
   }catch(e){ return defaultData(); }
 }
@@ -939,24 +955,60 @@ function addXP(amount){
 }
 function getLevel(xp){ return Math.max(1, Math.floor(xp/250)+1); }
 
-/* ---------- COMPOSITE SCORES ---------- */
-function renderScores(){
-  const shadowScore = Math.min(100, D.shadowProgress.readConcepts.length*8 + (D.shadowProgress.quizScore||0)*4 + D.symptomSessions.length*6);
-  const purposeScore = Math.min(100, (D.purpose.values.length*8) + (D.purpose.mission?25:0) + (D.purpose.vision?15:0) + Object.keys(D.purpose.ikigai||{}).length*6);
-  const energyDates = Object.keys(D.morning).length + Object.keys(D.evening).length;
-  const energyScore = Math.min(100, energyDates*10 + D.user.streak*4);
-  const authScore = Math.min(100, D.journal.length*5 + D.dreams.length*4 + D.innerChild.letters.length*8 + D.breakthroughs.length*6);
-  const integration = Math.round((shadowScore+purposeScore+energyScore+authScore)/4);
+/* Shared level curve for the four category meters — same curve Forge uses:
+   each level costs a little more than the last, so progress never hard-caps. */
+function levelFromXP(xp){
+  let level=1, remaining=Math.max(0,xp), need=100;
+  while(remaining >= need){ remaining -= need; level++; need += 45; }
+  return {level, into:Math.round(remaining), need:Math.round(need)};
+}
 
-  setBar('score-shadow', shadowScore); setBar('score-purpose', purposeScore);
-  setBar('score-energy', energyScore); setBar('score-authenticity', authScore);
+/* ---------- COMPOSITE SCORES (category XP pools, rebalanced to comparable pace) ---------- */
+function renderScores(){
+  const shadowXP = D.shadowProgress.readConcepts.length*15
+    + (D.shadowProgress.quizScore||0)*10
+    + D.symptomSessions.length*20
+    + (D.shadowProgress.traumaTaskDone ? 25 : 0)
+    + Object.keys(D.bodyScan.notes||{}).length*10
+    + (D.shadowProgress.libraryTaskDone ? 15 : 0);
+
+  const purposeXP = (D.purpose.values.length ? 25 : 0)
+    + Object.values(D.purpose.ikigai||{}).filter(Boolean).length*15
+    + (D.purpose.mission ? 40 : 0)
+    + (D.purpose.vision ? 30 : 0);
+
+  const morningDays = Object.keys(D.morning).length;
+  const eveningDays = Object.keys(D.evening).length;
+  const energyXP = morningDays*15 + eveningDays*15 + (D.breathSessionsCompleted||0)*8 + D.user.streak*5;
+
+  const authXP = D.journal.length*12
+    + D.dreams.length*18
+    + D.innerChild.letters.length*25
+    + D.innerChild.memories.length*12
+    + D.breakthroughs.length*20
+    + (D.bodyScan.feelings ? Object.keys(D.bodyScan.feelings).length*10 : 0)
+    + (D.archetypeResult ? 25 : 0);
+
+  setCategoryLevel('shadow', shadowXP);
+  setCategoryLevel('purpose', purposeXP);
+  setCategoryLevel('energy', energyXP);
+  setCategoryLevel('authenticity', authXP);
+
+  const levels = [shadowXP,purposeXP,energyXP,authXP].map(x=>levelFromXP(x).level);
+  const avgLevel = levels.reduce((a,b)=>a+b,0)/4;
+  const integration = Math.min(100, Math.round((avgLevel-1) * 14));
   document.getElementById('dash-integration-num').textContent = integration+'%';
   document.getElementById('tb-integration').textContent = integration+'%';
   drawMandala(document.getElementById('dash-mandala'), integration/100, true);
 }
-function setBar(id,val){
-  document.getElementById(id).style.width = val+'%';
-  document.getElementById(id+'-val').textContent = val+'%';
+function setCategoryLevel(key, xp){
+  const {level, into, need} = levelFromXP(xp);
+  const numEl = document.getElementById('lvl-'+key+'-num');
+  const barEl = document.getElementById('score-'+key);
+  const valEl = document.getElementById('score-'+key+'-val');
+  if(numEl) numEl.textContent = 'Lvl '+level;
+  if(barEl) barEl.style.width = Math.round((into/need)*100)+'%';
+  if(valEl) valEl.textContent = into+' / '+need+' XP';
 }
 function renderTopStats(){
   document.getElementById('tb-level').textContent = getLevel(D.user.totalXP);
@@ -1129,6 +1181,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   renderTopStats();
   renderModuleGrid();
   renderDailyMission();
+  renderMoodChips();
+  updateConsciousnessLabel();
   renderMoodState();
   renderRecentBreakthroughs();
 });
@@ -1193,7 +1247,6 @@ mobileBackdrop.addEventListener('click', closeMobileSidebar);
 const MODULES = [
   {id:'shadow', icon:'☾', name:'The Shadow', desc:'Projection, persona, ego, archetypes — the architecture beneath the self.'},
   {id:'symptoms', icon:'◈', name:'Symptom Finder', desc:'Select what you struggle with. See the unconscious pattern underneath.'},
-  {id:'guide', icon:'✦', name:'Iron Guide', desc:'A reflective dialogue partner. Not certainty — exploration.'},
   {id:'trauma', icon:'⚡', name:'Trauma Explorer', desc:'Fight, flight, freeze, fawn — and what the nervous system remembers.'},
   {id:'body', icon:'◉', name:'Body Scan', desc:'Where the body holds what the mind won\'t say.'},
   {id:'innerchild', icon:'✧', name:'Inner Child', desc:'A gentler room. Memory, compassion, and repair.'},
@@ -1240,18 +1293,53 @@ document.getElementById('new-mission-btn').addEventListener('click', ()=>{
   document.getElementById('daily-mission').textContent = MISSIONS[idx];
 });
 
-/* ---------- MOOD CHECK ---------- */
+/* ---------- MOOD CHECK (expanded, multi-select + Hawkins scale) ---------- */
+const MOOD_OPTIONS = [
+  'Grounded','Anxious','Numb','Driven','Heavy','Clear','Restless',
+  'Confident','Ashamed','Guilty','Peaceful','Joyful','Content','Overwhelmed',
+  'Frustrated','Hopeful','Disconnected','Motivated','Fearful','Grieving',
+  'Proud','Calm','Irritable','Lonely','Inspired','Resentful','Curious',
+  'Defeated','Grateful','Tense','Vulnerable','Powerful'
+];
+// Hawkins' Map of Consciousness — heaviest to lightest, with approximate calibration values
+const CONSCIOUSNESS_LEVELS = [
+  {name:'Shame', value:20}, {name:'Guilt', value:30}, {name:'Apathy', value:50},
+  {name:'Grief', value:75}, {name:'Fear', value:100}, {name:'Desire', value:125},
+  {name:'Anger', value:150}, {name:'Pride', value:175}, {name:'Courage', value:200},
+  {name:'Neutrality', value:250}, {name:'Willingness', value:310}, {name:'Acceptance', value:350},
+  {name:'Reason', value:400}, {name:'Love', value:500}, {name:'Joy', value:540},
+  {name:'Peace', value:600}, {name:'Enlightenment', value:850},
+];
+function renderMoodChips(){
+  document.getElementById('mood-chips').innerHTML = MOOD_OPTIONS.map(m=>`<span class="chip" data-mood="${m}">${m}</span>`).join('');
+}
 document.getElementById('mood-chips').addEventListener('click', (e)=>{
   if(!e.target.classList.contains('chip')) return;
-  const mood = e.target.dataset.mood;
-  D.moods.push({date:new Date().toISOString(), mood});
-  addXP(5);
-  showToast('Logged: '+mood+' · +5 XP');
+  e.target.classList.toggle('selected');
+});
+function updateConsciousnessLabel(){
+  const idx = parseInt(document.getElementById('consciousness-slider').value);
+  const lvl = CONSCIOUSNESS_LEVELS[idx];
+  document.getElementById('consciousness-label').textContent = lvl.name;
+  document.getElementById('consciousness-value').textContent = lvl.value;
+}
+document.getElementById('consciousness-slider').addEventListener('input', updateConsciousnessLabel);
+document.getElementById('mood-save').addEventListener('click', ()=>{
+  const selected = Array.from(document.querySelectorAll('#mood-chips .chip.selected')).map(c=>c.dataset.mood);
+  const idx = parseInt(document.getElementById('consciousness-slider').value);
+  const lvl = CONSCIOUSNESS_LEVELS[idx];
+  if(!selected.length){ showToast('Select at least one feeling.'); return; }
+  D.moods.push({date:new Date().toISOString(), moods:selected, consciousnessLevel:lvl.name, consciousnessValue:lvl.value});
+  document.querySelectorAll('#mood-chips .chip.selected').forEach(c=>c.classList.remove('selected'));
+  addXP(8); saveData();
+  showToast('Check-in logged · +8 XP');
   renderMoodState();
 });
 function renderMoodState(){
   const last = D.moods[D.moods.length-1];
-  document.getElementById('mood-last').textContent = last ? `Last check-in: ${last.mood} — ${fmtDate(last.date)}` : 'No check-in yet today.';
+  document.getElementById('mood-last').textContent = last
+    ? `Last check-in: ${(last.moods||[last.mood]).join(', ')} — ${last.consciousnessLevel||''} — ${fmtDate(last.date)}`
+    : 'No check-in yet today.';
 }
 
 /* ---------- QUICK JOURNAL (dashboard shortcut) ---------- */
@@ -1345,18 +1433,60 @@ window.saveShadowReflection = function(id){
 };
 
 const SHADOW_QUIZ = [
-  {q:'The shadow, in Jungian terms, primarily consists of:', options:['Evil impulses only','Disowned or unacceptable parts of the self','Childhood memories','Physical illness'], correct:1},
-  {q:'Projection typically involves:', options:['Predicting the future','Attributing your own unowned traits to someone else','Meditation technique','A type of dream'], correct:1},
-  {q:'The persona is best described as:', options:['Your true self','The social mask you present publicly','A mental illness','Your childhood personality'], correct:1},
-  {q:'Individuation refers to:', options:['Becoming more isolated','The lifelong process of integrating conscious and unconscious into a whole self','Becoming famous','Following strict rules'], correct:1},
-  {q:'A "complex" in this framework is:', options:['A building','An emotionally-charged cluster of memories organized around a theme','A compliment','A type of dream symbol'], correct:1},
+  { q:'The shadow, in Jungian terms, primarily consists of:',
+    correct:['Disowned or unacceptable parts of the self','Traits and impulses you\'ve pushed out of conscious awareness','The parts of yourself you\'ve rejected as unacceptable'],
+    wrong:[
+      ['Evil impulses only','Purely destructive urges','Only your worst qualities'],
+      ['Childhood memories','Early-life recollections','Things you remember from being young'],
+      ['Physical illness','A bodily disease','A medical condition'],
+    ]},
+  { q:'Projection typically involves:',
+    correct:['Attributing your own unowned traits to someone else','Seeing your own disowned qualities in another person','Placing a trait you won\'t admit to onto someone else'],
+    wrong:[
+      ['Predicting the future','Forecasting what will happen','Guessing upcoming events'],
+      ['A meditation technique','A relaxation practice','A breathing exercise'],
+      ['A type of dream','A recurring nightmare','A category of dream symbol'],
+    ]},
+  { q:'The persona is best described as:',
+    correct:['The social mask you present publicly','The curated version of yourself shown to others','A public-facing identity built for others to see'],
+    wrong:[
+      ['Your true self','Your authentic inner identity','Who you really are underneath'],
+      ['A mental illness','A diagnosable condition','A psychological disorder'],
+      ['Your childhood personality','How you behaved as a kid','Your personality before age 10'],
+    ]},
+  { q:'Individuation refers to:',
+    correct:['The lifelong process of integrating conscious and unconscious into a whole self','Becoming who you actually are by integrating all parts of the psyche','The ongoing work of unifying the conscious and unconscious mind'],
+    wrong:[
+      ['Becoming more isolated','Withdrawing from other people','Cutting yourself off socially'],
+      ['Becoming famous','Achieving public recognition','Gaining widespread attention'],
+      ['Following strict rules','Rigid rule-adherence','Obeying a strict code'],
+    ]},
+  { q:'A "complex" in this framework is:',
+    correct:['An emotionally-charged cluster of memories organized around a theme','A group of related memories bound together by a strong emotional theme','A recurring emotional pattern rooted in a cluster of memories'],
+    wrong:[
+      ['A building','A physical structure','An architectural structure'],
+      ['A compliment','A form of praise','A flattering remark'],
+      ['A type of dream symbol','A dream image','A symbolic dream element'],
+    ]},
 ];
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+let currentQuizLayout = [];
 function renderShadowQuiz(){
   const el = document.getElementById('shadow-quiz');
-  el.innerHTML = SHADOW_QUIZ.map((q,i)=>`
+  currentQuizLayout = SHADOW_QUIZ.map(q=>{
+    const correctText = q.correct[Math.floor(Math.random()*q.correct.length)];
+    const wrongTexts = q.wrong.map(variants => variants[Math.floor(Math.random()*variants.length)]);
+    const options = shuffleArr([{text:correctText, isCorrect:true}, ...wrongTexts.map(t=>({text:t, isCorrect:false}))]);
+    return {q:q.q, options};
+  });
+  el.innerHTML = currentQuizLayout.map((q,i)=>`
     <div style="margin-bottom:1.2rem;">
       <p style="font-size:.85rem; margin-bottom:.6rem;">${i+1}. ${q.q}</p>
-      <div class="chip-row">${q.options.map((o,oi)=>`<span class="chip" data-q="${i}" data-o="${oi}" onclick="selectQuizOption(this)">${o}</span>`).join('')}</div>
+      <div class="chip-row">${q.options.map((o,oi)=>`<span class="chip" data-q="${i}" data-o="${oi}" onclick="selectQuizOption(this)">${o.text}</span>`).join('')}</div>
     </div>`).join('');
 }
 window.selectQuizOption = function(el){
@@ -1366,13 +1496,13 @@ window.selectQuizOption = function(el){
 };
 document.getElementById('shadow-quiz-submit').addEventListener('click', ()=>{
   let score=0;
-  SHADOW_QUIZ.forEach((q,i)=>{
+  currentQuizLayout.forEach((q,i)=>{
     const sel = document.querySelector(`.chip[data-q="${i}"].selected`);
-    if(sel && parseInt(sel.dataset.o)===q.correct) score++;
+    if(sel && q.options[parseInt(sel.dataset.o)].isCorrect) score++;
   });
   D.shadowProgress.quizScore = score;
   saveData();
-  document.getElementById('shadow-quiz-result').textContent = `${score} / ${SHADOW_QUIZ.length} correct.`;
+  document.getElementById('shadow-quiz-result').textContent = `${score} / ${currentQuizLayout.length} correct.`;
   addXP(score*8);
   showToast(`Quiz complete · +${score*8} XP`);
 });
@@ -1409,15 +1539,72 @@ function renderSymptomChips(){
 document.getElementById('symptom-chips').addEventListener('click', e=>{
   if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
 });
+
+/* Clusters of closely-related symptoms — these get a stronger direct connection in the web */
+const SYMPTOM_CLUSTERS = {
+  'Approval & Validation': ['People pleasing','Low confidence','Fear of judgement','Need for validation','Imposter syndrome'],
+  'Control & Perfection': ['Perfectionism','Self sabotage','Overthinking','Fear of success'],
+  'Avoidance & Escape': ['Avoidance','Porn addiction','Laziness','Emotional numbness'],
+  'Relational': ['Commitment issues','Relationship anxiety','Fear of intimacy','Jealousy'],
+  'Reactive': ['Anger','Jealousy'],
+};
+function sharedClusters(a,b){
+  return Object.entries(SYMPTOM_CLUSTERS).filter(([name,list])=>list.includes(a) && list.includes(b)).map(([name])=>name);
+}
+function dominantClusters(selected){
+  const counts = {};
+  Object.entries(SYMPTOM_CLUSTERS).forEach(([name,list])=>{
+    counts[name] = selected.filter(s=>list.includes(s)).length;
+  });
+  return Object.entries(counts).filter(([,c])=>c>=2).sort((a,b)=>b[1]-a[1]);
+}
+const CLUSTER_NARRATIVES = {
+  'Approval & Validation': 'These tend to reinforce each other in a loop: the more self-worth depends on outside approval, the scarier judgement becomes, and the more perfect the performance has to be to avoid it.',
+  'Control & Perfection': 'These often form a control strategy — if everything is managed and flawless, nothing can go wrong or be criticized. The exhaustion of that standard is frequently what triggers the sabotage.',
+  'Avoidance & Escape': 'These usually share a single function: putting distance between you and a feeling that once felt unsafe to fully experience. The specific escape route (numbness, substance, procrastination) matters less than the pattern of escaping.',
+  'Relational': 'These tend to trace back to the same attachment wiring — the nervous system learned early that closeness carries risk, so it now polices distance in every close relationship, often without your conscious permission.',
+  'Reactive': 'These often share the same fuel — a softer, more vulnerable feeling underneath that gets converted into something louder and safer to express.',
+};
+function keywordCues(text){
+  const lower = (text||'').toLowerCase();
+  const cues = [];
+  if(/mother|mum|mom\b/.test(lower)) cues.push("The mention of your mother is worth sitting with — a lot of approval-seeking and relational patterns trace back to that first relationship.");
+  if(/father|dad\b/.test(lower)) cues.push("Your father coming up here isn't incidental — control, perfectionism, and proving-yourself patterns often trace back to that relationship specifically.");
+  if(/job|work|career|boss/.test(lower)) cues.push("Since this shows up at work, it's worth asking whether the pattern is really about the job, or whether work is just the current stage it's playing out on.");
+  if(/ex\b|relationship|partner|boyfriend|girlfriend/.test(lower)) cues.push("The relational context you mentioned is likely not the origin — just the place where an older pattern keeps finding a stage.");
+  if(/money|financ|poor|rich/.test(lower)) cues.push("Money is rarely just money — it's often carrying an older story about safety, worth, or control.");
+  if(/child|kid|young|school/.test(lower)) cues.push("You've pointed straight at the root yourself — this sounds like it was installed early, which means it can be examined and updated, not just endured.");
+  return cues;
+}
+function synthesizeAnalysis(selected, reflection){
+  const clusters = dominantClusters(selected);
+  let html = '';
+  if(clusters.length){
+    html += clusters.map(([name,count])=>`
+      <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75; margin-bottom:.9rem;">
+        <b style="color:var(--gold);">${name} (${count} of your selections):</b> ${CLUSTER_NARRATIVES[name]}
+      </p>`).join('');
+  } else {
+    html += `<p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75; margin-bottom:.9rem;">Your selections don't cluster tightly around one theme — which itself is worth noting. This might mean several separate things are active at once, rather than one root pattern wearing different masks.</p>`;
+  }
+  const cues = keywordCues(reflection);
+  if(cues.length){
+    html += `<div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">` +
+      cues.map(c=>`<p style="font-size:.82rem; color:var(--dim-hi); line-height:1.7; margin-bottom:.6rem;">${c}</p>`).join('') + `</div>`;
+  }
+  return html;
+}
+
 document.getElementById('symptom-analyze').addEventListener('click', ()=>{
   const selected = Array.from(document.querySelectorAll('#symptom-chips .chip.selected')).map(c=>c.dataset.symptom);
+  const reflection = document.getElementById('symptom-reflection').value.trim();
   if(!selected.length){ showToast('Select at least one symptom.'); return; }
-  D.symptomSessions.push({date:new Date().toISOString(), symptoms:selected});
+  D.symptomSessions.push({date:new Date().toISOString(), symptoms:selected, reflection});
   addXP(12*selected.length); saveData();
   showToast(`Analysis complete · +${12*selected.length} XP`);
-  renderSymptomResults(selected);
+  renderSymptomResults(selected, reflection);
 });
-function renderSymptomResults(selected){
+function renderSymptomResults(selected, reflection){
   const el = document.getElementById('symptom-results');
   const cards = selected.map(s=>{
     const d = SYMPTOMS[s];
@@ -1431,7 +1618,12 @@ function renderSymptomResults(selected){
   el.innerHTML = `
     <div class="card card-lg" style="margin-bottom:1.3rem;">
       <span class="card-title">The Interconnected Web</span>
+      <p style="font-size:.72rem; color:var(--dim); margin-bottom:.8rem;">Brighter, thicker lines mean those two symptoms commonly reinforce each other directly.</p>
       <svg id="symptom-web" viewBox="0 0 500 340" style="width:100%; max-width:600px; display:block; margin:0 auto;"></svg>
+    </div>
+    <div class="card card-lg" style="margin-bottom:1.3rem;">
+      <span class="card-title">Connecting The Dots</span>
+      ${synthesizeAnalysis(selected, reflection)}
     </div>
     <div class="grid-2">${cards}</div>`;
   drawSymptomWeb(selected);
@@ -1439,105 +1631,41 @@ function renderSymptomResults(selected){
 function drawSymptomWeb(selected){
   const svg = document.getElementById('symptom-web');
   const cx=250, cy=170, n=selected.length;
-  let html = `<circle cx="${cx}" cy="${cy}" r="42" fill="var(--gold-glow)" stroke="var(--gold)" stroke-width="1.4"/>
-    <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="var(--gold-bright)" font-family="JetBrains Mono" font-size="10">UNCONSCIOUS</text>`;
+  const positions = {};
   selected.forEach((s,i)=>{
     const ang = (Math.PI*2*i/n) - Math.PI/2;
     const r = 145;
-    const x = cx+Math.cos(ang)*r, y = cy+Math.sin(ang)*r;
-    html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--border-hi)" stroke-width="1"/>`;
-    html += `<circle cx="${x}" cy="${y}" r="34" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1"/>`;
+    positions[s] = {x: cx+Math.cos(ang)*r, y: cy+Math.sin(ang)*r};
+  });
+  let html = `<circle cx="${cx}" cy="${cy}" r="42" fill="var(--gold-glow)" stroke="var(--gold)" stroke-width="1.4"/>
+    <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="var(--gold-bright)" font-family="JetBrains Mono" font-size="10">UNCONSCIOUS</text>`;
+  // spokes (thin, default)
+  selected.forEach(s=>{
+    const p = positions[s];
+    html += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="var(--border-hi)" stroke-width="1"/>`;
+  });
+  // direct connections for closely-linked symptoms (thicker, brighter, drawn above spokes)
+  for(let i=0;i<selected.length;i++){
+    for(let j=i+1;j<selected.length;j++){
+      if(sharedClusters(selected[i],selected[j]).length){
+        const p1=positions[selected[i]], p2=positions[selected[j]];
+        html += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="var(--gold-bright)" stroke-width="2.6" opacity=".8"/>`;
+      }
+    }
+  }
+  // nodes + labels on top
+  selected.forEach(s=>{
+    const p = positions[s];
+    html += `<circle cx="${p.x}" cy="${p.y}" r="34" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1"/>`;
     const words = s.split(' ');
     words.forEach((w,wi)=>{
-      html += `<text x="${x}" y="${y+wi*11-(words.length-1)*5.5+4}" text-anchor="middle" fill="var(--dim-hi)" font-family="Inter" font-size="9.5">${w}</text>`;
+      html += `<text x="${p.x}" y="${p.y+wi*11-(words.length-1)*5.5+4}" text-anchor="middle" fill="var(--dim-hi)" font-family="Inter" font-size="9.5">${w}</text>`;
     });
   });
   svg.innerHTML = html;
 }
 window.onPageShow.symptoms = function(){ if(!document.getElementById('symptom-chips').innerHTML) renderSymptomChips(); };
 renderSymptomChips();
-
-/* ================================================================
-   MODULE: IRON GUIDE (reflective chat)
-================================================================= */
-const GUIDE_SUGGESTIONS = ["I keep sabotaging relationships","I explode with anger","I don't know who I am","My childhood still affects me"];
-const GUIDE_PATTERNS = [
-  {keys:['sabotag'], responses:[
-    "Self-sabotage usually isn't self-destruction — it's the ego protecting an old, familiar identity from a new one it doesn't recognize yet. What would you have to give up about who you currently are, if the relationship actually worked?",
-    "Notice the timing of it. Does the sabotage tend to show up right after things start going well? What might that timing be protecting you from?"
-  ]},
-  {keys:['anger','explode','rage'], responses:[
-    "Anger is rarely the first emotion — it's usually the loudest one, covering something quieter underneath: hurt, fear, or powerlessness. In the moment right before the explosion, what's the feeling anger is standing in front of?",
-    "What did you learn, growing up, about what happened to people who showed anger directly? Sometimes explosive anger is what happens when direct anger was never allowed."
-  ]},
-  {keys:["don't know who i am",'identity','who am i'], responses:[
-    "That question usually means the persona — the mask built for other people — has gotten louder than the Self underneath it. If no one else's expectations existed for one week, what would you actually do with your time?",
-    "Identity confusion often isn't absence, it's overcrowding — too many inherited scripts running at once. Whose definition of 'who you should be' are you currently trying to satisfy?"
-  ]},
-  {keys:['childhood','parents','father','mother','mum','dad'], responses:[
-    "The nervous system doesn't distinguish well between 'then' and 'now' — a present-day trigger can borrow all its intensity from an old, unresolved moment. What does this current situation actually remind you of?",
-    "What's one rule you absorbed as a child about what was safe to feel or say — that you're still unconsciously obeying as an adult?"
-  ]},
-  {keys:['people please','validation','approval'], responses:[
-    "Whose approval did survival once depend on? That's usually where the pattern was built, long before it generalized to everyone else.",
-    "What might happen — really, specifically — if you disappointed that person on purpose, once, on something small?"
-  ]},
-  {keys:['relationship','partner','girlfriend','boyfriend'], responses:[
-    "Relationship patterns are often the clearest mirror available — they surface exactly what's unresolved elsewhere. What does this conflict have in common with a much older one?",
-    "Is the fear you're feeling about this relationship, or is it wearing this relationship's clothes while actually belonging to an earlier one?"
-  ]},
-  {keys:['numb','nothing','empty'], responses:[
-    "Numbness is rarely the absence of feeling — it's usually the nervous system's way of protecting you from feeling too much, too fast. When did the numbness first show up, as best you can recall?",
-    "If the numbness lifted for just one minute, what do you imagine would be underneath it?"
-  ]},
-  {keys:['purpose','meaning','pointless','lost'], responses:[
-    "Viktor Frankl's core claim was that meaning isn't found lying around — it's constructed, through what you create, who you love, and how you meet unavoidable suffering. Which of those three feels most absent right now?",
-    "What would you be doing differently this month if you fully believed your life had to matter to no one but you?"
-  ]},
-];
-const GUIDE_DEFAULT = [
-  "Say more about that. What's underneath the first thing you said?",
-  "If you had to guess — not know, guess — what's the oldest version of this feeling you can remember?",
-  "What would you tell a friend who said exactly what you just said?",
-  "What are you not saying, that's actually the real thing?"
-];
-function guideRespond(text){
-  const lower = text.toLowerCase();
-  for(const p of GUIDE_PATTERNS){
-    if(p.keys.some(k=>lower.includes(k))) return p.responses[Math.floor(Math.random()*p.responses.length)];
-  }
-  return GUIDE_DEFAULT[Math.floor(Math.random()*GUIDE_DEFAULT.length)];
-}
-function renderChat(){
-  const win = document.getElementById('chat-window');
-  if(!D.guideMessages.length){
-    win.innerHTML = `<div class="empty"><span class="empty-icon">✦</span>Say what's actually on your mind. Iron Guide won't hand you an answer — it'll hand you a better question.</div>`;
-  } else {
-    win.innerHTML = D.guideMessages.map(m=>`
-      <div style="align-self:${m.role==='user'?'flex-end':'flex-start'}; max-width:78%;">
-        <div style="background:${m.role==='user'?'var(--gold-glow)':'var(--graphite-2)'}; border:1px solid ${m.role==='user'?'var(--border-hi)':'var(--border)'}; border-radius:12px; padding:.75rem 1rem; font-size:.85rem; line-height:1.6; color:${m.role==='user'?'var(--white)':'var(--dim-hi)'};">${m.text}</div>
-      </div>`).join('');
-  }
-  win.scrollTop = win.scrollHeight;
-}
-function renderGuideSuggestions(){
-  document.getElementById('chat-suggestions').innerHTML = GUIDE_SUGGESTIONS.map(s=>`<span class="chip" onclick="sendGuideMessage('${s.replace(/'/g,"\\'")}')">${s}</span>`).join('');
-}
-window.sendGuideMessage = function(presetText){
-  const input = document.getElementById('chat-input');
-  const text = presetText || input.value.trim();
-  if(!text) return;
-  D.guideMessages.push({role:'user', text});
-  const reply = guideRespond(text);
-  D.guideMessages.push({role:'guide', text:reply});
-  input.value='';
-  addXP(10); saveData();
-  renderChat();
-};
-document.getElementById('chat-send').addEventListener('click', ()=>sendGuideMessage());
-document.getElementById('chat-input').addEventListener('keydown', e=>{ if(e.key==='Enter') sendGuideMessage(); });
-window.onPageShow.guide = function(){ renderChat(); };
-renderGuideSuggestions(); renderChat();
 
 /* ================================================================
    MODULE: TRAUMA EXPLORER — nervous system diagram
@@ -1564,6 +1692,21 @@ function drawNervousSystem(){
 }
 window.onPageShow.trauma = function(){ drawNervousSystem(); };
 drawNervousSystem();
+
+document.getElementById('trauma-response-chips').addEventListener('click', e=>{
+  if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
+});
+document.getElementById('trauma-task-save').addEventListener('click', ()=>{
+  const selected = Array.from(document.querySelectorAll('#trauma-response-chips .chip.selected')).map(c=>c.dataset.r);
+  const text = document.getElementById('trauma-reflection').value.trim();
+  if(!selected.length || !text){ showToast('Pick a response and describe a moment.'); return; }
+  D.journal.unshift({id:uid(), date:new Date().toISOString(), text:`[Trauma Explorer — ${selected.join('/')}] `+text, mood:null, tags:['trauma']});
+  D.shadowProgress.traumaTaskDone = true;
+  addXP(25); saveData();
+  document.getElementById('trauma-task-status').textContent = 'Saved to journal · +25 XP';
+  showToast('Reflection saved · +25 XP');
+  renderRecentBreakthroughs();
+});
 
 /* ================================================================
    MODULE: BODY SCAN
@@ -1604,14 +1747,28 @@ function drawBodySvg(){
 }
 window.selectBodyArea = function(key){
   const a = BODY_AREAS[key];
+  const existingLog = (D.bodyScan.feelings && D.bodyScan.feelings[key]) || [];
   document.getElementById('body-info').innerHTML = `
     <span class="card-title">${a.label}</span>
     <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.7; margin-bottom:1rem;">${a.emotion}</p>
-    <p style="font-size:.8rem; color:var(--gold);"><b>Grounding exercise:</b> ${a.exercise}</p>
-    <button class="btn btn-ghost btn-sm" style="margin-top:1rem;" onclick="goToPage('breathwork')">Open Breathwork →</button>
+    <p style="font-size:.8rem; color:var(--gold); margin-bottom:1rem;"><b>Grounding exercise:</b> ${a.exercise}</p>
+    <div class="field"><label>What are you actually feeling here right now?</label><textarea id="body-feeling-input" placeholder="Describe the sensation or emotion in this area"></textarea></div>
+    <button class="btn btn-gold btn-sm" onclick="saveBodyFeeling('${key}')">Record This</button>
+    <button class="btn btn-ghost btn-sm" style="margin-top:.6rem;" onclick="goToPage('breathwork')">Open Breathwork →</button>
+    ${existingLog.length ? `<div style="margin-top:1.3rem; padding-top:1rem; border-top:1px solid var(--border);"><span class="card-title" style="font-size:.6rem;">Previous Entries</span>${existingLog.slice().reverse().map(e=>`<div style="font-size:.76rem; color:var(--dim-hi); padding:.5rem 0; border-bottom:1px solid var(--border);">${fmtDate(e.date)} — ${e.text}</div>`).join('')}</div>` : ''}
   `;
   D.bodyScan.notes[key] = (D.bodyScan.notes[key]||0)+1;
   addXP(8); saveData();
+};
+window.saveBodyFeeling = function(key){
+  const text = document.getElementById('body-feeling-input').value.trim();
+  if(!text){ showToast('Describe what you feel first.'); return; }
+  if(!D.bodyScan.feelings) D.bodyScan.feelings = {};
+  if(!D.bodyScan.feelings[key]) D.bodyScan.feelings[key] = [];
+  D.bodyScan.feelings[key].push({date:new Date().toISOString(), text});
+  addXP(10); saveData();
+  showToast('Recorded · +10 XP');
+  selectBodyArea(key);
 };
 window.onPageShow.body = function(){ drawBodySvg(); };
 drawBodySvg();
@@ -1674,22 +1831,18 @@ const DREAM_SYMBOLS = {
   Fire:'Represents transformation, destruction, and purification simultaneously — old structures burning to make room.',
   Journey:'Represents individuation itself — the psychological path from where you are to who you are becoming.',
 };
-function renderDreamSymbolChips(){
-  document.getElementById('dream-symbol-chips').innerHTML = Object.keys(DREAM_SYMBOLS).map(s=>`<span class="chip" data-symbol="${s}">${s}</span>`).join('');
-}
-document.getElementById('dream-symbol-chips').addEventListener('click', e=>{
-  if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
-});
 document.getElementById('dream-save').addEventListener('click', ()=>{
   const title = document.getElementById('dream-title').value.trim();
   const text = document.getElementById('dream-text').value.trim();
-  const symbols = Array.from(document.querySelectorAll('#dream-symbol-chips .chip.selected')).map(c=>c.dataset.symbol);
+  const people = document.getElementById('dream-people').value.trim();
+  const feelings = document.getElementById('dream-feelings').value.trim();
+  const plot = document.getElementById('dream-plot').value.trim();
+  const connection = document.getElementById('dream-connection').value.trim();
   if(!title && !text){ showToast('Add a title or description.'); return; }
-  D.dreams.unshift({id:uid(), title:title||'Untitled dream', text, symbols, date:new Date().toISOString()});
-  document.getElementById('dream-title').value=''; document.getElementById('dream-text').value='';
-  document.querySelectorAll('#dream-symbol-chips .chip.selected').forEach(c=>c.classList.remove('selected'));
-  addXP(25); saveData();
-  showToast('Dream logged · +25 XP');
+  D.dreams.unshift({id:uid(), title:title||'Untitled dream', text, people, feelings, plot, connection, date:new Date().toISOString()});
+  ['dream-title','dream-text','dream-people','dream-feelings','dream-plot','dream-connection'].forEach(id=>document.getElementById(id).value='');
+  addXP(30); saveData();
+  showToast('Dream logged · +30 XP');
   renderDreamList();
   renderRecentBreakthroughs();
 });
@@ -1697,7 +1850,12 @@ function renderDreamList(){
   const el = document.getElementById('dream-list');
   if(!D.dreams.length){ el.innerHTML='<div class="empty"><span class="empty-icon">☽</span>No dreams logged yet.</div>'; return; }
   el.innerHTML = '<div class="entry-list">'+D.dreams.map(d=>`
-    <div class="entry"><span class="entry-date">${fmtDate(d.date)}</span><div class="entry-body"><b>${d.title}</b><br>${d.text}${d.symbols.length?'<br><i style="color:var(--gold);">Symbols: '+d.symbols.join(', ')+'</i>':''}</div><span class="entry-tag">DREAM</span></div>
+    <div class="entry"><span class="entry-date">${fmtDate(d.date)}</span><div class="entry-body"><b>${d.title}</b><br>${d.text}
+      ${d.people?'<br><i style="color:var(--gold);">Who: </i>'+d.people:''}
+      ${d.feelings?'<br><i style="color:var(--gold);">Felt: </i>'+d.feelings:''}
+      ${d.plot?'<br><i style="color:var(--gold);">Plot: </i>'+d.plot:''}
+      ${d.connection?'<br><i style="color:var(--gold);">Waking-life link: </i>'+d.connection:''}
+    </div><span class="entry-tag">DREAM</span></div>
   `).join('')+'</div>';
 }
 function renderSymbolDictionary(){
@@ -1712,37 +1870,88 @@ window.toggleSymbolAcc = function(sym){
   const item = document.querySelector(`#symbol-dictionary .acc-item[data-sym="${sym}"]`);
   item.classList.toggle('open');
 };
-window.onPageShow.dreams = function(){ renderDreamSymbolChips(); renderDreamList(); renderSymbolDictionary(); };
-renderDreamSymbolChips(); renderDreamList(); renderSymbolDictionary();
+window.onPageShow.dreams = function(){ renderDreamList(); renderSymbolDictionary(); };
+renderDreamList(); renderSymbolDictionary();
 
 /* ================================================================
    MODULE: ARCHETYPE TEST
 ================================================================= */
 const ARCHETYPES = {
-  Warrior:{q:'I push through difficulty through sheer discipline and force of will.', strengths:'Courage, discipline, resilience under pressure.', blind:'Can suppress vulnerability and struggle to rest or ask for help.', dev:'Practice strength that includes softness — recovery is part of the fight, not a break from it.'},
-  King:{q:'I feel a strong pull to take responsibility and bring order to chaotic situations.', strengths:'Vision, order, the ability to hold a group together.', blind:'Can tip into control, or a need to be the sole authority.', dev:'Practice delegating real power, not just tasks.'},
-  Magician:{q:'I\'m drawn to understanding how things work at a deep, almost hidden level.', strengths:'Insight, transformation, seeing patterns others miss.', blind:'Can intellectualize feelings instead of experiencing them.', dev:'Let yourself not-know something for a while before analyzing it.'},
-  Lover:{q:'I experience the world intensely through emotion, beauty, and connection.', strengths:'Passion, empathy, aliveness.', blind:'Can become consumed by feeling, or addicted to intensity.', dev:'Build structure that holds the intensity rather than being ruled by it.'},
-  Explorer:{q:'I get restless with routine and need new territory, ideas, or experiences.', strengths:'Independence, curiosity, adaptability.', blind:'Can avoid commitment or run from discomfort disguised as "seeking."', dev:'Practice staying somewhere uncomfortable a little longer than instinct wants.'},
-  Creator:{q:'I feel most alive when I\'m making something that didn\'t exist before.', strengths:'Imagination, originality, tolerance for uncertainty.', blind:'Can spiral into perfectionism or never finish what\'s started.', dev:'Ship something unfinished on purpose, regularly.'},
-  Sage:{q:'I value understanding and truth more than being liked or agreeable.', strengths:'Objectivity, wisdom, clear thinking under pressure.', blind:'Can become detached, or hide behind analysis instead of acting.', dev:'Let a decision be made from the gut once in a while, not just the head.'},
-  Rebel:{q:'I instinctively question or resist rules and authority, even when it costs me.', strengths:'Independence, honesty, willingness to challenge the status quo.', blind:'Can rebel reflexively, even against things that would actually help.', dev:'Ask whether you\'re resisting the rule, or resisting being told anything at all.'},
-  Caregiver:{q:'I feel a strong pull to look after and support the people around me.', strengths:'Compassion, generosity, reliability.', blind:'Can neglect your own needs entirely, or enable others\' dysfunction.', dev:'Practice receiving care as often as you give it.'},
-  Ruler:{q:'I naturally take charge and organize situations that feel chaotic.', strengths:'Leadership, structure, accountability.', blind:'Can become rigid or unable to tolerate not being in control.', dev:'Deliberately let someone else lead something you care about.'},
-  Jester:{q:'I use humor to defuse tension, connect with people, or cope with hard moments.', strengths:'Levity, connection, resilience through hard times.', blind:'Can use humor to avoid ever being fully serious or vulnerable.', dev:'Say one true, unfunny thing in a moment you\'d normally joke through.'},
-  Orphan:{q:'I feel a deep need to belong, and a fear of being left out or abandoned.', strengths:'Empathy for others who struggle, realism, humility.', blind:'Can settle for unhealthy belonging just to avoid being alone.', dev:'Practice tolerating brief periods of not belonging anywhere, on purpose.'},
-  Innocent:{q:'I want to believe things will work out, and prefer optimism over cynicism.', strengths:'Hope, trust, the ability to start fresh.', blind:'Can deny real danger or avoid necessary conflict.', dev:'Practice naming a hard truth even when it threatens the optimism.'},
-  Hero:{q:'I feel compelled to prove myself through achievement and overcoming challenges.', strengths:'Drive, courage, the ability to rise to a moment.', blind:'Can tie self-worth entirely to winning, and struggle with ordinary days.', dev:'Practice finding worth in a day where nothing was proven.'},
+  King:{
+    questions:['I feel a strong pull to take responsibility and bring order to chaotic situations.','I naturally step up to lead when a group lacks direction.','I feel accountable for outcomes even when they\'re not fully in my control.'],
+    strengths:'Vision, order, the ability to hold a group together.',
+    blind:'Can tip into control, or a need to be the sole authority.',
+    devVariants:[
+      'Practice delegating real power, not just tasks — let someone else own a decision fully, mistakes included.',
+      'Notice where you\'ve made yourself the only person who can hold things together, and hand one piece of that off.',
+      'Ask one person you lead what they actually need from you, and do only that — not more.'
+    ],
+    taskVariants:[
+      'This week, delegate one decision completely — no checking in, no correcting it afterward.',
+      'Identify one area where you\'re the bottleneck, and hand it to someone else before the week ends.',
+      'Ask someone you\'re responsible for what they need, then do exactly that and nothing more.'
+    ]
+  },
+  Warrior:{
+    questions:['I push through difficulty through sheer discipline and force of will.','I stay composed and take action even when a situation is frightening.','I hold myself to a physical and mental standard most people don\'t.'],
+    strengths:'Courage, discipline, resilience under pressure.',
+    blind:'Can suppress vulnerability and struggle to rest or ask for help.',
+    devVariants:[
+      'Practice strength that includes softness — recovery is part of the fight, not a break from it.',
+      'Let someone see you struggle with something, instead of only showing the finished result.',
+      'Take a full rest day this week without treating it as weakness.'
+    ],
+    taskVariants:[
+      'Take one full rest day this week — no training, no proving anything — and notice the discomfort.',
+      'Tell one person about something you\'re currently struggling with, without minimizing it.',
+      'Ask for help with one specific thing you\'d normally push through alone.'
+    ]
+  },
+  Lover:{
+    questions:['I experience the world intensely through emotion, beauty, and connection.','I form deep, passionate attachments to people, places, or pursuits.','I\'m moved easily by art, music, or moments of genuine intimacy.'],
+    strengths:'Passion, empathy, aliveness.',
+    blind:'Can become consumed by feeling, or addicted to intensity.',
+    devVariants:[
+      'Build structure that holds the intensity rather than being ruled by it.',
+      'Practice sitting with a strong feeling for five minutes before acting on it.',
+      'Create one boundary around an intense connection that\'s currently costing you.'
+    ],
+    taskVariants:[
+      'Next time an intense feeling hits, wait five full minutes before reacting to it.',
+      'Set one boundary this week with someone or something you feel intensely about.',
+      'Write down exactly what the intensity is costing you right now.'
+    ]
+  },
+  Magician:{
+    questions:['I\'m drawn to understanding how things work at a deep, almost hidden level.','I notice patterns and connections other people tend to miss.','I\'m more interested in transforming a situation than just managing it.'],
+    strengths:'Insight, transformation, seeing patterns others miss.',
+    blind:'Can intellectualize feelings instead of experiencing them.',
+    devVariants:[
+      'Let yourself not-know something for a while before analyzing it.',
+      'Practice translating an insight into one concrete action within 24 hours.',
+      'Share a half-formed idea with someone before it\'s fully worked out.'
+    ],
+    taskVariants:[
+      'Pick one insight you\'ve had recently and take one concrete action on it within 24 hours.',
+      'Sit with an unanswered question this week without researching it — just let it stay open.',
+      'Share an unfinished idea with someone before you feel ready to.'
+    ]
+  },
 };
 function renderArchetypeQuestions(){
   const el = document.getElementById('archetype-questions');
-  el.innerHTML = Object.entries(ARCHETYPES).map(([name,data],i)=>`
-    <div style="margin-bottom:1.3rem;">
-      <p style="font-size:.85rem; margin-bottom:.6rem;">${i+1}. ${data.q}</p>
-      <div class="chip-row" data-arch="${name}">
-        ${[1,2,3,4,5].map(v=>`<span class="chip" data-val="${v}" onclick="selectArchetypeVal(this)">${v}</span>`).join('')}
-      </div>
-    </div>`).join('');
+  let qIndex = 0;
+  el.innerHTML = Object.entries(ARCHETYPES).map(([name,data])=>
+    data.questions.map(q=>{
+      qIndex++;
+      return `<div style="margin-bottom:1.3rem;">
+        <p style="font-size:.85rem; margin-bottom:.6rem;">${qIndex}. ${q}</p>
+        <div class="chip-row" data-arch="${name}">
+          ${[1,2,3,4,5].map(v=>`<span class="chip" data-val="${v}" onclick="selectArchetypeVal(this)">${v}</span>`).join('')}
+        </div>
+      </div>`;
+    }).join('')
+  ).join('');
 }
 window.selectArchetypeVal = function(el){
   const row = el.parentElement;
@@ -1750,16 +1959,23 @@ window.selectArchetypeVal = function(el){
   el.classList.add('selected');
 };
 document.getElementById('archetype-submit').addEventListener('click', ()=>{
-  const scores = {};
+  const scores = {King:[], Warrior:[], Lover:[], Magician:[]};
   let answered=0;
   document.querySelectorAll('#archetype-questions [data-arch]').forEach(row=>{
     const sel = row.querySelector('.chip.selected');
     const val = sel ? parseInt(sel.dataset.val) : 3;
     if(sel) answered++;
-    scores[row.dataset.arch] = val;
+    scores[row.dataset.arch].push(val);
   });
-  if(answered < 5){ showToast('Answer at least a few questions honestly.'); return; }
-  D.archetypeResult = {scores, date:new Date().toISOString()};
+  if(answered < 6){ showToast('Answer at least half the questions honestly.'); return; }
+  const avgScores = {};
+  Object.entries(scores).forEach(([name,vals])=>{ avgScores[name] = vals.reduce((a,b)=>a+b,0)/vals.length; });
+  D.archetypeResult = {scores:avgScores, date:new Date().toISOString()};
+  // pick a random dev/task pair for the weakest archetype
+  const weakest = Object.entries(avgScores).sort((a,b)=>a[1]-b[1])[0][0];
+  const data = ARCHETYPES[weakest];
+  const vIdx = Math.floor(Math.random()*data.devVariants.length);
+  D.archetypeWeakTask = {archetype:weakest, dev:data.devVariants[vIdx], task:data.taskVariants[vIdx], done:false};
   saveData();
   addXP(80);
   showToast('Archetype profile generated · +80 XP');
@@ -1771,26 +1987,41 @@ function renderArchetypeResults(){
   const scores = D.archetypeResult.scores;
   const total = Object.values(scores).reduce((a,b)=>a+b,0);
   const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
-  const top3 = sorted.slice(0,3);
+  const wt = D.archetypeWeakTask;
   el.innerHTML = `
     <div class="card card-lg" style="margin-bottom:1.3rem;">
-      <span class="card-title">Full Profile</span>
+      <span class="card-title">Your Profile</span>
       ${sorted.map(([name,val])=>`
-        <div style="margin-bottom:.75rem;">
-          <div style="display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:.3rem;"><span>${name}</span><span>${Math.round(val/total*100)}%</span></div>
+        <div style="margin-bottom:.9rem;">
+          <div style="display:flex; justify-content:space-between; font-size:.82rem; margin-bottom:.3rem;"><span>${name}</span><span>${Math.round(val/total*100)}%</span></div>
           <div class="bar-track"><div class="bar-fill" style="width:${Math.round(val/total*100)}%;"></div></div>
         </div>`).join('')}
     </div>
-    <div class="grid-3">
-      ${top3.map(([name])=>`
+    <div class="grid-4" style="margin-bottom:1.3rem;">
+      ${sorted.map(([name])=>`
         <div class="card">
           <span class="card-title">${name}</span>
-          <p style="font-size:.78rem; color:var(--dim-hi); margin-bottom:.6rem;"><b>Strengths:</b> ${ARCHETYPES[name].strengths}</p>
-          <p style="font-size:.78rem; color:var(--dim-hi); margin-bottom:.6rem;"><b>Blind spot:</b> ${ARCHETYPES[name].blind}</p>
-          <p style="font-size:.78rem; color:var(--gold);"><b>Develop:</b> ${ARCHETYPES[name].dev}</p>
+          <p style="font-size:.76rem; color:var(--dim-hi); margin-bottom:.6rem;"><b>Strengths:</b> ${ARCHETYPES[name].strengths}</p>
+          <p style="font-size:.76rem; color:var(--dim-hi);"><b>Blind spot:</b> ${ARCHETYPES[name].blind}</p>
         </div>`).join('')}
-    </div>`;
+    </div>
+    ${wt ? `<div class="card card-lg">
+      <span class="card-title">Development Focus — ${wt.archetype}</span>
+      <p style="font-size:.85rem; color:var(--dim-hi); margin-bottom:1rem;">${wt.dev}</p>
+      <p style="font-size:.8rem; color:var(--gold); margin-bottom:1rem;"><b>Active task:</b> ${wt.task}</p>
+      ${wt.done
+        ? `<span style="font-family:var(--font-m); font-size:.72rem; color:var(--gold);">TASK COMPLETE</span>`
+        : `<button class="btn btn-gold btn-sm" onclick="completeArchetypeTask()">Mark Task Complete</button>`}
+    </div>` : ''}`;
 }
+window.completeArchetypeTask = function(){
+  if(!D.archetypeWeakTask || D.archetypeWeakTask.done) return;
+  D.archetypeWeakTask.done = true;
+  addXP(30); saveData();
+  showToast('Task complete · +30 XP');
+  renderArchetypeResults();
+  renderRecentBreakthroughs();
+};
 window.onPageShow.archetype = function(){ if(D.archetypeResult) renderArchetypeResults(); };
 renderArchetypeQuestions();
 if(D.archetypeResult) renderArchetypeResults();
@@ -1955,6 +2186,17 @@ function renderLibrary(){
 window.onPageShow.library = function(){ if(!document.getElementById('library-content').innerHTML) renderLibrary(); };
 renderLibrary();
 
+document.getElementById('library-task-save').addEventListener('click', ()=>{
+  const text = document.getElementById('library-reflection').value.trim();
+  if(!text){ showToast('Write a reflection first.'); return; }
+  D.journal.unshift({id:uid(), date:new Date().toISOString(), text:'[Knowledge Library] '+text, mood:null, tags:['library']});
+  D.shadowProgress.libraryTaskDone = true;
+  addXP(25); saveData();
+  showToast('Reflection saved · +25 XP');
+  document.getElementById('library-reflection').value='';
+  renderRecentBreakthroughs();
+});
+
 /* ================================================================
    MODULE: THE LABYRINTH
 ================================================================= */
@@ -2025,17 +2267,18 @@ drawLabyrinthPath(); renderLabyrinthLevels();
    MODULE: BREATHWORK
 ================================================================= */
 const BREATH_PATTERNS = {
-  box:{ phases:[{l:'Inhale',s:4},{l:'Hold',s:4},{l:'Exhale',s:4},{l:'Hold',s:4}] },
-  sigh:{ phases:[{l:'Inhale',s:2},{l:'Inhale Again',s:1.5},{l:'Long Exhale',s:6}] },
-  478:{ phases:[{l:'Inhale',s:4},{l:'Hold',s:7},{l:'Exhale',s:8}] },
+  box:{ phases:[{l:'Inhale',s:4,t:1},{l:'Hold',s:4,t:1},{l:'Exhale',s:4,t:0},{l:'Hold',s:4,t:0}] },
+  sigh:{ phases:[{l:'Inhale',s:2,t:0.6},{l:'Inhale Again',s:1.5,t:1},{l:'Long Exhale',s:6,t:0}] },
+  478:{ phases:[{l:'Inhale',s:4,t:1},{l:'Hold',s:7,t:1},{l:'Exhale',s:8,t:0}] },
 };
-let breathState = {running:false, pattern:'box', phaseIdx:0, cycles:0, timer:null};
+let breathState = {running:false, pattern:'box', phaseIdx:0, cycles:0};
+let breathAnimFrame = null, breathPhaseStart = 0, breathScaleFrom = 0.3, breathScaleTo = 0.3, breathCurrentScale = 0.3;
 function drawBreathCircle(scale){
   const svg = document.getElementById('breath-circle');
   const r = 40 + scale*50;
   svg.innerHTML = `
     <circle cx="110" cy="110" r="95" fill="none" stroke="var(--border)" stroke-width="1"/>
-    <circle cx="110" cy="110" r="${r}" fill="var(--gold-glow)" stroke="var(--gold)" stroke-width="2" style="transition:r 1s linear;"/>`;
+    <circle cx="110" cy="110" r="${r}" fill="var(--gold-glow)" stroke="var(--gold)" stroke-width="2"/>`;
 }
 document.getElementById('breath-pattern-chips').addEventListener('click', e=>{
   if(!e.target.classList.contains('chip')) return;
@@ -2044,35 +2287,51 @@ document.getElementById('breath-pattern-chips').addEventListener('click', e=>{
   breathState.pattern = e.target.dataset.pattern;
   stopBreathing();
 });
-function runBreathPhase(){
+function easeInOut(p){ return p<0.5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2; }
+function startBreathPhase(now){
   const pattern = BREATH_PATTERNS[breathState.pattern];
   const phase = pattern.phases[breathState.phaseIdx];
   document.getElementById('breath-phase-label').textContent = phase.l;
-  const isInhale = phase.l.toLowerCase().includes('inhale');
-  const isExhale = phase.l.toLowerCase().includes('exhale');
-  drawBreathCircle(isInhale?1:isExhale?0:0.55);
-  breathState.timer = setTimeout(()=>{
+  breathScaleFrom = breathCurrentScale;
+  breathScaleTo = phase.t;
+  breathPhaseStart = now;
+  breathAnimFrame = requestAnimationFrame(animateBreathFrame);
+}
+function animateBreathFrame(now){
+  if(!breathState.running) return;
+  const pattern = BREATH_PATTERNS[breathState.pattern];
+  const phase = pattern.phases[breathState.phaseIdx];
+  const elapsed = (now - breathPhaseStart)/1000;
+  const progress = Math.min(elapsed/phase.s, 1);
+  breathCurrentScale = breathScaleFrom + (breathScaleTo-breathScaleFrom)*easeInOut(progress);
+  drawBreathCircle(breathCurrentScale);
+  if(progress >= 1){
     breathState.phaseIdx++;
     if(breathState.phaseIdx >= pattern.phases.length){
       breathState.phaseIdx = 0; breathState.cycles++;
       document.getElementById('breath-cycle-count').textContent = breathState.cycles+' cycles completed';
+      D.breathSessionsCompleted = (D.breathSessionsCompleted||0)+1;
       if(breathState.cycles % 3 === 0){ addXP(10); showToast('+10 XP — steady breathing'); }
+      else saveData();
     }
-    if(breathState.running) runBreathPhase();
-  }, phase.s*1000);
+    startBreathPhase(now);
+  } else {
+    breathAnimFrame = requestAnimationFrame(animateBreathFrame);
+  }
 }
 function stopBreathing(){
   breathState.running = false;
-  clearTimeout(breathState.timer);
+  if(breathAnimFrame) cancelAnimationFrame(breathAnimFrame);
   document.getElementById('breath-start').textContent = 'Begin';
   document.getElementById('breath-phase-label').textContent = 'Ready';
+  breathCurrentScale = 0.3;
   drawBreathCircle(0.3);
 }
 document.getElementById('breath-start').addEventListener('click', ()=>{
   if(breathState.running){ stopBreathing(); return; }
   breathState.running = true; breathState.phaseIdx = 0;
   document.getElementById('breath-start').textContent = 'Stop';
-  runBreathPhase();
+  startBreathPhase(performance.now());
 });
 window.onPageShow.breathwork = function(){ drawBreathCircle(0.3); };
 drawBreathCircle(0.3);
