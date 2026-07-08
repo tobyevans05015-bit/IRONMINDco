@@ -128,11 +128,13 @@ textarea,input,select{font-family:inherit;}
 
 /* SIDEBAR */
 .sb{
+  display:none; /* hidden until #app is active — see #app.active ~ .sb below */
   width:var(--sb-w); flex-shrink:0; background:var(--graphite);
-  border-right:1px solid var(--border); display:flex; flex-direction:column;
+  border-right:1px solid var(--border); flex-direction:column;
   position:fixed; top:0; left:0; bottom:0; z-index:200; overflow:hidden;
   transition:width .3s var(--ease);
 }
+#app.active ~ .sb{ display:flex; }
 .sb.collapsed{ width:var(--sb-c); }
 .sb-head{ display:flex; align-items:center; gap:.75rem; padding:1.3rem 1.1rem; border-bottom:1px solid var(--border); flex-shrink:0; overflow:hidden; white-space:nowrap; }
 .sb-mark{ width:36px; height:36px; flex-shrink:0; }
@@ -358,33 +360,6 @@ textarea,input,select{font-family:inherit;}
 <!-- APP -->
 <div id="app">
   <div class="app-wrap">
-
-    <!-- SIDEBAR -->
-    <nav class="sb" id="sidebar">
-      <div class="sb-head">
-        <svg class="sb-mark" id="sb-mark" viewBox="0 0 100 100"></svg>
-        <div class="sb-brand">IRON MIND<small>SHADOW</small></div>
-        <button class="sb-toggle" id="sb-toggle">◂</button>
-      </div>
-      <ul class="sb-nav" id="sb-nav">
-        <div class="sb-label">Command</div>
-        <li class="sb-item active" data-page="dashboard"><span class="sb-icon">◆</span><span>Dashboard</span></li>
-
-        <div class="sb-label">The Work</div>
-        <li class="sb-item" data-page="foundation"><span class="sb-icon">☾</span><span>Foundation</span></li>
-        <li class="sb-item" data-page="shadow"><span class="sb-icon">◈</span><span>My Shadow</span></li>
-        <li class="sb-item" data-page="emotions"><span class="sb-icon">◉</span><span>Emotions</span></li>
-        <li class="sb-item" data-page="release"><span class="sb-icon">✦</span><span>Release</span></li>
-
-        <div class="sb-label">Explore</div>
-        <li class="sb-item" data-page="dreams"><span class="sb-icon">☽</span><span>Dream Journal</span></li>
-      </ul>
-      <div class="sb-foot">
-        <div class="sb-streak">🔥 <span id="streak-display">0</span> day streak</div>
-        <div style="font-family:var(--font-m); font-size:.62rem; color:var(--dim); margin-top:.6rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="sync-status">Not signed in</div>
-        <button class="btn btn-ghost btn-sm" id="signout-btn" style="width:100%; margin-top:.6rem; display:none;">Sign Out</button>
-      </div>
-    </nav>
 
     <!-- MAIN -->
     <div class="main" id="main">
@@ -658,6 +633,40 @@ textarea,input,select{font-family:inherit;}
     </div>
   </div>
 </div>
+
+<!-- SIDEBAR — deliberately a sibling of #app, not nested inside .app-wrap.
+     .app-wrap establishes its own stacking context (position:relative + z-index),
+     which would otherwise trap the sidebar's z-index locally and prevent it from
+     ever rendering above #mobile-backdrop on mobile, no matter what z-index value
+     is set on .sb. Living outside that context lets its z-index compare directly
+     against the backdrop at the root level. Visibility is gated by #app.active
+     via the CSS sibling rule below since it's no longer inside #app to inherit
+     its display:none/flex toggle. -->
+<nav class="sb" id="sidebar">
+  <div class="sb-head">
+    <svg class="sb-mark" id="sb-mark" viewBox="0 0 100 100"></svg>
+    <div class="sb-brand">IRON MIND<small>SHADOW</small></div>
+    <button class="sb-toggle" id="sb-toggle">◂</button>
+  </div>
+  <ul class="sb-nav" id="sb-nav">
+    <div class="sb-label">Command</div>
+    <li class="sb-item active" data-page="dashboard"><span class="sb-icon">◆</span><span>Dashboard</span></li>
+
+    <div class="sb-label">The Work</div>
+    <li class="sb-item" data-page="foundation"><span class="sb-icon">☾</span><span>Foundation</span></li>
+    <li class="sb-item" data-page="shadow"><span class="sb-icon">◈</span><span>My Shadow</span></li>
+    <li class="sb-item" data-page="emotions"><span class="sb-icon">◉</span><span>Emotions</span></li>
+    <li class="sb-item" data-page="release"><span class="sb-icon">✦</span><span>Release</span></li>
+
+    <div class="sb-label">Explore</div>
+    <li class="sb-item" data-page="dreams"><span class="sb-icon">☽</span><span>Dream Journal</span></li>
+  </ul>
+  <div class="sb-foot">
+    <div class="sb-streak">🔥 <span id="streak-display">0</span> day streak</div>
+    <div style="font-family:var(--font-m); font-size:.62rem; color:var(--dim); margin-top:.6rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="sync-status">Not signed in</div>
+    <button class="btn btn-ghost btn-sm" id="signout-btn" style="width:100%; margin-top:.6rem; display:none;">Sign Out</button>
+  </div>
+</nav>
 
 <div id="toast"></div>
 
