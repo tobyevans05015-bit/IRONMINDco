@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>IRON MIND SHADOW</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
@@ -35,13 +35,21 @@
   --ease:cubic-bezier(.16,1,.3,1);
   --sb-w:260px;
   --sb-c:68px;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);
+  --sar:env(safe-area-inset-right,0px);
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
+html{scroll-behavior:smooth; overscroll-behavior-y:none;}
 body{
   background:var(--void); color:var(--white); font-family:var(--font-b);
-  min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+  min-height:100vh; min-height:100dvh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
 }
+/* body.menu-open is toggled by JS while the mobile sidebar drawer is open,
+   pinning the page in place so the content behind the drawer can't scroll */
+body.menu-open{ position:fixed; left:0; right:0; width:100%; overflow:hidden; }
 a{color:inherit;text-decoration:none;}
 button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;}
 textarea,input,select{font-family:inherit;}
@@ -133,7 +141,7 @@ textarea,input,select{font-family:inherit;}
 .sb-toggle{ margin-left:auto; width:26px; height:26px; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:.9rem; flex-shrink:0; }
 .sb-toggle:hover{ color:var(--gold); }
 
-.sb-nav{ flex:1; overflow-y:auto; overflow-x:hidden; padding:.6rem 0; list-style:none; }
+.sb-nav{ flex:1; overflow-y:auto; overflow-x:hidden; padding:.6rem 0; list-style:none; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
 .sb-label{ font-family:var(--font-m); font-size:.48rem; letter-spacing:.3em; text-transform:uppercase; color:var(--gold-deep); padding:.9rem 1.1rem .3rem; white-space:nowrap; }
 .sb.collapsed .sb-label{ opacity:0; }
 .sb-item{
@@ -174,6 +182,11 @@ textarea,input,select{font-family:inherit;}
 .grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:1.1rem; }
 @media (max-width:1100px){ .grid-3,.grid-4{ grid-template-columns:repeat(2,1fr); } }
 @media (max-width:700px){ .grid-2,.grid-3,.grid-4{ grid-template-columns:1fr; } }
+@media (max-width:480px){
+  .card-lg{ padding:1.3rem; flex-wrap:wrap; }
+  .entry{ grid-template-columns:1fr; gap:.3rem; }
+  .entry-tag{ justify-self:start; }
+}
 
 .card{ background:var(--graphite); border:1px solid var(--border); border-radius:12px; padding:1.5rem; position:relative; overflow:hidden; transition:border-color .3s, transform .3s; }
 .card:hover{ border-color:var(--border-hi); }
@@ -248,18 +261,67 @@ textarea,input,select{font-family:inherit;}
   border:1px solid var(--border-hi); border-radius:6px; color:var(--gold); font-size:1rem; background:var(--graphite-2); flex-shrink:0;
 }
 @media (max-width:900px){
-  .sb{ transform:translateX(-100%); z-index:300; }
+  .sb{
+    width:min(82vw, 300px);
+    transform:translateX(-100%);
+    z-index:400; /* always above #mobile-backdrop (350) */
+    box-shadow:20px 0 60px rgba(0,0,0,.5);
+    padding-top:var(--sat); padding-bottom:var(--sab); padding-left:var(--sal);
+  }
+  .sb.collapsed{ width:min(82vw, 300px); } /* desktop collapse state is meaningless on mobile */
   .sb.mobile-open{ transform:translateX(0); }
   .main{ margin-left:0; }
   .main.collapsed{ margin-left:0; }
-  .content{ padding:1.3rem; }
+  .content{ padding:1.3rem; padding-left:calc(1.3rem + var(--sal)); padding-right:calc(1.3rem + var(--sar)); }
+  .topbar{ padding:.9rem 1.3rem; padding-top:calc(.9rem + var(--sat)); }
   .sb-toggle{ display:none; }
   #topbar-menu-btn{ display:flex; }
 }
 #mobile-backdrop{
-  display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:250;
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.6);
+  z-index:350; /* below .sb (400), above page content */
+  touch-action:none; overscroll-behavior:contain;
 }
 #mobile-backdrop.show{ display:block; }
+
+/* ---------- TWO-COLUMN WORK LAYOUTS (Foundation web, My Shadow scale) ---------- */
+.grid-work{ display:grid; grid-template-columns:1.35fr 1fr; gap:1.5rem; align-items:start; }
+@media (max-width:900px){ .grid-work{ grid-template-columns:1fr; } }
+.sticky-aside{ position:sticky; top:1.5rem; }
+@media (max-width:900px){ .sticky-aside{ position:static; } }
+
+/* ---------- FOUNDATION: SHADOW WEB DIAGRAM ---------- */
+.web-controls{ display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1rem; }
+#web-canvas-wrap{
+  position:relative; width:100%; height:520px; border:1px solid var(--border); border-radius:10px;
+  background:radial-gradient(circle at 50% 50%, rgba(201,168,96,.05), transparent 65%), rgba(0,0,0,.18);
+  overflow:hidden; touch-action:none;
+}
+#web-canvas{ width:100%; height:100%; display:block; }
+.web-conn-line{ stroke:var(--border-hi); stroke-width:1.4; fill:none; }
+.web-conn-line.connecting-preview{ stroke:var(--gold); stroke-dasharray:4 4; }
+.web-conn-label-bg{ fill:var(--void); opacity:.88; }
+.web-conn-label{ font-family:var(--font-m); font-size:9px; fill:var(--gold); text-anchor:middle; }
+.web-center-node{ cursor:default; }
+.web-center-circle{ fill:rgba(201,168,96,.1); stroke:var(--gold); stroke-width:1.5; }
+.web-center-text{ font-family:var(--font-d); font-size:12px; letter-spacing:.15em; fill:var(--gold-bright); text-anchor:middle; text-transform:uppercase; }
+.web-entry-fo{ overflow:visible; }
+.web-entry-box{
+  width:130px; padding:.5rem .6rem; border-radius:8px; background:rgba(20,17,10,.92);
+  border:1px solid var(--border-hi); cursor:grab; user-select:none; box-shadow:0 6px 18px rgba(0,0,0,.35);
+  transition:border-color .2s;
+}
+.web-entry-box:active{ cursor:grabbing; }
+.web-entry-box.connect-armed{ border-color:var(--gold-bright); box-shadow:0 0 0 2px var(--gold-glow); }
+.web-entry-title{ font-family:var(--font-d); font-size:.68rem; color:var(--gold); letter-spacing:.03em; margin-bottom:.2rem; word-break:break-word; }
+.web-entry-desc{ font-family:var(--font-b); font-size:.62rem; color:var(--dim-hi); line-height:1.35; max-height:2.6em; overflow:hidden; word-break:break-word; }
+.web-entry-remove{
+  position:absolute; top:-8px; right:-8px; width:18px; height:18px; border-radius:50%;
+  background:var(--graphite-2); border:1px solid var(--border-hi); color:var(--dim-hi);
+  font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.web-entry-remove:hover{ color:var(--gold-bright); border-color:var(--gold); }
+#web-add-form{ margin-top:1.1rem; padding-top:1.1rem; border-top:1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -308,26 +370,14 @@ textarea,input,select{font-family:inherit;}
         <div class="sb-label">Command</div>
         <li class="sb-item active" data-page="dashboard"><span class="sb-icon">◆</span><span>Dashboard</span></li>
 
-        <div class="sb-label">Understand</div>
-        <li class="sb-item" data-page="shadow"><span class="sb-icon">☾</span><span>The Shadow</span></li>
-        <li class="sb-item" data-page="symptoms"><span class="sb-icon">◈</span><span>Symptom Finder</span></li>
-        <li class="sb-item" data-page="trauma"><span class="sb-icon">⚡</span><span>Trauma Explorer</span></li>
-        <li class="sb-item" data-page="body"><span class="sb-icon">◉</span><span>Body Scan</span></li>
-        <li class="sb-item" data-page="innerchild"><span class="sb-icon">✧</span><span>Inner Child</span></li>
+        <div class="sb-label">The Work</div>
+        <li class="sb-item" data-page="foundation"><span class="sb-icon">☾</span><span>Foundation</span></li>
+        <li class="sb-item" data-page="shadow"><span class="sb-icon">◈</span><span>My Shadow</span></li>
+        <li class="sb-item" data-page="emotions"><span class="sb-icon">◉</span><span>Emotions</span></li>
+        <li class="sb-item" data-page="release"><span class="sb-icon">✦</span><span>Release</span></li>
 
         <div class="sb-label">Explore</div>
         <li class="sb-item" data-page="dreams"><span class="sb-icon">☽</span><span>Dream Journal</span></li>
-        <li class="sb-item" data-page="archetype"><span class="sb-icon">♜</span><span>Archetype Test</span></li>
-        <li class="sb-item" data-page="purpose"><span class="sb-icon">⊕</span><span>Values &amp; Purpose</span></li>
-
-        <div class="sb-label">Practice</div>
-        <li class="sb-item" data-page="journal"><span class="sb-icon">✎</span><span>Journal</span></li>
-        <li class="sb-item" data-page="timeline"><span class="sb-icon">◷</span><span>Breakthroughs</span></li>
-        <li class="sb-item" data-page="library"><span class="sb-icon">▤</span><span>Knowledge Library</span></li>
-        <li class="sb-item" data-page="labyrinth"><span class="sb-icon">◍</span><span>The Labyrinth</span></li>
-        <li class="sb-item" data-page="breathwork"><span class="sb-icon">◌</span><span>Breathwork</span></li>
-        <li class="sb-item" data-page="morning"><span class="sb-icon">☀</span><span>Morning Ritual</span></li>
-        <li class="sb-item" data-page="evening"><span class="sb-icon">☾</span><span>Evening Integration</span></li>
       </ul>
       <div class="sb-foot">
         <div class="sb-streak">🔥 <span id="streak-display">0</span> day streak</div>
@@ -363,7 +413,7 @@ textarea,input,select{font-family:inherit;}
               <div>
                 <span class="card-title">Integration Score</span>
                 <div style="font-family:var(--font-d); font-size:2.1rem; color:var(--gold);" id="dash-integration-num">0%</div>
-                <p style="color:var(--dim); font-size:.78rem; margin-top:.4rem; max-width:280px;">A composite reading across shadow work, purpose, journaling, and daily practice.</p>
+                <p style="color:var(--dim); font-size:.78rem; margin-top:.4rem; max-width:280px;">A composite reading across the foundation, your shadow work, emotional processing, and release progress.</p>
               </div>
             </div>
             <div class="card card-lg">
@@ -375,28 +425,28 @@ textarea,input,select{font-family:inherit;}
 
           <div class="grid-4" style="margin-bottom:1.3rem;">
             <div class="card" style="text-align:center;">
-              <span class="card-title">Shadow</span>
+              <span class="card-title">Foundation</span>
+              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-foundation-num">Lvl 1</div>
+              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-foundation" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-foundation-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
+            </div>
+            <div class="card" style="text-align:center;">
+              <span class="card-title">My Shadow</span>
               <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-shadow-num">Lvl 1</div>
               <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-shadow" style="width:0%;"></div></div>
               <div class="ring-val" id="score-shadow-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
             </div>
             <div class="card" style="text-align:center;">
-              <span class="card-title">Purpose</span>
-              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-purpose-num">Lvl 1</div>
-              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-purpose" style="width:0%;"></div></div>
-              <div class="ring-val" id="score-purpose-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
+              <span class="card-title">Emotions</span>
+              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-emotions-num">Lvl 1</div>
+              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-emotions" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-emotions-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
             </div>
             <div class="card" style="text-align:center;">
-              <span class="card-title">Energy</span>
-              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-energy-num">Lvl 1</div>
-              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-energy" style="width:0%;"></div></div>
-              <div class="ring-val" id="score-energy-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
-            </div>
-            <div class="card" style="text-align:center;">
-              <span class="card-title">Authenticity</span>
-              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-authenticity-num">Lvl 1</div>
-              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-authenticity" style="width:0%;"></div></div>
-              <div class="ring-val" id="score-authenticity-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
+              <span class="card-title">Release</span>
+              <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-release-num">Lvl 1</div>
+              <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-release" style="width:0%;"></div></div>
+              <div class="ring-val" id="score-release-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
             </div>
           </div>
 
@@ -419,110 +469,99 @@ textarea,input,select{font-family:inherit;}
           </div>
 
           <div class="card card-lg" style="margin-bottom:1.3rem;">
-            <span class="card-title">Quick Journal</span>
-            <div class="field"><textarea id="quick-journal" placeholder="Journal your thoughts — whatever's actually on your mind" style="min-height:90px;"></textarea></div>
-            <button class="btn btn-gold btn-sm" id="quick-journal-save">Save Entry</button>
-          </div>
-
-          <div class="card card-lg" style="margin-bottom:1.3rem;">
-            <span class="card-title">Recent Breakthroughs</span>
+            <span class="card-title">Recent Activity</span>
             <div id="dash-recent-breakthroughs"><div class="empty"><span class="empty-icon">◷</span>Nothing logged yet. Your record starts the moment you act.</div></div>
           </div>
 
-          <span class="page-eyebrow" style="display:block; margin-top:2.4rem;">All Modules</span>
+          <span class="page-eyebrow" style="display:block; margin-top:2.4rem;">Your Path</span>
           <div class="grid-4" id="module-grid" style="margin-top:1rem;"></div>
 
           <div class="disclaimer">This application is educational and designed for guided self-reflection. It is not a replacement for professional mental health care. If you are in crisis, please reach out to a licensed professional or local emergency service.</div>
         </section>
 
-        <!-- MODULE PLACEHOLDER PAGES (filled in progressively) -->
-        <section class="page" id="page-shadow">
-          <span class="page-eyebrow">Module 01</span>
-          <h1 class="page-title">The Shadow</h1>
-          <p class="page-sub">Everything you've disowned about yourself doesn't disappear. It goes underground, and runs your life from there — through the people you envy, the reactions you can't explain, and the things you swear you'd never do.</p>
+        <section class="page" id="page-foundation">
+          <span class="page-eyebrow">The Work — Foundation</span>
+          <h1 class="page-title">The Architecture Of The Self</h1>
+          <p class="page-sub">Everything you've disowned about yourself doesn't disappear. It goes underground, and runs your life from there — through the people you envy, the reactions you can't explain, and the things you swear you'd never do. Start here before the three tabs that follow.</p>
 
-          <div id="shadow-accordion"></div>
+          <div class="grid-work">
+            <div>
+              <div id="shadow-accordion"></div>
+            </div>
 
-          <div class="card card-lg" style="margin-top:2rem;">
-            <span class="card-title">Integration Check — 5 Questions</span>
-            <div id="shadow-quiz"></div>
-            <button class="btn btn-gold btn-sm" id="shadow-quiz-submit" style="margin-top:1rem;">Submit</button>
-            <div id="shadow-quiz-result" style="margin-top:1rem; font-family:var(--font-m); font-size:.85rem; color:var(--gold);"></div>
+            <div class="sticky-aside">
+              <div class="card card-lg">
+                <span class="card-title">Your Shadow Web</span>
+                <p style="font-size:.72rem; color:var(--dim); margin-bottom:1rem;">Add anything that feels shadow-related — a trait, a trigger, a person, a memory. Everything connects to the centre by default. Drag entries to arrange them, then link related entries to each other and describe how.</p>
+                <div class="web-controls">
+                  <button class="btn btn-ghost btn-sm" id="web-connect-toggle">Connect Two Entries</button>
+                  <button class="btn btn-ghost btn-sm" id="web-reset-layout">Reset Layout</button>
+                </div>
+                <div id="web-canvas-wrap">
+                  <svg id="web-canvas" viewBox="0 0 600 520"></svg>
+                </div>
+                <div id="web-add-form">
+                  <div class="field"><label>New entry</label><input type="text" id="web-entry-title" placeholder="e.g. Anger, My father, Being laughed at…" maxlength="40"/></div>
+                  <div class="field"><textarea id="web-entry-desc" placeholder="Short explanation (optional)" style="min-height:56px;"></textarea></div>
+                  <button class="btn btn-gold btn-sm" id="web-entry-add">Add To Web</button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="disclaimer">This module is educational. It describes patterns, not diagnoses. If any of this surfaces something overwhelming, a licensed therapist is the right next step — not this app.</div>
         </section>
-        <section class="page" id="page-symptoms">
-          <span class="page-eyebrow">Module 02</span>
-          <h1 class="page-title">Symptom Finder</h1>
-          <p class="page-sub">Select what you actually struggle with. Not the socially acceptable version — the real one. What follows is a map of the unconscious dynamics that commonly sit underneath.</p>
 
-          <div class="card card-lg">
-            <span class="card-title">Select What Applies</span>
-            <div class="chip-row" id="symptom-chips"></div>
-            <div class="field" style="margin-top:1.3rem;"><label>Why do you think these show up? (optional, but makes the analysis sharper)</label><textarea id="symptom-reflection" placeholder="Any thoughts on where this comes from, or when it started"></textarea></div>
-            <button class="btn btn-gold btn-sm" id="symptom-analyze">Analyze</button>
+        <section class="page" id="page-shadow">
+          <span class="page-eyebrow">The Work — Step One</span>
+          <h1 class="page-title">My Shadow</h1>
+          <p class="page-sub">Symptom → belief formed. Select what you actually recognize in yourself — both the behaviour and the emotion underneath it. Not the socially acceptable version — the real one.</p>
+
+          <div class="grid-work">
+            <div>
+              <div class="card card-lg" style="margin-bottom:1.5rem;">
+                <span class="card-title">Symptoms</span>
+                <p style="font-size:.78rem; color:var(--dim); margin-bottom:.9rem;">Select any that apply, or name your own below.</p>
+                <div class="chip-row" id="pattern-chip-library"></div>
+                <div class="field" style="margin-top:1.2rem;"><label>Or name your own</label><input type="text" id="pattern-custom-name" placeholder="A pattern not on the list above"/></div>
+                <button class="btn btn-gold btn-sm" id="pattern-add-btn">Add To My Shadow</button>
+              </div>
+
+              <div class="card card-lg" style="margin-bottom:1.5rem;">
+                <span class="card-title">Root Emotions</span>
+                <p style="font-size:.78rem; color:var(--dim); margin-bottom:.9rem;">Underneath the symptom is usually a feeling. Select whatever's actually present right now — as many as apply, across as many families as apply.</p>
+                <div id="root-emotion-groups"></div>
+                <button class="btn btn-gold btn-sm" id="root-emotion-save" style="margin-top:1.2rem;">Log Root Emotions</button>
+                <p style="color:var(--dim); font-size:.72rem; margin-top:1rem;" id="root-emotion-last">No root emotions logged yet.</p>
+              </div>
+
+              <div id="pattern-list"></div>
+            </div>
+
+            <div class="sticky-aside">
+              <div class="card card-lg">
+                <span class="card-title">Where On The Scale?</span>
+                <p style="font-size:.72rem; color:var(--dim); margin-bottom:1rem;">Based on Hawkins' Map of Consciousness. Drag to where you actually are right now, not where you'd like to be.</p>
+                <input type="range" id="shadow-consciousness-slider" min="0" max="16" step="1" value="8" style="width:100%; accent-color:var(--gold);"/>
+                <div style="display:flex; justify-content:space-between; margin-top:.7rem;">
+                  <div style="font-family:var(--font-d); font-size:1.1rem; color:var(--gold);" id="shadow-consciousness-label">Courage</div>
+                  <div style="font-family:var(--font-m); font-size:.75rem; color:var(--dim);" id="shadow-consciousness-value">200</div>
+                </div>
+                <button class="btn btn-ghost btn-sm" id="shadow-consciousness-save" style="margin-top:1.2rem;">Log Where I Am</button>
+                <p style="color:var(--dim); font-size:.72rem; margin-top:1rem;" id="shadow-consciousness-last">No check-in yet today.</p>
+              </div>
+            </div>
           </div>
 
-          <div id="symptom-results" style="margin-top:1.5rem;"></div>
+          <div class="disclaimer">This module is educational. It describes patterns, not diagnoses. If any of this surfaces something overwhelming, a licensed therapist is the right next step — not this app.</div>
         </section>
-        <section class="page" id="page-trauma">
-          <span class="page-eyebrow">Module 03</span>
-          <h1 class="page-title">Trauma Explorer</h1>
-          <p class="page-sub">Not every wound comes from a single catastrophic event. Some are built slowly, from a thousand small moments of not being seen.</p>
+
+        <section class="page" id="page-emotions">
+          <span class="page-eyebrow">The Work — Step Two</span>
+          <h1 class="page-title">Emotions</h1>
+          <p class="page-sub">Shift the focus from the event to the emotion itself. What is this feeling, where do you feel it physically, and what belief does it keep reinforcing?</p>
 
           <div class="grid-2" style="margin-bottom:1.3rem;">
-            <div class="card card-lg">
-              <span class="card-title">What Trauma Actually Means</span>
-              <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">The word <i>trauma</i> comes from the Greek τραῦμα — meaning "wound." Originally a purely physical term for a piercing injury, it was later extended to describe a psychological wound: an experience that overwhelms the nervous system's capacity to process it in the moment, leaving a residue that keeps activating long after the danger has passed.</p>
-              <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75; margin-top:.8rem;">Trauma isn't defined by the size of the event. It's defined by whether the nervous system had the support to complete its response at the time. A "small" event without support can wound more deeply than a "big" one with it.</p>
-            </div>
-            <div class="card card-lg">
-              <span class="card-title">The Nervous System</span>
-              <svg id="nervous-system-svg" viewBox="0 0 200 260" style="width:100%; max-width:220px; display:block; margin:0 auto;"></svg>
-              <p style="font-size:.78rem; color:var(--dim); text-align:center; margin-top:.6rem;">The autonomic nervous system runs the threat response beneath conscious control — which is why willpower alone rarely resolves it.</p>
-            </div>
-          </div>
-
-          <span class="card-title" style="display:block; margin-bottom:1rem;">The Four Responses</span>
-          <div class="grid-4" style="margin-bottom:1.5rem;">
-            <div class="card"><span class="card-title">Fight</span><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.6;">Mobilizing aggression to meet the threat head-on. Shows up later as irritability, control, or a hair-trigger temper.</p></div>
-            <div class="card"><span class="card-title">Flight</span><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.6;">Mobilizing escape. Shows up later as restlessness, overworking, or an inability to sit still with discomfort.</p></div>
-            <div class="card"><span class="card-title">Freeze</span><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.6;">Shutting down when neither fight nor flight is possible. Shows up later as numbness, dissociation, or chronic fatigue.</p></div>
-            <div class="card"><span class="card-title">Fawn</span><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.6;">Appeasing the threat to stay safe. Shows up later as people-pleasing and a lost sense of one's own needs.</p></div>
-          </div>
-
-          <div class="grid-2" style="margin-bottom:1.3rem;">
-            <div class="card card-lg">
-              <span class="card-title">Developmental Trauma &amp; Attachment</span>
-              <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">Developmental trauma accumulates across childhood rather than arriving in one event — inconsistent caregiving, emotional neglect, or an environment where a child's needs were routinely deprioritized. This shapes attachment style: the largely unconscious blueprint for how safe closeness feels in adulthood (secure, anxious, avoidant, or disorganized).</p>
-            </div>
-            <div class="card card-lg">
-              <span class="card-title">Core Wounds &amp; Body Memory</span>
-              <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">A core wound is the earliest, most formative version of a recurring pain — abandonment, rejection, betrayal, injustice. The body often remembers what the conscious mind has filed away: chronic tension in the jaw, chest, or gut can be somatic memory long after the narrative memory has faded. See Body Scan for a guided version of this.</p>
-            </div>
-          </div>
-
-          <div class="card card-lg">
-            <span class="card-title">Task — Identify Your Default Response</span>
-            <p style="font-size:.85rem; color:var(--dim-hi); margin-bottom:1rem;">Under real pressure, most people default to one or two of these responses more than the others. Pick the one(s) that feel most familiar, then name a recent moment it showed up.</p>
-            <div class="chip-row" id="trauma-response-chips">
-              <span class="chip" data-r="Fight">Fight</span>
-              <span class="chip" data-r="Flight">Flight</span>
-              <span class="chip" data-r="Freeze">Freeze</span>
-              <span class="chip" data-r="Fawn">Fawn</span>
-            </div>
-            <div class="field" style="margin-top:1rem;"><label>Where did this show up recently?</label><textarea id="trauma-reflection" placeholder="Describe a specific recent moment"></textarea></div>
-            <button class="btn btn-gold btn-sm" id="trauma-task-save">Save Reflection</button>
-            <div id="trauma-task-status" style="margin-top:.8rem; font-family:var(--font-m); font-size:.72rem; color:var(--gold);"></div>
-          </div>
-        </section>
-        <section class="page" id="page-body">
-          <span class="page-eyebrow">Module 04</span>
-          <h1 class="page-title">Body Scan</h1>
-          <p class="page-sub">The body keeps what the mind won't say out loud. Click each area to see what it commonly holds.</p>
-
-          <div class="grid-2">
             <div class="card card-lg" style="display:flex; align-items:center; justify-content:center;">
               <svg id="body-svg" viewBox="0 0 200 420" style="width:100%; max-width:240px;"></svg>
             </div>
@@ -531,31 +570,36 @@ textarea,input,select{font-family:inherit;}
               <p style="color:var(--dim); font-size:.85rem;">Click a highlighted region on the figure to see what it commonly holds emotionally, and a grounding exercise for it.</p>
             </div>
           </div>
+
+          <div class="card card-lg" style="text-align:center;">
+            <span class="card-title" style="display:block; margin-bottom:1rem;">Breathwork</span>
+            <div class="chip-row" id="breath-pattern-chips" style="justify-content:center; margin-bottom:1.6rem;">
+              <span class="chip selected" data-pattern="box">Box Breathing</span>
+              <span class="chip" data-pattern="sigh">Physiological Sigh</span>
+              <span class="chip" data-pattern="478">4-7-8 Calming</span>
+            </div>
+            <svg id="breath-circle" viewBox="0 0 220 220" style="width:220px; height:220px; margin:0 auto; display:block;"></svg>
+            <div id="breath-phase-label" style="font-family:var(--font-d); font-size:1.1rem; letter-spacing:.1em; color:var(--gold); margin-top:1rem; text-transform:uppercase;">Ready</div>
+            <div id="breath-cycle-count" style="font-family:var(--font-m); font-size:.75rem; color:var(--dim); margin-top:.4rem;">0 cycles completed</div>
+            <button class="btn btn-gold" id="breath-start" style="margin-top:1.4rem;">Begin</button>
+          </div>
         </section>
-        <section class="page" id="page-innerchild">
-          <span class="page-eyebrow">Module 05</span>
-          <h1 class="page-title">Inner Child</h1>
-          <p class="page-sub">A gentler room. The boy you were is still in there, and he's usually the one running the reaction you can't explain as an adult.</p>
+
+        <section class="page" id="page-release">
+          <span class="page-eyebrow">The Work — Step Three</span>
+          <h1 class="page-title">Release</h1>
+          <p class="page-sub">Not a passive read — an actual workbook. Each step is its own small entry, one at a time, working through a single pattern you've already identified.</p>
 
           <div class="card card-lg" style="margin-bottom:1.3rem;">
-            <span class="card-title">Childhood Timeline</span>
-            <div class="grid-2">
-              <div class="field"><label>Approximate age</label><input type="number" id="ic-age" placeholder="e.g. 8" min="0" max="18"/></div>
-              <div class="field"><label>What happened</label><input type="text" id="ic-title" placeholder="A short title"/></div>
-            </div>
-            <div class="field"><label>Describe it</label><textarea id="ic-desc" placeholder="What happened, and how it felt at the time"></textarea></div>
-            <button class="btn btn-gold btn-sm" id="ic-add-memory">Add To Timeline</button>
-            <div id="ic-timeline" style="margin-top:1.4rem;"></div>
+            <span class="card-title">What Release Actually Means</span>
+            <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">Release doesn't mean the pattern vanishes the moment you name it. It means the belief underneath it stops running unexamined — you've felt where it lives, said what it cost, and consciously chosen what replaces it. Real shadow work isn't linear: a pattern can resurface even after you've worked through it here, and that's normal, not failure. You can run this workbook again for the same pattern any time it comes back around.</p>
           </div>
 
-          <div class="card card-lg">
-            <span class="card-title">Write A Letter To Your Inner Child</span>
-            <p style="font-size:.8rem; color:var(--dim); margin-bottom:.8rem;">No structure required. Say what he needed to hear then, that you can say to him now.</p>
-            <div class="field"><textarea id="ic-letter" placeholder="Dear younger me…" style="min-height:160px;"></textarea></div>
-            <button class="btn btn-gold btn-sm" style="margin-top:.8rem;" id="ic-save-letter">Save Letter</button>
-            <div id="ic-letters" style="margin-top:1.4rem;"></div>
-          </div>
+          <div class="card card-lg" style="margin-bottom:1.3rem;" id="release-pattern-select-wrap"></div>
+
+          <div id="release-workbook"></div>
         </section>
+
         <section class="page" id="page-dreams">
           <span class="page-eyebrow">Module 06</span>
           <h1 class="page-title">Dream Journal</h1>
@@ -583,170 +627,32 @@ textarea,input,select{font-family:inherit;}
               <div id="symbol-dictionary"></div>
             </div>
           </div>
-        </section>
-        <section class="page" id="page-archetype">
-          <span class="page-eyebrow">Module 07</span>
-          <h1 class="page-title">Archetype Test</h1>
-          <p class="page-sub">Which pattern is actually running you? Answer honestly — not aspirationally.</p>
 
-          <div class="card card-lg" id="archetype-quiz-card">
-            <div id="archetype-questions"></div>
-            <button class="btn btn-gold btn-sm" id="archetype-submit" style="margin-top:1rem;">See My Results</button>
-          </div>
+          <span class="page-eyebrow" style="display:block; margin-top:2.4rem;">Module 06b</span>
+          <h1 class="page-title" style="font-size:1.6rem;">Inner Child</h1>
+          <p class="page-sub">Symptom → originating event → belief formed. Trace a pattern from My Shadow back to where it started — the memory, the age, what happened.</p>
 
-          <div id="archetype-results" style="margin-top:1.5rem;"></div>
-        </section>
-        <section class="page" id="page-purpose">
-          <span class="page-eyebrow">Module 08</span>
-          <h1 class="page-title">Values &amp; Purpose</h1>
-          <p class="page-sub">Direction matters more than speed. A man moving fast with no bearing is still lost — just more efficiently.</p>
-
-          <div class="card card-lg" style="margin-bottom:1.3rem;">
-            <span class="card-title">Core Values — Choose Your Top 5</span>
-            <div class="chip-row" id="values-chips"></div>
-            <button class="btn btn-ghost btn-sm" style="margin-top:1rem;" id="values-save">Save Values</button>
-          </div>
-
-          <div class="card card-lg" style="margin-bottom:1.3rem;">
-            <span class="card-title">Ikigai — Four Questions</span>
+          <div class="card card-lg" style="margin-bottom:1.3rem;" id="inner-child-form-card">
+            <span class="card-title">Log An Origin Memory</span>
+            <div class="field"><label>Which pattern does this belong to?</label>
+              <select id="inner-child-pattern-select" style="width:100%; background:var(--graphite-2); border:1px solid var(--border); border-radius:8px; color:var(--white); padding:.7rem .9rem; font-family:var(--font-b);">
+                <option value="">General — not tied to a specific pattern</option>
+              </select>
+            </div>
             <div class="grid-2">
-              <div class="field"><label>What you love</label><textarea id="ikigai-love" placeholder="What genuinely lights you up"></textarea></div>
-              <div class="field"><label>What you're good at</label><textarea id="ikigai-good" placeholder="Skills, real ones, not modest ones"></textarea></div>
-              <div class="field"><label>What the world needs</label><textarea id="ikigai-needs" placeholder="A problem worth solving"></textarea></div>
-              <div class="field"><label>What you can be paid for</label><textarea id="ikigai-paid" placeholder="Where value meets viability"></textarea></div>
+              <div class="field"><label>Approximate age</label><input type="number" min="0" max="99" id="inner-child-age" placeholder="e.g. 8"/></div>
+              <div class="field"><label>What happened</label><input type="text" id="inner-child-title" placeholder="A short title"/></div>
             </div>
-            <button class="btn btn-ghost btn-sm" id="ikigai-save">Save Ikigai</button>
-          </div>
-
-          <div class="grid-2">
-            <div class="card card-lg">
-              <span class="card-title">Mission Statement</span>
-              <div class="field"><label>Draft it</label><textarea id="mission-text" placeholder="One or two sentences on why you're here"></textarea></div>
-              <button class="btn btn-gold btn-sm" id="mission-save">Save Mission</button>
-            </div>
-            <div class="card card-lg">
-              <span class="card-title">Future Vision &amp; Legacy</span>
-              <div class="field"><label>Ten years from now</label><textarea id="vision-text" placeholder="What does the man you're building actually look like"></textarea></div>
-              <button class="btn btn-gold btn-sm" id="vision-save">Save Vision</button>
-            </div>
-          </div>
-        </section>
-        <section class="page" id="page-journal">
-          <span class="page-eyebrow">Module 09</span>
-          <h1 class="page-title">Journal</h1>
-          <p class="page-sub">Free writing, mood-tagged, searchable. No prompt required — sometimes the point is just to get it out of your head and onto the page.</p>
-
-          <div class="card card-lg" style="margin-bottom:1.3rem;">
-            <span class="card-title">New Entry</span>
-            <div class="field"><textarea id="journal-text" placeholder="Journal your thoughts — whatever's actually on your mind" style="min-height:120px;"></textarea></div>
-            <div class="grid-2" style="margin-top:1rem;">
-              <div class="field"><label>Mood</label>
-                <select id="journal-mood">
-                  <option value="">— none —</option>
-                  <option>Grounded</option><option>Anxious</option><option>Numb</option><option>Driven</option><option>Heavy</option><option>Clear</option><option>Restless</option>
-                </select>
-              </div>
-              <div class="field"><label>Tags (comma separated)</label><input type="text" id="journal-tags" placeholder="e.g. work, shadow, relationship"/></div>
-            </div>
-            <button class="btn btn-gold btn-sm" id="journal-save">Save Entry</button>
+            <div class="field"><label>Describe it</label><textarea id="inner-child-desc" placeholder="What happened, and how it felt at the time"></textarea></div>
+            <button class="btn btn-gold btn-sm" id="inner-child-add">Add To Timeline</button>
           </div>
 
           <div class="card card-lg">
-            <span class="card-title">Your Entries</span>
-            <input type="text" id="journal-search" placeholder="Search entries…" style="width:100%; margin-bottom:1rem; background:var(--graphite-2); border:1px solid var(--border); border-radius:8px; color:var(--white); padding:.7rem .9rem; font-size:.85rem;"/>
-            <div id="journal-list"></div>
+            <span class="card-title">Your Timeline</span>
+            <div id="inner-child-timeline"></div>
           </div>
         </section>
-        <section class="page" id="page-timeline">
-          <span class="page-eyebrow">Module 10</span>
-          <h1 class="page-title">Breakthroughs</h1>
-          <p class="page-sub">Every insight, journal entry, dream, and completed practice — automatically timestamped into one record, so progress stops being invisible.</p>
 
-          <div class="card card-lg" style="margin-bottom:1.3rem;">
-            <span class="card-title">Log A Breakthrough Manually</span>
-            <div class="field"><textarea id="breakthrough-text" placeholder="What just clicked?" style="min-height:100px;"></textarea></div>
-            <button class="btn btn-gold btn-sm" style="margin-top:.8rem;" id="breakthrough-save">Save Breakthrough</button>
-          </div>
-
-          <div class="card card-lg">
-            <span class="card-title">Full Timeline</span>
-            <div id="full-timeline"></div>
-          </div>
-        </section>
-        <section class="page" id="page-library">
-          <span class="page-eyebrow">Module 11</span>
-          <h1 class="page-title">Knowledge Library</h1>
-          <p class="page-sub">Concept primers drawn from the thinkers underneath this entire app — organized, not exhaustive. Follow what pulls you.</p>
-          <div id="library-content"></div>
-          <div class="card card-lg" style="margin-top:1.5rem;">
-            <span class="card-title">Task — Apply One Idea</span>
-            <p style="font-size:.85rem; color:var(--dim-hi); margin-bottom:1rem;">Pick the single concept above that hit hardest, and write down exactly how it applies to your actual life right now — not in theory.</p>
-            <div class="field"><label>Which concept, and how does it apply to you?</label><textarea id="library-reflection" placeholder="Name the concept and connect it to something real"></textarea></div>
-            <button class="btn btn-gold btn-sm" id="library-task-save">Save Reflection</button>
-          </div>
-        </section>
-        <section class="page" id="page-labyrinth">
-          <span class="page-eyebrow">Module 12</span>
-          <h1 class="page-title">The Labyrinth</h1>
-          <p class="page-sub">A gamified path through the work that actually matters. Each level is a real task, not a checkbox for its own sake.</p>
-
-          <div class="card card-lg" style="margin-bottom:1.3rem; display:flex; align-items:center; justify-content:center;">
-            <svg id="labyrinth-svg" viewBox="0 0 700 220" style="width:100%; max-width:720px;"></svg>
-          </div>
-
-          <div id="labyrinth-levels"></div>
-        </section>
-        <section class="page" id="page-breathwork">
-          <span class="page-eyebrow">Module 13</span>
-          <h1 class="page-title">Breathwork</h1>
-          <p class="page-sub">The fastest lever you have over the nervous system. No app subscription required — just attention and a few minutes.</p>
-
-          <div class="card card-lg" style="text-align:center;">
-            <div class="chip-row" id="breath-pattern-chips" style="justify-content:center; margin-bottom:1.6rem;">
-              <span class="chip selected" data-pattern="box">Box Breathing</span>
-              <span class="chip" data-pattern="sigh">Physiological Sigh</span>
-              <span class="chip" data-pattern="478">4-7-8 Calming</span>
-            </div>
-            <svg id="breath-circle" viewBox="0 0 220 220" style="width:220px; height:220px; margin:0 auto; display:block;"></svg>
-            <div id="breath-phase-label" style="font-family:var(--font-d); font-size:1.1rem; letter-spacing:.1em; color:var(--gold); margin-top:1rem; text-transform:uppercase;">Ready</div>
-            <div id="breath-cycle-count" style="font-family:var(--font-m); font-size:.75rem; color:var(--dim); margin-top:.4rem;">0 cycles completed</div>
-            <button class="btn btn-gold" id="breath-start" style="margin-top:1.4rem;">Begin</button>
-          </div>
-        </section>
-        <section class="page" id="page-morning">
-          <span class="page-eyebrow">Module 14</span>
-          <h1 class="page-title">Morning Ritual</h1>
-          <p class="page-sub">Set the day before the day sets you. Check off what you actually did — not what you intend to.</p>
-
-          <div class="card card-lg">
-            <span class="card-title" id="morning-date-label">Today</span>
-            <div id="morning-checklist"></div>
-            <div class="field" style="margin-top:1.2rem;"><label>Today's intention</label><input type="text" id="morning-intention" placeholder="One sentence — what today is actually about"/></div>
-            <button class="btn btn-gold btn-sm" id="morning-save">Save Ritual</button>
-          </div>
-        </section>
-        <section class="page" id="page-evening">
-          <span class="page-eyebrow">Module 15</span>
-          <h1 class="page-title">Evening Integration</h1>
-          <p class="page-sub">Close the day deliberately, rather than just letting it end. What got integrated today, and what's still sitting there unresolved?</p>
-
-          <div class="card card-lg">
-            <span class="card-title" id="evening-date-label">Tonight</span>
-            <div class="grid-2">
-              <div class="field"><label>Wins</label><textarea id="evening-wins" placeholder="What actually went right today"></textarea></div>
-              <div class="field"><label>Triggers</label><textarea id="evening-triggers" placeholder="What set you off, and why"></textarea></div>
-              <div class="field"><label>Lessons</label><textarea id="evening-lessons" placeholder="What today taught you"></textarea></div>
-              <div class="field"><label>Gratitude</label><textarea id="evening-gratitude" placeholder="What you're genuinely grateful for"></textarea></div>
-            </div>
-            <div class="field"><label>Shadow encounters</label><textarea id="evening-shadow" placeholder="Where did an old pattern show up today?"></textarea></div>
-            <div class="chip-row" style="margin-bottom:1rem;">
-              <span class="chip" data-sleep="Screens off">Screens off</span>
-              <span class="chip" data-sleep="Room dark">Room dark</span>
-              <span class="chip" data-sleep="Tomorrow planned">Tomorrow planned</span>
-            </div>
-            <button class="btn btn-gold btn-sm" id="evening-save">Save Integration</button>
-          </div>
-        </section>
 
       </div>
     </div>
@@ -867,12 +773,13 @@ async function enterAppAfterAuth(){
     if(cloud){
       D = Object.assign(defaultData(), cloud, {
         user: Object.assign(defaultData().user, cloud.user||{}),
-        innerChild: Object.assign(defaultData().innerChild, cloud.innerChild||{}),
         bodyScan: Object.assign(defaultData().bodyScan, cloud.bodyScan||{}),
-        purpose: Object.assign(defaultData().purpose, cloud.purpose||{}),
-        labyrinth: Object.assign(defaultData().labyrinth, cloud.labyrinth||{}),
-        shadowProgress: Object.assign(defaultData().shadowProgress, cloud.shadowProgress||{}),
+        foundationProgress: Object.assign(defaultData().foundationProgress, cloud.foundationProgress||{}),
+        patterns: Array.isArray(cloud.patterns) ? cloud.patterns : [],
+        rootEmotionLogs: Array.isArray(cloud.rootEmotionLogs) ? cloud.rootEmotionLogs : [],
+        innerChild: Array.isArray(cloud.innerChild) ? cloud.innerChild : [],
       });
+      migrateInnerChild();
       localStorage.setItem(STORE_KEY, JSON.stringify(D));
     }
   }catch(e){ /* offline or table not ready yet — fall back to local data */ }
@@ -890,23 +797,35 @@ function defaultData(){
   return {
     user:{ totalXP:0, streak:0, lastActiveDate:null },
     moods:[],                // {date, moods:[], consciousnessLevel}
-    journal:[],              // {id,date,text,mood,tags}
     dreams:[],               // {id,date,title,text,people,feelings,plot,connection}
-    innerChild:{ memories:[], letters:[] },
     bodyScan:{ notes:{}, feelings:{} },
-    symptomSessions:[],      // {date, symptoms:[], reflection, analysis}
-    archetypeResult:null,    // {scores:{}, date}
-    purpose:{ values:[], ikigai:{}, mission:'', vision:'' },
-    labyrinth:{ completed:[] },
-    morning:{},              // {dateStr: {...checks}}
-    evening:{},              // {dateStr: {...fields}}
-    breakthroughs:[],        // manual entries {date,text}
-    shadowProgress:{ readConcepts:[], quizScore:null, traumaTaskDone:false, libraryTaskDone:false },
+    foundationProgress:{
+      readConcepts:[], reflections:{},
+      webEntries:[],          // {id,title,desc,x,y}
+      webConnections:[],      // {id,fromId,toId,label}  fromId/toId: 'center' or entry id
+    },
+    // patterns is the core linked object carrying a pattern through My Shadow -> Emotions -> Release
+    patterns:[],             // {id,name,source,dynamic,prompt,exercise,addictive,createdDate,
+                              //  origins:[{id,age,title,desc,date}] (legacy, migrated into innerChild), belief, beliefDate, letter, letterDate,
+                              //  emotionLogs:[{id,date,text,bodyArea,reinforces}], checkins:[{date,status}],
+                              //  release:{steps:{},completedSteps:[],currentStep:0,completedDate:null}}
+    rootEmotionLogs:[],      // {id,date,emotions:[]}
+    innerChild:[],           // {id,patternId|null,patternName,age,title,desc,date}
+    innerChildMigrated:false,
     breathSessionsCompleted:0,
-    archetypeWeakTask:null   // {archetype, task, done}
   };
 }
 let D = loadData();
+migrateInnerChild();
+function migrateInnerChild(){
+  if(D.innerChildMigrated) return;
+  (D.patterns||[]).forEach(p=>{
+    (p.origins||[]).forEach(o=>{
+      D.innerChild.push({ id:o.id||uid(), patternId:p.id, patternName:p.name, age:o.age, title:o.title, desc:o.desc, date:o.date });
+    });
+  });
+  D.innerChildMigrated = true;
+}
 function loadData(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
@@ -915,11 +834,11 @@ function loadData(){
     const base = defaultData();
     return Object.assign(base, parsed, {
       user: Object.assign(base.user, parsed.user||{}),
-      innerChild: Object.assign(base.innerChild, parsed.innerChild||{}),
       bodyScan: Object.assign(base.bodyScan, parsed.bodyScan||{}),
-      purpose: Object.assign(base.purpose, parsed.purpose||{}),
-      labyrinth: Object.assign(base.labyrinth, parsed.labyrinth||{}),
-      shadowProgress: Object.assign(base.shadowProgress, parsed.shadowProgress||{}),
+      foundationProgress: Object.assign(base.foundationProgress, parsed.foundationProgress||{}),
+      patterns: Array.isArray(parsed.patterns) ? parsed.patterns : [],
+      rootEmotionLogs: Array.isArray(parsed.rootEmotionLogs) ? parsed.rootEmotionLogs : [],
+      innerChild: Array.isArray(parsed.innerChild) ? parsed.innerChild : [],
     });
   }catch(e){ return defaultData(); }
 }
@@ -929,6 +848,7 @@ function saveData(){
   scheduleCloudSync();
 }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function escapeHtml(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
 
@@ -973,36 +893,28 @@ function levelFromXP(xp){
 
 /* ---------- COMPOSITE SCORES (category XP pools, rebalanced to comparable pace) ---------- */
 function renderScores(){
-  const shadowXP = D.shadowProgress.readConcepts.length*15
-    + (D.shadowProgress.quizScore||0)*10
-    + D.symptomSessions.length*20
-    + (D.shadowProgress.traumaTaskDone ? 25 : 0)
-    + Object.keys(D.bodyScan.notes||{}).length*10
-    + (D.shadowProgress.libraryTaskDone ? 15 : 0);
+  const foundationXP = D.foundationProgress.readConcepts.length*15;
 
-  const purposeXP = (D.purpose.values.length ? 25 : 0)
-    + Object.values(D.purpose.ikigai||{}).filter(Boolean).length*15
-    + (D.purpose.mission ? 40 : 0)
-    + (D.purpose.vision ? 30 : 0);
+  const shadowXP = D.patterns.length*20
+    + D.patterns.reduce((s,p)=>s+((p.origins||[]).length)*15,0)
+    + D.patterns.filter(p=>p.belief).length*20
+    + D.patterns.filter(p=>p.letter).length*20
+    + D.patterns.reduce((s,p)=>s+((p.checkins||[]).length)*8,0);
 
-  const morningDays = Object.keys(D.morning).length;
-  const eveningDays = Object.keys(D.evening).length;
-  const energyXP = morningDays*15 + eveningDays*15 + (D.breathSessionsCompleted||0)*8 + D.user.streak*5;
+  const emotionsXP = D.patterns.reduce((s,p)=>s+((p.emotionLogs||[]).length)*12,0)
+    + Object.keys(D.bodyScan.feelings||{}).length*8
+    + D.moods.length*6
+    + (D.breathSessionsCompleted||0)*8;
 
-  const authXP = D.journal.length*12
-    + D.dreams.length*18
-    + D.innerChild.letters.length*25
-    + D.innerChild.memories.length*12
-    + D.breakthroughs.length*20
-    + (D.bodyScan.feelings ? Object.keys(D.bodyScan.feelings).length*10 : 0)
-    + (D.archetypeResult ? 25 : 0);
+  const releaseXP = D.patterns.reduce((s,p)=>s + ((p.release&&p.release.completedSteps)?p.release.completedSteps.length:0)*18, 0)
+    + D.patterns.filter(p=>p.release && p.release.completedDate).length*60;
 
+  setCategoryLevel('foundation', foundationXP);
   setCategoryLevel('shadow', shadowXP);
-  setCategoryLevel('purpose', purposeXP);
-  setCategoryLevel('energy', energyXP);
-  setCategoryLevel('authenticity', authXP);
+  setCategoryLevel('emotions', emotionsXP);
+  setCategoryLevel('release', releaseXP);
 
-  const levels = [shadowXP,purposeXP,energyXP,authXP].map(x=>levelFromXP(x).level);
+  const levels = [foundationXP,shadowXP,emotionsXP,releaseXP].map(x=>levelFromXP(x).level);
   const avgLevel = levels.reduce((a,b)=>a+b,0)/4;
   const integration = Math.min(100, Math.round((avgLevel-1) * 14));
   document.getElementById('dash-integration-num').textContent = integration+'%';
@@ -1237,37 +1149,51 @@ document.getElementById('sb-toggle').addEventListener('click', ()=>{
 /* ---------- MOBILE SIDEBAR (topbar menu button + backdrop) ---------- */
 const topbarMenuBtn = document.getElementById('topbar-menu-btn');
 const mobileBackdrop = document.getElementById('mobile-backdrop');
+let _scrollLockY = 0;
+function lockBodyScroll(){
+  _scrollLockY = window.scrollY || window.pageYOffset || 0;
+  document.body.style.top = `-${_scrollLockY}px`;
+  document.body.classList.add('menu-open');
+}
+function unlockBodyScroll(){
+  document.body.classList.remove('menu-open');
+  document.body.style.top = '';
+  window.scrollTo(0, _scrollLockY);
+}
 function openMobileSidebar(){
   document.getElementById('sidebar').classList.add('mobile-open');
   mobileBackdrop.classList.add('show');
+  lockBodyScroll();
 }
 function closeMobileSidebar(){
   document.getElementById('sidebar').classList.remove('mobile-open');
   mobileBackdrop.classList.remove('show');
+  unlockBodyScroll();
 }
 topbarMenuBtn.addEventListener('click', ()=>{
   const sb = document.getElementById('sidebar');
   if(sb.classList.contains('mobile-open')) closeMobileSidebar(); else openMobileSidebar();
 });
 mobileBackdrop.addEventListener('click', closeMobileSidebar);
+// Escape key closes the drawer too
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && document.getElementById('sidebar').classList.contains('mobile-open')) closeMobileSidebar();
+});
+// If the viewport is resized past the mobile breakpoint (e.g. rotating to landscape
+// on a tablet, or a desktop dev-tools resize) while the drawer is open, clean up state.
+window.addEventListener('resize', ()=>{
+  if(window.innerWidth > 900 && document.getElementById('sidebar').classList.contains('mobile-open')){
+    closeMobileSidebar();
+  }
+});
 
 /* ---------- MODULE GRID (dashboard) ---------- */
 const MODULES = [
-  {id:'shadow', icon:'☾', name:'The Shadow', desc:'Projection, persona, ego, archetypes — the architecture beneath the self.'},
-  {id:'symptoms', icon:'◈', name:'Symptom Finder', desc:'Select what you struggle with. See the unconscious pattern underneath.'},
-  {id:'trauma', icon:'⚡', name:'Trauma Explorer', desc:'Fight, flight, freeze, fawn — and what the nervous system remembers.'},
-  {id:'body', icon:'◉', name:'Body Scan', desc:'Where the body holds what the mind won\'t say.'},
-  {id:'innerchild', icon:'✧', name:'Inner Child', desc:'A gentler room. Memory, compassion, and repair.'},
-  {id:'dreams', icon:'☽', name:'Dream Journal', desc:'Log dreams. Decode the symbols the unconscious keeps sending.'},
-  {id:'archetype', icon:'♜', name:'Archetype Test', desc:'Which pattern runs you — and where it becomes a blind spot.'},
-  {id:'purpose', icon:'⊕', name:'Values & Purpose', desc:'Ikigai-style exercises for direction, mission, and legacy.'},
-  {id:'journal', icon:'✎', name:'Journal', desc:'Free writing, mood-tagged, searchable.'},
-  {id:'timeline', icon:'◷', name:'Breakthroughs', desc:'Every insight, automatically timestamped into one record.'},
-  {id:'library', icon:'▤', name:'Knowledge Library', desc:'Jung, Frankl, Adler, Campbell, Stoicism — concept primers.'},
-  {id:'labyrinth', icon:'◍', name:'The Labyrinth', desc:'A gamified path through fear, shadow, and purpose.'},
-  {id:'breathwork', icon:'◌', name:'Breathwork', desc:'Box breathing, physiological sigh, nervous system down-regulation.'},
-  {id:'morning', icon:'☀', name:'Morning Ritual', desc:'Intention, movement, sunlight — set before the day sets you.'},
-  {id:'evening', icon:'☾', name:'Evening Integration', desc:'Wins, triggers, lessons — close the day deliberately.'},
+  {id:'foundation', icon:'☾', name:'Foundation', desc:'The Jungian architecture underneath everything else — shadow, persona, ego, Self.'},
+  {id:'shadow', icon:'◈', name:'My Shadow', desc:'Name the pattern, trace it to where it started, name the belief it left behind.'},
+  {id:'emotions', icon:'◉', name:'Emotions', desc:'Where it lives in the body, and what breathing changes about it.'},
+  {id:'release', icon:'✦', name:'Release', desc:'A guided workbook — actually letting go, one small step at a time.'},
+  {id:'dreams', icon:'☽', name:'Dream Journal', desc:'What the unconscious surfaces when you\'re not looking.'},
 ];
 function renderModuleGrid(){
   const grid = document.getElementById('module-grid');
@@ -1318,6 +1244,22 @@ const CONSCIOUSNESS_LEVELS = [
   {name:'Reason', value:400}, {name:'Love', value:500}, {name:'Joy', value:540},
   {name:'Peace', value:600}, {name:'Enlightenment', value:850},
 ];
+// ROOT_EMOTIONS — as close to exhaustive as a usable checklist can be, grouped by family
+// (loosely after Plutchik's wheel, extended with shadow-relevant social/complex emotions)
+const ROOT_EMOTIONS = {
+  'Anger family':['Anger','Rage','Fury','Irritation','Frustration','Resentment','Bitterness','Hostility','Contempt','Indignation','Hatred','Vengefulness','Exasperation','Annoyance'],
+  'Fear family':['Fear','Terror','Dread','Anxiety','Panic','Nervousness','Worry','Apprehension','Insecurity','Helplessness','Vulnerability','Suspicion','Paranoia'],
+  'Sadness family':['Sadness','Grief','Sorrow','Despair','Loneliness','Melancholy','Heartbreak','Disappointment','Hopelessness','Emptiness','Longing','Regret','Discouragement','Homesickness'],
+  'Shame / guilt family':['Shame','Guilt','Embarrassment','Humiliation','Remorse','Self-disgust','Unworthiness','Inadequacy','Mortification'],
+  'Disgust family':['Disgust','Revulsion','Contempt','Aversion','Repulsion','Distaste'],
+  'Joy family':['Joy','Happiness','Delight','Elation','Excitement','Contentment','Satisfaction','Pleasure','Amusement','Cheerfulness','Bliss','Triumph','Relief'],
+  'Love / connection family':['Love','Affection','Warmth','Tenderness','Compassion','Belonging','Trust','Devotion','Gratitude','Adoration','Nostalgia'],
+  'Surprise family':['Surprise','Shock','Amazement','Astonishment','Confusion','Bewilderment'],
+  'Pride / power family':['Pride','Confidence','Empowerment','Dominance','Superiority','Arrogance','Ambition','Determination'],
+  'Envy / comparison family':['Envy','Jealousy','Inferiority','Insecurity','Competitiveness','Resentment'],
+  'Desire family':['Desire','Craving','Yearning','Curiosity','Anticipation','Hope','Restlessness'],
+  'Numbness / withdrawal family':['Numbness','Apathy','Boredom','Detachment','Indifference','Disconnection','Emptiness','Exhaustion'],
+};
 function renderMoodChips(){
   document.getElementById('mood-chips').innerHTML = MOOD_OPTIONS.map(m=>`<span class="chip" data-mood="${m}">${m}</span>`).join('');
 }
@@ -1350,33 +1292,25 @@ function renderMoodState(){
     : 'No check-in yet today.';
 }
 
-/* ---------- QUICK JOURNAL (dashboard shortcut) ---------- */
-document.getElementById('quick-journal-save').addEventListener('click', ()=>{
-  const text = document.getElementById('quick-journal').value.trim();
-  if(!text){ showToast('Write something first.'); return; }
-  D.journal.unshift({id:uid(), date:new Date().toISOString(), text, mood:null, tags:[]});
-  document.getElementById('quick-journal').value='';
-  addXP(15);
-  showToast('Entry saved · +15 XP');
-  if(window.onPageShow && window.onPageShow.journal) window.onPageShow.journal();
-  renderRecentBreakthroughs();
-});
-
-/* ---------- RECENT BREAKTHROUGHS (dashboard preview) ---------- */
+/* ---------- RECENT ACTIVITY (dashboard preview) ---------- */
 function getAllBreakthroughEvents(){
   const events = [];
-  D.breakthroughs.forEach(b=>events.push({date:b.date,label:b.text,tag:'BREAKTHROUGH'}));
-  D.journal.forEach(j=>events.push({date:j.date,label:j.text.slice(0,90)+(j.text.length>90?'…':''),tag:'JOURNAL'}));
   D.dreams.forEach(d=>events.push({date:d.date,label:'Dream — '+d.title,tag:'DREAM'}));
-  if(D.archetypeResult) events.push({date:D.archetypeResult.date,label:'Archetype test completed',tag:'ARCHETYPE'});
-  if(D.purpose.mission) events.push({date:D.purpose.missionDate||new Date().toISOString(),label:'Mission statement drafted',tag:'PURPOSE'});
-  D.innerChild.letters.forEach(l=>events.push({date:l.date,label:'Letter to inner child written',tag:'INNER CHILD'}));
-  D.labyrinth.completed.forEach(c=>events.push({date:c.date,label:'Labyrinth: '+c.label,tag:'LABYRINTH'}));
+  D.patterns.forEach(p=>{
+    events.push({date:p.createdDate,label:'Pattern identified — '+p.name,tag:'SHADOW'});
+    if(p.belief) events.push({date:p.beliefDate||p.createdDate,label:'Belief named for '+p.name,tag:'SHADOW'});
+    if(p.letter) events.push({date:p.letterDate||p.createdDate,label:'Letter written — '+p.name,tag:'SHADOW'});
+    (p.checkins||[]).forEach(c=>events.push({date:c.date,label:'Check-in — '+p.name+': '+c.status,tag:'SHADOW'}));
+    (p.emotionLogs||[]).forEach(e=>events.push({date:e.date,label:'Emotion logged — '+p.name,tag:'EMOTIONS'}));
+    if(p.release && p.release.completedDate) events.push({date:p.release.completedDate,label:'Release completed — '+p.name,tag:'RELEASE'});
+  });
+  (D.innerChild||[]).forEach(o=>events.push({date:o.date,label:'Origin memory added'+(o.patternName?' — '+o.patternName+': '+o.title:': '+o.title),tag:'INNER CHILD'}));
+  (D.rootEmotionLogs||[]).forEach(r=>events.push({date:r.date,label:'Root emotions logged — '+r.emotions.join(', '),tag:'EMOTIONS'}));
   return events.sort((a,b)=>new Date(b.date)-new Date(a.date));
 }
 function renderRecentBreakthroughs(){
   const el = document.getElementById('dash-recent-breakthroughs');
-  const events = getAllBreakthroughEvents().slice(0,5);
+  const events = getAllBreakthroughEvents().slice(0,6);
   if(!events.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◷</span>Nothing logged yet. Your record starts the moment you act.</div>'; return; }
   el.innerHTML = '<div class="entry-list">'+events.map(e=>`
     <div class="entry"><span class="entry-date">${fmtDate(e.date)}</span><div class="entry-body">${e.label}</div><span class="entry-tag">${e.tag}</span></div>
@@ -1386,7 +1320,7 @@ function renderRecentBreakthroughs(){
 window.onPageShow = {};
 
 /* ================================================================
-   MODULE: THE SHADOW
+   MODULE: FOUNDATION
 ================================================================= */
 const SHADOW_CONCEPTS = [
   {id:'shadow', title:'The Shadow', body:`<p>The shadow is everything about yourself you've decided isn't acceptable — and pushed out of conscious awareness to keep the peace with your family, your culture, or your own self-image. It isn't inherently "evil." It's simply unlived. Rage you were never allowed to express, ambition that made others uncomfortable, softness that got mocked out of you — all of it goes into the shadow.</p><p>The danger isn't having a shadow. Everyone does. The danger is not knowing you have one, because what you don't see, you act out.</p>`, reflect:'What trait do you most dislike in other people? Where might that same trait exist, unacknowledged, in you?'},
@@ -1412,7 +1346,7 @@ function renderShadowAccordion(){
         ${c.body}
         <div class="field" style="margin-top:1rem;">
           <label>Reflection</label>
-          <textarea id="reflect-${c.id}" placeholder="${c.reflect}"></textarea>
+          <textarea id="reflect-${c.id}" placeholder="${c.reflect}">${(D.foundationProgress.reflections&&D.foundationProgress.reflections[c.id])||''}</textarea>
           <button class="btn btn-ghost btn-sm" style="margin-top:.6rem;" onclick="saveShadowReflection('${c.id}')">Save Reflection</button>
         </div>
       </div></div>
@@ -1424,8 +1358,8 @@ window.toggleShadowAcc = function(id){
   document.querySelectorAll('#shadow-accordion .acc-item').forEach(i=>i.classList.remove('open'));
   if(!wasOpen){
     item.classList.add('open');
-    if(!D.shadowProgress.readConcepts.includes(id)){
-      D.shadowProgress.readConcepts.push(id);
+    if(!D.foundationProgress.readConcepts.includes(id)){
+      D.foundationProgress.readConcepts.push(id);
       addXP(10);
       showToast('+10 XP — concept explored');
     }
@@ -1434,100 +1368,179 @@ window.toggleShadowAcc = function(id){
 window.saveShadowReflection = function(id){
   const text = document.getElementById('reflect-'+id).value.trim();
   if(!text){ showToast('Write a reflection first.'); return; }
-  D.journal.unshift({id:uid(), date:new Date().toISOString(), text:`[Shadow — ${id}] `+text, mood:null, tags:['shadow']});
+  if(!D.foundationProgress.reflections) D.foundationProgress.reflections = {};
+  D.foundationProgress.reflections[id] = text;
   addXP(15); saveData();
-  showToast('Reflection saved to journal · +15 XP');
+  showToast('Reflection saved · +15 XP');
   renderRecentBreakthroughs();
 };
 
-const SHADOW_QUIZ = [
-  { q:'The shadow, in Jungian terms, primarily consists of:',
-    correct:['Disowned or unacceptable parts of the self','Traits and impulses you\'ve pushed out of conscious awareness','The parts of yourself you\'ve rejected as unacceptable'],
-    wrong:[
-      ['Evil impulses only','Purely destructive urges','Only your worst qualities'],
-      ['Childhood memories','Early-life recollections','Things you remember from being young'],
-      ['Physical illness','A bodily disease','A medical condition'],
-    ]},
-  { q:'Projection typically involves:',
-    correct:['Attributing your own unowned traits to someone else','Seeing your own disowned qualities in another person','Placing a trait you won\'t admit to onto someone else'],
-    wrong:[
-      ['Predicting the future','Forecasting what will happen','Guessing upcoming events'],
-      ['A meditation technique','A relaxation practice','A breathing exercise'],
-      ['A type of dream','A recurring nightmare','A category of dream symbol'],
-    ]},
-  { q:'The persona is best described as:',
-    correct:['The social mask you present publicly','The curated version of yourself shown to others','A public-facing identity built for others to see'],
-    wrong:[
-      ['Your true self','Your authentic inner identity','Who you really are underneath'],
-      ['A mental illness','A diagnosable condition','A psychological disorder'],
-      ['Your childhood personality','How you behaved as a kid','Your personality before age 10'],
-    ]},
-  { q:'Individuation refers to:',
-    correct:['The lifelong process of integrating conscious and unconscious into a whole self','Becoming who you actually are by integrating all parts of the psyche','The ongoing work of unifying the conscious and unconscious mind'],
-    wrong:[
-      ['Becoming more isolated','Withdrawing from other people','Cutting yourself off socially'],
-      ['Becoming famous','Achieving public recognition','Gaining widespread attention'],
-      ['Following strict rules','Rigid rule-adherence','Obeying a strict code'],
-    ]},
-  { q:'A "complex" in this framework is:',
-    correct:['An emotionally-charged cluster of memories organized around a theme','A group of related memories bound together by a strong emotional theme','A recurring emotional pattern rooted in a cluster of memories'],
-    wrong:[
-      ['A building','A physical structure','An architectural structure'],
-      ['A compliment','A form of praise','A flattering remark'],
-      ['A type of dream symbol','A dream image','A symbolic dream element'],
-    ]},
-];
-function shuffleArr(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
+/* ---------- FOUNDATION: SHADOW WEB DIAGRAM ---------- */
+const WEB_CENTER = {x:300, y:250};
+function svgPoint(svg, clientX, clientY){
+  const pt = svg.createSVGPoint();
+  pt.x = clientX; pt.y = clientY;
+  const ctm = svg.getScreenCTM();
+  if(!ctm) return {x:WEB_CENTER.x, y:WEB_CENTER.y};
+  const loc = pt.matrixTransform(ctm.inverse());
+  return {x:loc.x, y:loc.y};
 }
-let currentQuizLayout = [];
-function renderShadowQuiz(){
-  const el = document.getElementById('shadow-quiz');
-  currentQuizLayout = SHADOW_QUIZ.map(q=>{
-    const correctText = q.correct[Math.floor(Math.random()*q.correct.length)];
-    const wrongTexts = q.wrong.map(variants => variants[Math.floor(Math.random()*variants.length)]);
-    const options = shuffleArr([{text:correctText, isCorrect:true}, ...wrongTexts.map(t=>({text:t, isCorrect:false}))]);
-    return {q:q.q, options};
-  });
-  el.innerHTML = currentQuizLayout.map((q,i)=>`
-    <div style="margin-bottom:1.2rem;">
-      <p style="font-size:.85rem; margin-bottom:.6rem;">${i+1}. ${q.q}</p>
-      <div class="chip-row">${q.options.map((o,oi)=>`<span class="chip" data-q="${i}" data-o="${oi}" onclick="selectQuizOption(this)">${o.text}</span>`).join('')}</div>
-    </div>`).join('');
+function defaultEntryPosition(index, total){
+  const n = Math.max(total, 6);
+  const angle = (index / n) * Math.PI * 2 - Math.PI/2;
+  const radius = 185;
+  return { x: WEB_CENTER.x + Math.cos(angle)*radius, y: WEB_CENTER.y + Math.sin(angle)*radius };
 }
-window.selectQuizOption = function(el){
-  const q = el.dataset.q;
-  document.querySelectorAll(`.chip[data-q="${q}"]`).forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected');
-};
-document.getElementById('shadow-quiz-submit').addEventListener('click', ()=>{
-  let score=0;
-  currentQuizLayout.forEach((q,i)=>{
-    const sel = document.querySelector(`.chip[data-q="${i}"].selected`);
-    if(sel && q.options[parseInt(sel.dataset.o)].isCorrect) score++;
+let webConnectMode = false;
+let webConnectFirstId = null;
+function webNodePos(idRef){
+  if(idRef === 'center') return WEB_CENTER;
+  const e = D.foundationProgress.webEntries.find(en=>en.id===idRef);
+  return e ? {x:e.x, y:e.y} : WEB_CENTER;
+}
+function renderShadowWeb(){
+  const svg = document.getElementById('web-canvas');
+  const entries = D.foundationProgress.webEntries;
+  const conns = D.foundationProgress.webConnections;
+  let html = '';
+  conns.forEach(c=>{
+    const from = webNodePos(c.fromId), to = webNodePos(c.toId);
+    const mx = (from.x+to.x)/2, my = (from.y+to.y)/2;
+    html += `<line class="web-conn-line" x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" data-cid="${c.id}"/>`;
+    if(c.label){
+      const w = Math.min(150, Math.max(30, c.label.length*5.4+14));
+      html += `<rect class="web-conn-label-bg" x="${mx-w/2}" y="${my-9}" width="${w}" height="16" rx="4"/>`;
+      html += `<text class="web-conn-label" x="${mx}" y="${my+3}">${escapeHtml(c.label)}</text>`;
+    }
   });
-  D.shadowProgress.quizScore = score;
-  saveData();
-  document.getElementById('shadow-quiz-result').textContent = `${score} / ${currentQuizLayout.length} correct.`;
-  addXP(score*8);
-  showToast(`Quiz complete · +${score*8} XP`);
-});
-window.onPageShow.shadow = function(){ renderShadowAccordion(); renderShadowQuiz(); };
-safeInit('shadow', ()=>{ renderShadowAccordion(); renderShadowQuiz(); });
+  html += `<g class="web-center-node" data-eid="center"><circle class="web-center-circle" cx="${WEB_CENTER.x}" cy="${WEB_CENTER.y}" r="46"/><text class="web-center-text" x="${WEB_CENTER.x}" y="${WEB_CENTER.y+4}">Shadow</text></g>`;
+  entries.forEach(e=>{
+    html += `
+      <foreignObject class="web-entry-fo" x="${e.x-65}" y="${e.y-30}" width="130" height="90" data-eid="${e.id}">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;">
+          <div class="web-entry-box" data-eid="${e.id}">
+            <div class="web-entry-title">${escapeHtml(e.title)}</div>
+            ${e.desc ? `<div class="web-entry-desc">${escapeHtml(e.desc)}</div>` : ''}
+          </div>
+          <div class="web-entry-remove" data-remove-id="${e.id}">×</div>
+        </div>
+      </foreignObject>`;
+  });
+  svg.innerHTML = html;
+  attachWebInteractions();
+}
+function attachWebInteractions(){
+  const svg = document.getElementById('web-canvas');
 
+  document.querySelectorAll('.web-entry-remove').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); removeWebEntry(btn.dataset.removeId); });
+  });
+
+  // click-to-connect (checked before drag, since a drag with near-zero movement counts as a click)
+  document.querySelectorAll('[data-eid]').forEach(node=>{
+    node.addEventListener('click', (e)=>{
+      if(!webConnectMode) return;
+      if(e.target.closest('.web-entry-remove')) return;
+      const id = node.dataset.eid;
+      handleWebConnectClick(id, node);
+    });
+  });
+
+  // dragging (entries only, not the center)
+  document.querySelectorAll('.web-entry-box').forEach(box=>{
+    let dragging = false, moved = false, startPt = null;
+    const id = box.dataset.eid;
+    box.addEventListener('pointerdown', (e)=>{
+      if(webConnectMode) return;
+      dragging = true; moved = false;
+      box.setPointerCapture(e.pointerId);
+      startPt = svgPoint(svg, e.clientX, e.clientY);
+    });
+    box.addEventListener('pointermove', (e)=>{
+      if(!dragging) return;
+      const p = svgPoint(svg, e.clientX, e.clientY);
+      if(Math.abs(p.x-startPt.x)>2 || Math.abs(p.y-startPt.y)>2) moved = true;
+      const entry = D.foundationProgress.webEntries.find(en=>en.id===id);
+      if(!entry) return;
+      entry.x = Math.min(580, Math.max(20, p.x));
+      entry.y = Math.min(500, Math.max(20, p.y));
+      renderShadowWeb();
+    });
+    box.addEventListener('pointerup', (e)=>{
+      dragging = false;
+      if(moved) saveData();
+    });
+  });
+}
+function handleWebConnectClick(id, node){
+  if(!webConnectFirstId){
+    webConnectFirstId = id;
+    node.querySelector('.web-entry-box')?.classList.add('connect-armed');
+    if(id==='center') document.querySelector('.web-center-circle').style.stroke = 'var(--gold-bright)';
+    showToast('Now click the entry to connect it to.');
+    return;
+  }
+  if(webConnectFirstId === id){ return; } // same node clicked twice, ignore
+  const exists = D.foundationProgress.webConnections.some(c=>
+    (c.fromId===webConnectFirstId && c.toId===id) || (c.fromId===id && c.toId===webConnectFirstId));
+  if(exists){ showToast('Those two are already connected.'); }
+  else{
+    const label = prompt('How do these two connect? (optional — leave blank to skip)', '') || '';
+    D.foundationProgress.webConnections.push({id:uid(), fromId:webConnectFirstId, toId:id, label:label.trim()});
+    addXP(10); saveData();
+    showToast('Connected · +10 XP');
+  }
+  webConnectFirstId = null;
+  webConnectMode = false;
+  document.getElementById('web-connect-toggle').classList.remove('active');
+  renderShadowWeb();
+}
+window.removeWebEntry = function(id){
+  D.foundationProgress.webEntries = D.foundationProgress.webEntries.filter(e=>e.id!==id);
+  D.foundationProgress.webConnections = D.foundationProgress.webConnections.filter(c=>c.fromId!==id && c.toId!==id);
+  saveData(); showToast('Entry removed.'); renderShadowWeb();
+};
+document.getElementById('web-connect-toggle').addEventListener('click', ()=>{
+  webConnectMode = !webConnectMode;
+  webConnectFirstId = null;
+  document.getElementById('web-connect-toggle').classList.toggle('active', webConnectMode);
+  showToast(webConnectMode ? 'Connect mode on — click two entries.' : 'Connect mode off.');
+  renderShadowWeb();
+});
+document.getElementById('web-reset-layout').addEventListener('click', ()=>{
+  const entries = D.foundationProgress.webEntries;
+  entries.forEach((e,i)=>{ const pos = defaultEntryPosition(i, entries.length); e.x = pos.x; e.y = pos.y; });
+  saveData(); renderShadowWeb();
+  showToast('Layout reset.');
+});
+document.getElementById('web-entry-add').addEventListener('click', ()=>{
+  const title = document.getElementById('web-entry-title').value.trim();
+  const desc = document.getElementById('web-entry-desc').value.trim();
+  if(!title){ showToast('Give the entry a name first.'); return; }
+  const entries = D.foundationProgress.webEntries;
+  const pos = defaultEntryPosition(entries.length, entries.length+1);
+  const entry = {id:uid(), title, desc, x:pos.x, y:pos.y};
+  entries.push(entry);
+  D.foundationProgress.webConnections.push({id:uid(), fromId:'center', toId:entry.id, label:''});
+  document.getElementById('web-entry-title').value='';
+  document.getElementById('web-entry-desc').value='';
+  addXP(12); saveData();
+  showToast('Added to your shadow web · +12 XP');
+  renderShadowWeb();
+});
+window.onPageShow.foundation = function(){ renderShadowAccordion(); renderShadowWeb(); };
+safeInit('foundation', ()=>{ renderShadowAccordion(); renderShadowWeb(); });
 /* ================================================================
-   MODULE: SYMPTOM FINDER
+   MODULE: MY SHADOW
 ================================================================= */
-const SYMPTOMS = {
+const PATTERN_LIBRARY = {
   'People pleasing': {dynamic:'Usually a childhood adaptation — love or safety once depended on being agreeable. The shadow holds the anger and needs you were never allowed to express.', prompt:'Whose approval were you taught was non-negotiable to survive?', exercise:'Today, say one true "no" — small, low-stakes, and out loud.'},
   'Low confidence': {dynamic:'Often an internalized voice — a parent, teacher, or early failure — that never got updated with adult evidence. The gap between competence and self-belief is usually an old data problem, not a current one.', prompt:'Whose voice is actually speaking when you doubt yourself?', exercise:'List three things you\'ve done competently in the last month. Read them aloud.'},
   'Fear of judgement': {dynamic:'Points to a persona under threat — the mask feels load-bearing, so any perceived crack feels existential rather than social.', prompt:'What do you imagine would happen if people saw the unedited version of you?', exercise:'Share one unpolished opinion with someone today, and observe that nothing collapses.'},
   'Need for validation': {dynamic:'Often reflects an underdeveloped internal reference point — self-worth was outsourced early and never brought back in-house.', prompt:'When did you last make a decision purely because it was right for you, with no audience?', exercise:'Do one thing today you will tell no one about.'},
   'Perfectionism': {dynamic:'Frequently a shadow-side control strategy — if everything is flawless, nothing can be criticized, and criticism once felt dangerous.', prompt:'What are you actually afraid people would see if the work were merely "good enough"?', exercise:'Ship something imperfect on purpose today.'},
   'Self sabotage': {dynamic:'Often the ego protecting an old identity — succeeding would require becoming someone unfamiliar, and the unconscious resists that more than it resists failure.', prompt:'What would you have to give up about your current identity if you actually succeeded?', exercise:'Notice the exact moment today you feel the urge to self-sabotage, and just name it out loud: "This is the pattern."'},
-  'Porn addiction': {dynamic:'Commonly functions as a fast, low-risk substitute for real intimacy or emotional regulation — the shadow of unmet connection wearing a compulsive mask.', prompt:'What feeling are you actually trying to escape in the moments right before?', exercise:'Next urge, delay 10 minutes and journal what you\'re feeling instead.'},
+  'Porn addiction': {addictive:true, dynamic:'Commonly functions as a fast, low-risk substitute for real intimacy or emotional regulation — the shadow of unmet connection wearing a compulsive mask.', prompt:'What feeling are you actually trying to escape in the moments right before?', exercise:'Next urge, delay 10 minutes and journal what you\'re feeling instead.'},
   'Avoidance': {dynamic:'Usually protects against an emotion too large to feel safely alone — avoidance isn\'t laziness, it\'s an old nervous system strategy.', prompt:'What specific feeling are you avoiding right now by staying busy?', exercise:'Pick the one task you\'re avoiding. Do the first five minutes only.'},
   'Anger': {dynamic:'Frequently a secondary emotion masking something more vulnerable underneath — hurt, fear, or grief that felt unsafe to show directly.', prompt:'Under the anger, what softer feeling is actually there?', exercise:'Next time anger spikes, pause and ask: "What am I actually afraid of right now?"'},
   'Jealousy': {dynamic:'Often projection in reverse — pointing directly at an unclaimed desire or unlived potential in yourself.', prompt:'What does the person you\'re jealous of have that you\'ve told yourself you\'re not allowed to want?', exercise:'Write down the exact thing you envy. Ask what one step toward it would look like.'},
@@ -1539,185 +1552,230 @@ const SYMPTOMS = {
   'Imposter syndrome': {dynamic:'Often a persona-Self gap — competence is real, but it hasn\'t been internalized into identity yet.', prompt:'What evidence are you dismissing because it doesn\'t match the old story?', exercise:'Write down one skill you have that you\'d readily credit in someone else.'},
   'Fear of success': {dynamic:'Can reflect an unconscious loyalty — succeeding beyond a parent or peer group can feel like betrayal or exposure.', prompt:'Who in your life might feel threatened, consciously or not, if you succeeded fully?', exercise:'Name one goal you\'ve quietly capped. Ask why.'},
   'Fear of intimacy': {dynamic:'Frequently protects against the vulnerability of being truly known and still risking rejection — safer to be wanted for the mask.', prompt:'What part of yourself have you never let a partner see?', exercise:'Share one true, slightly uncomfortable thing with someone you trust this week.'},
+  'Codependency': {dynamic:'Often formed by an early role as caretaker or peacekeeper — your worth got tied to managing someone else\'s emotions instead of your own.', prompt:'Whose emotional state did you learn to monitor before your own, growing up?', exercise:'Notice one moment today you\'re managing someone else\'s feelings instead of naming your own.'},
+  'Need for control': {dynamic:'Usually compensates for an early experience of real powerlessness — control became the antidote to a chaos you couldn\'t predict or stop.', prompt:'What was genuinely out of your control once, that you\'ve been quietly trying to control ever since?', exercise:'Deliberately leave one low-stakes decision today to someone else, and notice the urge to intervene.'},
+  'Victim mentality': {dynamic:'Can form when real harm went unacknowledged for too long — the story hardens into identity because no one ever validated it as just an event, not a life sentence.', prompt:'Where has "this happened to me" quietly become "this is who I am"?', exercise:'Name one thing, however small, that is within your control to change this week.'},
+  'Chronic complaining': {dynamic:'Often a substitute for direct action or a direct ask — venting feels safer than risking rejection by requesting change.', prompt:'What are you complaining about that you\'ve never actually asked to be different?', exercise:'Convert your next complaint into one direct, specific request.'},
+  'Passive aggression': {dynamic:'Typically forms where direct anger wasn\'t safe to express as a child — the anger still comes out, just sideways.', prompt:'Who taught you that direct anger wasn\'t allowed?', exercise:'Next time you feel the urge to go quiet or sarcastic instead of direct, say the actual sentence instead.'},
+  'Workaholism': {dynamic:'Frequently a respectable-looking avoidance strategy — busyness as a way to outrun feelings that only surface in stillness.', prompt:'What feeling shows up the moment you actually stop working?', exercise:'Sit with zero tasks for 10 minutes today and notice what surfaces.'},
+  'Emotional eating': {dynamic:'Often a learned regulation strategy from childhood — food as the most available way to self-soothe when no one taught you another.', prompt:'What are you actually hungry for in the moment you reach for food outside of hunger?', exercise:'Next urge to eat outside of hunger, pause 5 minutes and name the feeling first.'},
+  'Alcohol dependency': {addictive:true, dynamic:'Commonly functions as fast relief from anxiety, numbness, or unprocessed emotion — the shadow of an unmet need for regulation.', prompt:'What feeling are you most often trying to turn down the volume on?', exercise:'Track one night this week without it, and journal what surfaces instead.'},
+  'Gambling': {addictive:true, dynamic:'Often chases the feeling of control or escape rather than the money itself — the high covers something underneath that feels unbearable at rest.', prompt:'What are you hoping the win will finally prove or fix?', exercise:'Before your next bet, write down what you\'re actually feeling right now.'},
+  'Social media addiction': {addictive:true, dynamic:'Frequently a stand-in for genuine connection or validation — the scroll offers a hit without the risk of real intimacy.', prompt:'What are you hoping to feel in the moment right before you open the app?', exercise:'One hour today, phone in another room, and notice what restlessness shows up.'},
+  'Isolation': {dynamic:'Often a nervous system\'s protective response to past hurt in relationships — safer alone than risking that pain again.', prompt:'Who hurt you badly enough that alone started to feel safer than connected?', exercise:'Reach out to one person today, even briefly, and notice the resistance.'},
+  'Hypervigilance': {dynamic:'Typically wired in by an unpredictable or unsafe environment early on — the nervous system never got the memo that the threat has passed.', prompt:'What did you have to constantly watch for as a kid, that you\'re still scanning for now?', exercise:'Notice one moment today your body is on alert with no actual threat present, and name it out loud.'},
+  'Chronic lateness': {dynamic:'Often an unconscious bid for control in a life that otherwise feels dictated by others\' schedules and demands.', prompt:'Where else in your life do you feel like you have no say — and is lateness quietly reclaiming some?', exercise:'Show up 10 minutes early to one thing today, on purpose, and notice how it feels.'},
+  'Procrastination': {dynamic:'Usually fear wearing a productivity costume — starting risks a real result, and no result yet means no failure yet.', prompt:'What specifically are you afraid the result will say about you?', exercise:'Do the worst first two minutes of the task right now, nothing more.'},
+  'Scarcity mindset': {dynamic:'Frequently rooted in a period of real lack — financial, emotional, or otherwise — where "not enough" got burned in as a permanent operating assumption.', prompt:'When did "not enough" first become true, and is it still true now?', exercise:'Name one area of actual abundance in your life right now, out loud.'},
+  'Materialism': {dynamic:'Often compensates for an internal sense of lack that no external object was ever going to fix — status as a stand-in for self-worth.', prompt:'What feeling are you hoping the next purchase will finally deliver?', exercise:'Go 48 hours with zero non-essential purchases and notice what comes up.'},
+  'Need to be right': {dynamic:'Frequently protects a fragile sense of competence — being wrong once felt like proof of a much bigger, more painful conclusion about yourself.', prompt:'What does being wrong threaten to mean about you, underneath the argument itself?', exercise:'Concede one small point today that you\'d normally fight for, and notice what it costs you.'},
+  'Grandiosity': {dynamic:'Often compensates for a deeply unwanted feeling of smallness or insignificance formed early — the inflation covers the wound rather than healing it.', prompt:'What would you have to feel if you stopped needing to be the most impressive person in the room?', exercise:'Let someone else take credit today without correcting the record.'},
+  'Contempt for weakness': {dynamic:'Commonly a disowned vulnerability projected outward — the weakness you can\'t stand in others is usually one you\'ve buried in yourself.', prompt:'What part of you had to become "strong" before it was ready, and now can\'t stand to see softness anywhere?', exercise:'Let yourself be visibly unsure about something today, on purpose.'},
+  'Difficulty receiving help': {dynamic:'Often formed when needing help once led to disappointment or shame — self-sufficiency became the only safe strategy.', prompt:'Who taught you that needing help was dangerous or embarrassing?', exercise:'Ask for one small piece of help today and let yourself actually receive it.'},
+  'Fear of abandonment': {dynamic:'Typically traces to an early experience of real or perceived loss — the nervous system now scans every bond for the same ending.', prompt:'Whose leaving, physically or emotionally, are you still bracing to repeat?', exercise:'Notice one moment today you\'re testing someone to see if they\'ll leave, and name it silently.'},
+  'Fear of rejection': {dynamic:'Frequently formed by an early experience of not being chosen or accepted — every new bond gets pre-screened for the same outcome.', prompt:'When was the first time you weren\'t chosen, and what did you decide about yourself then?', exercise:'Make one small ask today where rejection is genuinely possible.'},
+  'Suppressed anger': {dynamic:'Usually anger that was punished or shamed early, so it went underground instead of disappearing — it tends to leak out sideways or turn inward as depression.', prompt:'Who made anger unsafe to show, and where does yours actually go now?', exercise:'Name, privately, one thing you\'re genuinely angry about — no editing, no justifying it away.'},
+  'Chronic self-criticism': {dynamic:'Frequently an internalized parental or authority voice, running on autopilot long after the original source is gone.', prompt:'Whose voice is actually speaking when you tear yourself down?', exercise:'Catch one self-critical thought today and ask: "Would I say this to someone I respect?"'},
+  'Black-and-white thinking': {dynamic:'Often a nervous system shortcut formed under stress — nuance takes time you didn\'t have when the original threat was live.', prompt:'What situation are you currently sorting into all-or-nothing that probably has a middle?', exercise:'Name one piece of grey in a situation you\'ve been treating as black-or-white.'},
+  'Catastrophizing': {dynamic:'Usually a hypervigilant strategy that once had a real payoff — preparing for the worst felt safer than being blindsided again.', prompt:'What early event taught you that the worst case was the responsible one to expect?', exercise:'Write the worst-case, then the most-likely-case, side by side, and read only the second one aloud.'},
+  'Savior complex': {dynamic:'Often formed by an early role rescuing an unstable parent or sibling — worth became tied to being needed, not to being.', prompt:'Who did you have to save before you were old enough to save anyone?', exercise:'Let someone struggle today without stepping in, even though you could.'},
+  'Martyrdom': {dynamic:'Frequently a way of extracting unspoken recognition for sacrifice that was never actually asked for — resentment hiding inside self-sacrifice.', prompt:'What are you quietly hoping someone will notice and thank you for?', exercise:'Say the actual need out loud today instead of sacrificing silently and resenting it later.'},
+  'Difficulty trusting others': {dynamic:'Usually the residue of a specific betrayal, generalized to everyone since — a reasonable adaptation that overstayed its welcome.', prompt:'Whose betrayal is this really about, underneath the person in front of you now?', exercise:'Extend one small, low-risk piece of trust today and observe the actual outcome, not the predicted one.'},
+  'Fear of vulnerability': {dynamic:'Often formed when being open once led to being hurt, mocked, or exploited — armor that made sense once, worn long after the danger passed.', prompt:'What happened the last time you were truly open with someone, before you decided to stop?', exercise:'Share one true feeling today with someone safe, without softening or joking it away.'},
+  'Reputation management': {dynamic:'Frequently persona-driven — more energy spent curating how you\'re perceived than actually being who you are.', prompt:'How much of today\'s energy went into managing how you look, versus who you actually are?', exercise:'Do one thing today purely for yourself that no one else will ever see or know about.'},
+  'Overgiving': {dynamic:'Often rooted in an early belief that your needs come second, or that love has to be earned through output.', prompt:'Who taught you that your needs were a lower priority than everyone else\'s?', exercise:'Say no to one request today, cleanly, with no justification attached.'},
+  'Difficulty setting boundaries': {dynamic:'Usually formed where a boundary once led to punishment, guilt, or abandonment — so the muscle never got built.', prompt:'What happened the last time you tried to set a boundary with someone important?', exercise:'Set one small boundary today and let the discomfort pass without taking it back.'},
+  'Superiority complex': {dynamic:'Frequently a defense against an underlying fear of being ordinary or unworthy — looking down protects against the fear of being looked down on.', prompt:'What would it mean about you if you were simply average at something that matters to you?', exercise:'Genuinely praise someone today for something you\'d normally quietly consider beneath you.'},
+  'Inferiority complex': {dynamic:'Often an early, repeated comparison — to a sibling, peer, or standard — that got internalized as a permanent verdict rather than a single data point.', prompt:'Who were you first compared to, and did you ever actually get to renegotiate that verdict?', exercise:'List three things you do at least as well as the person you most compare yourself to.'},
+  'Chronic guilt': {dynamic:'Often disproportionate to the actual offense — frequently inherited from a caregiver who used guilt as a control mechanism.', prompt:'Is this guilt proportionate to what actually happened, or borrowed from somewhere else?', exercise:'Write down the actual "offense" and rate it honestly, 1–10, against how guilty you feel, 1–10.'},
+  'Emotional bypassing': {dynamic:'Often learned in a household where negative feelings weren\'t tolerated — positivity became a performance rather than a genuine state.', prompt:'What feeling do you rush past fastest with a positive reframe?', exercise:'Let one uncomfortable feeling sit today, unresolved, without immediately reframing it.'},
+  'Difficulty being alone': {dynamic:'Frequently reflects an unprocessed fear that, without distraction or company, something unbearable will surface.', prompt:'What do you expect to feel in true silence, with no one and nothing to distract you?', exercise:'Spend 15 minutes alone today with no phone, no music, no task — just notice.'},
+  'People-pleasing at work': {dynamic:'Often the persona showing up as "the reliable one" — competence used as a shield against the discomfort of ever disappointing anyone.', prompt:'What are you afraid would happen if you were seen as merely good, not endlessly accommodating?', exercise:'Decline one non-essential work request this week, clearly and without over-explaining.'},
+  'Toxic positivity': {dynamic:'Frequently a defense that keeps difficult emotions — in yourself or others — at arm\'s length, dressed up as optimism.', prompt:'What feeling, in yourself or someone else, do you rush to "fix" with positivity before it\'s even been felt?', exercise:'Next time someone shares something hard, just listen — no silver lining, no fix.'},
+  'Sexual compulsivity': {addictive:true, dynamic:'Often functions like other compulsive behaviors — a fast route to regulation or numbing that outpaces genuine intimacy or connection.', prompt:'What are you actually seeking in the moments right before — connection, escape, or control?', exercise:'Next urge, pause and name the underlying feeling before acting on it.'},
+  'Nostalgia / living in the past': {dynamic:'Can be a way of avoiding an unsatisfying present — the past gets edited into a golden age that conveniently requires nothing of you now.', prompt:'What about right now are you avoiding by living in a better-edited yesterday?', exercise:'Name one genuinely good thing about today, specifically, with no comparison to the past.'},
+  'Anxiety about the future': {dynamic:'Often a mind trying to control the uncontrollable by rehearsing every possible bad outcome in advance.', prompt:'What certainty are you demanding from a future that was never going to provide it?', exercise:'Write down the one next action you can actually take today, and stop there.'},
 };
-function renderSymptomChips(){
-  const el = document.getElementById('symptom-chips');
-  el.innerHTML = Object.keys(SYMPTOMS).map(s=>`<span class="chip" data-symptom="${s}">${s}</span>`).join('');
+
+function renderPatternChipLibrary(){
+  const el = document.getElementById('pattern-chip-library');
+  el.innerHTML = Object.keys(PATTERN_LIBRARY).map(s=>`<span class="chip" data-pattern="${s}">${s}</span>`).join('');
 }
-document.getElementById('symptom-chips').addEventListener('click', e=>{
+document.getElementById('pattern-chip-library').addEventListener('click', e=>{
   if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
 });
-
-/* Clusters of closely-related symptoms — these get a stronger direct connection in the web */
-const SYMPTOM_CLUSTERS = {
-  'Approval & Validation': ['People pleasing','Low confidence','Fear of judgement','Need for validation','Imposter syndrome'],
-  'Control & Perfection': ['Perfectionism','Self sabotage','Overthinking','Fear of success'],
-  'Avoidance & Escape': ['Avoidance','Porn addiction','Laziness','Emotional numbness'],
-  'Relational': ['Commitment issues','Relationship anxiety','Fear of intimacy','Jealousy'],
-  'Reactive': ['Anger','Jealousy'],
-};
-function sharedClusters(a,b){
-  return Object.entries(SYMPTOM_CLUSTERS).filter(([name,list])=>list.includes(a) && list.includes(b)).map(([name])=>name);
+function newPatternRecord(name, lib){
+  return {
+    id:uid(), name, source: lib ? 'library' : 'custom',
+    dynamic: lib ? lib.dynamic : '', prompt: lib ? lib.prompt : 'What do you think is really underneath this?',
+    exercise: lib ? lib.exercise : '', addictive: !!(lib && lib.addictive),
+    createdDate:new Date().toISOString(), origins:[], belief:'', beliefDate:null, letter:'', letterDate:null,
+    emotionLogs:[], checkins:[], release:{steps:{},completedSteps:[],currentStep:0,completedDate:null}
+  };
 }
-function dominantClusters(selected){
-  const counts = {};
-  Object.entries(SYMPTOM_CLUSTERS).forEach(([name,list])=>{
-    counts[name] = selected.filter(s=>list.includes(s)).length;
+document.getElementById('pattern-add-btn').addEventListener('click', ()=>{
+  const selected = Array.from(document.querySelectorAll('#pattern-chip-library .chip.selected')).map(c=>c.dataset.pattern);
+  const customName = document.getElementById('pattern-custom-name').value.trim();
+  if(!selected.length && !customName){ showToast('Select at least one, or name your own.'); return; }
+  let added = 0;
+  selected.forEach(name=>{
+    if(D.patterns.some(p=>p.name===name)) return;
+    D.patterns.push(newPatternRecord(name, PATTERN_LIBRARY[name]));
+    added++;
   });
-  return Object.entries(counts).filter(([,c])=>c>=2).sort((a,b)=>b[1]-a[1]);
-}
-const CLUSTER_NARRATIVES = {
-  'Approval & Validation': 'These tend to reinforce each other in a loop: the more self-worth depends on outside approval, the scarier judgement becomes, and the more perfect the performance has to be to avoid it.',
-  'Control & Perfection': 'These often form a control strategy — if everything is managed and flawless, nothing can go wrong or be criticized. The exhaustion of that standard is frequently what triggers the sabotage.',
-  'Avoidance & Escape': 'These usually share a single function: putting distance between you and a feeling that once felt unsafe to fully experience. The specific escape route (numbness, substance, procrastination) matters less than the pattern of escaping.',
-  'Relational': 'These tend to trace back to the same attachment wiring — the nervous system learned early that closeness carries risk, so it now polices distance in every close relationship, often without your conscious permission.',
-  'Reactive': 'These often share the same fuel — a softer, more vulnerable feeling underneath that gets converted into something louder and safer to express.',
-};
-function keywordCues(text){
-  const lower = (text||'').toLowerCase();
-  const cues = [];
-  if(/mother|mum|mom\b/.test(lower)) cues.push("The mention of your mother is worth sitting with — a lot of approval-seeking and relational patterns trace back to that first relationship.");
-  if(/father|dad\b/.test(lower)) cues.push("Your father coming up here isn't incidental — control, perfectionism, and proving-yourself patterns often trace back to that relationship specifically.");
-  if(/job|work|career|boss/.test(lower)) cues.push("Since this shows up at work, it's worth asking whether the pattern is really about the job, or whether work is just the current stage it's playing out on.");
-  if(/ex\b|relationship|partner|boyfriend|girlfriend/.test(lower)) cues.push("The relational context you mentioned is likely not the origin — just the place where an older pattern keeps finding a stage.");
-  if(/money|financ|poor|rich/.test(lower)) cues.push("Money is rarely just money — it's often carrying an older story about safety, worth, or control.");
-  if(/child|kid|young|school/.test(lower)) cues.push("You've pointed straight at the root yourself — this sounds like it was installed early, which means it can be examined and updated, not just endured.");
-  return cues;
-}
-function synthesizeAnalysis(selected, reflection){
-  const clusters = dominantClusters(selected);
-  let html = '';
-  if(clusters.length){
-    html += clusters.map(([name,count])=>`
-      <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75; margin-bottom:.9rem;">
-        <b style="color:var(--gold);">${name} (${count} of your selections):</b> ${CLUSTER_NARRATIVES[name]}
-      </p>`).join('');
-  } else {
-    html += `<p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75; margin-bottom:.9rem;">Your selections don't cluster tightly around one theme — which itself is worth noting. This might mean several separate things are active at once, rather than one root pattern wearing different masks.</p>`;
+  if(customName && !D.patterns.some(p=>p.name===customName)){
+    D.patterns.push(newPatternRecord(customName, null));
+    added++;
   }
-  const cues = keywordCues(reflection);
-  if(cues.length){
-    html += `<div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">` +
-      cues.map(c=>`<p style="font-size:.82rem; color:var(--dim-hi); line-height:1.7; margin-bottom:.6rem;">${c}</p>`).join('') + `</div>`;
-  }
-  return html;
-}
-
-document.getElementById('symptom-analyze').addEventListener('click', ()=>{
-  const selected = Array.from(document.querySelectorAll('#symptom-chips .chip.selected')).map(c=>c.dataset.symptom);
-  const reflection = document.getElementById('symptom-reflection').value.trim();
-  if(!selected.length){ showToast('Select at least one symptom.'); return; }
-  D.symptomSessions.push({date:new Date().toISOString(), symptoms:selected, reflection});
-  addXP(12*selected.length); saveData();
-  showToast(`Analysis complete · +${12*selected.length} XP`);
-  renderSymptomResults(selected, reflection);
+  if(!added){ showToast('Already tracking that pattern.'); return; }
+  document.querySelectorAll('#pattern-chip-library .chip.selected').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('pattern-custom-name').value='';
+  addXP(added*20); saveData();
+  showToast(`${added} pattern${added>1?'s':''} added · +${added*20} XP`);
+  renderPatternList();
 });
-function renderSymptomResults(selected, reflection){
-  const el = document.getElementById('symptom-results');
-  const cards = selected.map(s=>{
-    const d = SYMPTOMS[s];
-    return `<div class="card">
-      <span class="card-title">${s}</span>
-      <p style="font-size:.82rem; color:var(--dim-hi); line-height:1.65; margin-bottom:.8rem;">${d.dynamic}</p>
-      <p style="font-size:.78rem; color:var(--gold); margin-bottom:.4rem;"><b>Journal prompt:</b> ${d.prompt}</p>
-      <p style="font-size:.78rem; color:var(--dim);"><b>Exercise:</b> ${d.exercise}</p>
-    </div>`;
-  }).join('');
-  el.innerHTML = `
-    <div class="card card-lg" style="margin-bottom:1.3rem;">
-      <span class="card-title">The Interconnected Web</span>
-      <p style="font-size:.72rem; color:var(--dim); margin-bottom:.8rem;">Brighter, thicker lines mean those two symptoms commonly reinforce each other directly.</p>
-      <svg id="symptom-web" viewBox="0 0 500 340" style="width:100%; max-width:600px; display:block; margin:0 auto;"></svg>
+function renderPatternList(){
+  const el = document.getElementById('pattern-list');
+  if(!D.patterns.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◈</span>No patterns identified yet. Select one above to begin.</div>'; return; }
+  el.innerHTML = D.patterns.map(p=>`
+    <div class="card card-lg pattern-card" style="margin-bottom:1.2rem;" data-pid="${p.id}">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
+        <div>
+          <span class="card-title">${p.name}</span>
+          ${p.dynamic?`<p style="font-size:.82rem; color:var(--dim-hi); line-height:1.7; margin-bottom:.6rem;">${p.dynamic}</p>`:''}
+          ${p.prompt?`<p style="font-size:.78rem; color:var(--gold); margin-bottom:.6rem;"><b>Ask yourself:</b> ${p.prompt}</p>`:''}
+          ${p.exercise?`<p style="font-size:.78rem; color:var(--dim);"><b>Try:</b> ${p.exercise}</p>`:''}
+        </div>
+        <div style="display:flex; flex-direction:column; gap:.5rem; align-items:flex-end;">
+          <button class="btn btn-ghost btn-sm" onclick="deletePattern('${p.id}')">Remove</button>
+          <button class="btn btn-ghost btn-sm" onclick="jumpToInnerChild('${p.id}')">Trace Origin →</button>
+        </div>
+      </div>
+
+      <div style="margin-top:1.3rem; padding-top:1.2rem; border-top:1px solid var(--border);">
+        <span class="card-title" style="font-size:.6rem;">The Belief It Formed</span>
+        <div class="field"><textarea id="belief-${p.id}" placeholder="Because of that, I came to believe…">${p.belief||''}</textarea></div>
+        <button class="btn btn-ghost btn-sm" onclick="savePatternBelief('${p.id}')">Save Belief</button>
+      </div>
+
+      <div style="margin-top:1.3rem; padding-top:1.2rem; border-top:1px solid var(--border);">
+        <span class="card-title" style="font-size:.6rem;">A Letter To That Version Of You (Optional)</span>
+        <div class="field"><textarea id="letter-${p.id}" placeholder="What did he need to hear then, that you can say to him now?">${p.letter||''}</textarea></div>
+        <button class="btn btn-ghost btn-sm" onclick="savePatternLetter('${p.id}')">Save Letter</button>
+      </div>
+
+      <div style="margin-top:1.3rem; padding-top:1.2rem; border-top:1px solid var(--border);">
+        <span class="card-title" style="font-size:.6rem;">Where Is This Pattern Now?</span>
+        <div class="chip-row pattern-checkin-chips" data-pid="${p.id}">
+          <span class="chip" data-status="Strong">Still Strong</span>
+          <span class="chip" data-status="Present">Present</span>
+          <span class="chip" data-status="Fading">Fading</span>
+          <span class="chip" data-status="Resolved">Mostly Resolved</span>
+        </div>
+        ${(p.checkins||[]).length ? `<p style="font-size:.72rem; color:var(--dim); margin-top:.8rem;">Last check-in: ${p.checkins[p.checkins.length-1].status} — ${fmtDate(p.checkins[p.checkins.length-1].date)} · ${p.checkins.length} total check-ins</p>` : ''}
+      </div>
     </div>
-    <div class="card card-lg" style="margin-bottom:1.3rem;">
-      <span class="card-title">Connecting The Dots</span>
-      ${synthesizeAnalysis(selected, reflection)}
-    </div>
-    <div class="grid-2">${cards}</div>`;
-  drawSymptomWeb(selected);
-}
-function drawSymptomWeb(selected){
-  const svg = document.getElementById('symptom-web');
-  const cx=250, cy=170, n=selected.length;
-  const positions = {};
-  selected.forEach((s,i)=>{
-    const ang = (Math.PI*2*i/n) - Math.PI/2;
-    const r = 145;
-    positions[s] = {x: cx+Math.cos(ang)*r, y: cy+Math.sin(ang)*r};
-  });
-  let html = `<circle cx="${cx}" cy="${cy}" r="42" fill="var(--gold-glow)" stroke="var(--gold)" stroke-width="1.4"/>
-    <text x="${cx}" y="${cy+4}" text-anchor="middle" fill="var(--gold-bright)" font-family="JetBrains Mono" font-size="10">UNCONSCIOUS</text>`;
-  // spokes (thin, default)
-  selected.forEach(s=>{
-    const p = positions[s];
-    html += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="var(--border-hi)" stroke-width="1"/>`;
-  });
-  // direct connections for closely-linked symptoms (thicker, brighter, drawn above spokes)
-  for(let i=0;i<selected.length;i++){
-    for(let j=i+1;j<selected.length;j++){
-      if(sharedClusters(selected[i],selected[j]).length){
-        const p1=positions[selected[i]], p2=positions[selected[j]];
-        html += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="var(--gold-bright)" stroke-width="2.6" opacity=".8"/>`;
-      }
-    }
-  }
-  // nodes + labels on top
-  selected.forEach(s=>{
-    const p = positions[s];
-    html += `<circle cx="${p.x}" cy="${p.y}" r="34" fill="var(--graphite-2)" stroke="var(--border-hi)" stroke-width="1"/>`;
-    const words = s.split(' ');
-    words.forEach((w,wi)=>{
-      html += `<text x="${p.x}" y="${p.y+wi*11-(words.length-1)*5.5+4}" text-anchor="middle" fill="var(--dim-hi)" font-family="Inter" font-size="9.5">${w}</text>`;
+  `).join('');
+  document.querySelectorAll('.pattern-checkin-chips').forEach(row=>{
+    row.addEventListener('click', e=>{
+      if(!e.target.classList.contains('chip')) return;
+      logPatternCheckin(row.dataset.pid, e.target.dataset.status);
     });
   });
-  svg.innerHTML = html;
 }
-window.onPageShow.symptoms = function(){ if(!document.getElementById('symptom-chips').innerHTML) renderSymptomChips(); };
-safeInit('symptoms', renderSymptomChips);
-
-/* ================================================================
-   MODULE: TRAUMA EXPLORER — nervous system diagram
-================================================================= */
-function drawNervousSystem(){
-  const svg = document.getElementById('nervous-system-svg');
-  if(!svg) return;
-  let html = `<line x1="100" y1="20" x2="100" y2="230" stroke="var(--gold)" stroke-width="2.4" opacity=".8"/>
-    <circle cx="100" cy="18" r="14" fill="none" stroke="var(--gold)" stroke-width="2"/>`;
-  const branchY = [45,70,95,120,145,170,195,215];
-  branchY.forEach((y,i)=>{
-    const len = 30 + (i%3)*10;
-    [-1,1].forEach(dir=>{
-      html += `<path class="nerve-branch" d="M100,${y} Q${100+dir*len*.5},${y+8} ${100+dir*len},${y+18}"
-        fill="none" stroke="var(--gold)" stroke-width="1.2" opacity=".5" style="animation:nervePulse 3.2s ease-in-out infinite; animation-delay:${i*.25}s;"/>`;
-    });
-  });
-  svg.innerHTML = html;
-  if(!document.getElementById('nerve-kf')){
-    const st=document.createElement('style'); st.id='nerve-kf';
-    st.textContent='@keyframes nervePulse{0%,100%{opacity:.3;}50%{opacity:.9;}}';
-    document.head.appendChild(st);
-  }
-}
-window.onPageShow.trauma = function(){ drawNervousSystem(); };
-safeInit('trauma', drawNervousSystem);
-
-document.getElementById('trauma-response-chips').addEventListener('click', e=>{
-  if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
-});
-document.getElementById('trauma-task-save').addEventListener('click', ()=>{
-  const selected = Array.from(document.querySelectorAll('#trauma-response-chips .chip.selected')).map(c=>c.dataset.r);
-  const text = document.getElementById('trauma-reflection').value.trim();
-  if(!selected.length || !text){ showToast('Pick a response and describe a moment.'); return; }
-  D.journal.unshift({id:uid(), date:new Date().toISOString(), text:`[Trauma Explorer — ${selected.join('/')}] `+text, mood:null, tags:['trauma']});
-  D.shadowProgress.traumaTaskDone = true;
-  addXP(25); saveData();
-  document.getElementById('trauma-task-status').textContent = 'Saved to journal · +25 XP';
-  showToast('Reflection saved · +25 XP');
+window.deletePattern = function(id){
+  D.patterns = D.patterns.filter(p=>p.id!==id);
+  saveData(); showToast('Pattern removed.'); renderPatternList();
+};
+window.savePatternBelief = function(id){
+  const text = document.getElementById('belief-'+id).value.trim();
+  if(!text){ showToast('Write the belief first.'); return; }
+  const p = D.patterns.find(p=>p.id===id); if(!p) return;
+  p.belief = text; p.beliefDate = new Date().toISOString();
+  addXP(20); saveData();
+  showToast('Belief saved · +20 XP');
   renderRecentBreakthroughs();
+};
+window.savePatternLetter = function(id){
+  const text = document.getElementById('letter-'+id).value.trim();
+  if(!text){ showToast('Write something first.'); return; }
+  const p = D.patterns.find(p=>p.id===id); if(!p) return;
+  p.letter = text; p.letterDate = new Date().toISOString();
+  addXP(30); saveData();
+  showToast('Letter saved · +30 XP');
+  renderRecentBreakthroughs();
+};
+window.logPatternCheckin = function(id, status){
+  const p = D.patterns.find(p=>p.id===id); if(!p) return;
+  if(!p.checkins) p.checkins=[];
+  p.checkins.push({date:new Date().toISOString(), status});
+  addXP(8); saveData();
+  showToast('Check-in logged · +8 XP');
+  renderRecentBreakthroughs(); renderPatternList();
+};
+/* ---------- ROOT EMOTIONS (My Shadow) ---------- */
+function renderRootEmotionGroups(){
+  const el = document.getElementById('root-emotion-groups');
+  el.innerHTML = Object.entries(ROOT_EMOTIONS).map(([family, emotions])=>`
+    <div style="margin-bottom:.9rem;">
+      <p style="font-family:var(--font-m); font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim-hi); margin-bottom:.5rem;">${family}</p>
+      <div class="chip-row">${emotions.map(e=>`<span class="chip" data-emotion="${e}">${e}</span>`).join('')}</div>
+    </div>`).join('');
+}
+document.getElementById('root-emotion-groups').addEventListener('click', e=>{
+  if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
+});
+document.getElementById('root-emotion-save').addEventListener('click', ()=>{
+  const selected = Array.from(document.querySelectorAll('#root-emotion-groups .chip.selected')).map(c=>c.dataset.emotion);
+  if(!selected.length){ showToast('Select at least one root emotion.'); return; }
+  D.rootEmotionLogs.push({id:uid(), date:new Date().toISOString(), emotions:selected});
+  document.querySelectorAll('#root-emotion-groups .chip.selected').forEach(c=>c.classList.remove('selected'));
+  addXP(10); saveData();
+  showToast(`Root emotions logged · +10 XP`);
+  renderRootEmotionState();
+});
+function renderRootEmotionState(){
+  const last = D.rootEmotionLogs[D.rootEmotionLogs.length-1];
+  document.getElementById('root-emotion-last').textContent = last
+    ? `Last logged: ${last.emotions.join(', ')} — ${fmtDate(last.date)}`
+    : 'No root emotions logged yet.';
+}
+
+/* ---------- HAWKINS SCALE — My Shadow variant (separate widget, same underlying log) ---------- */
+function updateShadowConsciousnessLabel(){
+  const idx = parseInt(document.getElementById('shadow-consciousness-slider').value);
+  const lvl = CONSCIOUSNESS_LEVELS[idx];
+  document.getElementById('shadow-consciousness-label').textContent = lvl.name;
+  document.getElementById('shadow-consciousness-value').textContent = lvl.value;
+}
+document.getElementById('shadow-consciousness-slider').addEventListener('input', updateShadowConsciousnessLabel);
+document.getElementById('shadow-consciousness-save').addEventListener('click', ()=>{
+  const idx = parseInt(document.getElementById('shadow-consciousness-slider').value);
+  const lvl = CONSCIOUSNESS_LEVELS[idx];
+  D.moods.push({date:new Date().toISOString(), moods:[], consciousnessLevel:lvl.name, consciousnessValue:lvl.value});
+  addXP(8); saveData();
+  showToast('Logged where you are · +8 XP');
+  renderShadowConsciousnessState();
+});
+function renderShadowConsciousnessState(){
+  const last = D.moods[D.moods.length-1];
+  document.getElementById('shadow-consciousness-last').textContent = last
+    ? `Last logged: ${last.consciousnessLevel||''} — ${fmtDate(last.date)}`
+    : 'No check-in yet today.';
+}
+window.onPageShow.shadow = function(){
+  renderPatternChipLibrary(); renderPatternList();
+  renderRootEmotionGroups(); renderRootEmotionState();
+  updateShadowConsciousnessLabel(); renderShadowConsciousnessState();
+};
+safeInit('shadow', ()=>{
+  renderPatternChipLibrary(); renderPatternList();
+  renderRootEmotionGroups(); renderRootEmotionState();
+  updateShadowConsciousnessLabel(); renderShadowConsciousnessState();
 });
 
 /* ================================================================
-   MODULE: BODY SCAN
+   MODULE: EMOTIONS
 ================================================================= */
 const BODY_AREAS = {
   jaw:{label:'Jaw', emotion:'Frequently holds suppressed anger and unspoken words — clenching is often the body doing, silently, what the mouth was never allowed to do.', exercise:'Let your jaw hang fully open for 10 seconds, then slowly close it. Repeat 3 times.'},
@@ -1753,16 +1811,19 @@ function drawBodySvg(){
     ${hot(135,335,'legs')}
   `;
 }
+
 window.selectBodyArea = function(key){
   const a = BODY_AREAS[key];
   const existingLog = (D.bodyScan.feelings && D.bodyScan.feelings[key]) || [];
+  const patternOptions = D.patterns.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   document.getElementById('body-info').innerHTML = `
     <span class="card-title">${a.label}</span>
     <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.7; margin-bottom:1rem;">${a.emotion}</p>
     <p style="font-size:.8rem; color:var(--gold); margin-bottom:1rem;"><b>Grounding exercise:</b> ${a.exercise}</p>
-    <div class="field"><label>What are you actually feeling here right now?</label><textarea id="body-feeling-input" placeholder="Describe the sensation or emotion in this area"></textarea></div>
+    <div class="field"><label>Name it, and describe what you're actually feeling here</label><textarea id="body-feeling-input" placeholder="The sensation, the emotion, whatever's actually there"></textarea></div>
+    <div class="field"><label>What belief does this reinforce? (optional)</label><input type="text" id="body-belief-input" placeholder="e.g. that I'm not safe unless I'm in control"/></div>
+    ${D.patterns.length ? `<div class="field"><label>Link to a pattern (optional)</label><select id="body-pattern-select"><option value="">— general, not linked —</option>${patternOptions}</select></div>` : ''}
     <button class="btn btn-gold btn-sm" onclick="saveBodyFeeling('${key}')">Record This</button>
-    <button class="btn btn-ghost btn-sm" style="margin-top:.6rem;" onclick="goToPage('breathwork')">Open Breathwork →</button>
     ${existingLog.length ? `<div style="margin-top:1.3rem; padding-top:1rem; border-top:1px solid var(--border);"><span class="card-title" style="font-size:.6rem;">Previous Entries</span>${existingLog.slice().reverse().map(e=>`<div style="font-size:.76rem; color:var(--dim-hi); padding:.5rem 0; border-bottom:1px solid var(--border);">${fmtDate(e.date)} — ${e.text}</div>`).join('')}</div>` : ''}
   `;
   D.bodyScan.notes[key] = (D.bodyScan.notes[key]||0)+1;
@@ -1770,521 +1831,29 @@ window.selectBodyArea = function(key){
 };
 window.saveBodyFeeling = function(key){
   const text = document.getElementById('body-feeling-input').value.trim();
+  const beliefEl = document.getElementById('body-belief-input');
+  const belief = beliefEl ? beliefEl.value.trim() : '';
+  const patternSelect = document.getElementById('body-pattern-select');
+  const patternId = patternSelect ? patternSelect.value : '';
   if(!text){ showToast('Describe what you feel first.'); return; }
-  if(!D.bodyScan.feelings) D.bodyScan.feelings = {};
-  if(!D.bodyScan.feelings[key]) D.bodyScan.feelings[key] = [];
-  D.bodyScan.feelings[key].push({date:new Date().toISOString(), text});
+  if(patternId){
+    const p = D.patterns.find(p=>p.id===patternId);
+    if(p){
+      if(!p.emotionLogs) p.emotionLogs=[];
+      p.emotionLogs.push({id:uid(), date:new Date().toISOString(), text, bodyArea:BODY_AREAS[key].label, reinforces:belief});
+    }
+  } else {
+    if(!D.bodyScan.feelings) D.bodyScan.feelings = {};
+    if(!D.bodyScan.feelings[key]) D.bodyScan.feelings[key] = [];
+    D.bodyScan.feelings[key].push({date:new Date().toISOString(), text});
+  }
   addXP(10); saveData();
   showToast('Recorded · +10 XP');
+  renderRecentBreakthroughs();
   selectBodyArea(key);
 };
-window.onPageShow.body = function(){ drawBodySvg(); };
-safeInit('body', drawBodySvg);
 
-/* ================================================================
-   MODULE: INNER CHILD
-================================================================= */
-document.getElementById('ic-add-memory').addEventListener('click', ()=>{
-  const age = document.getElementById('ic-age').value;
-  const title = document.getElementById('ic-title').value.trim();
-  const desc = document.getElementById('ic-desc').value.trim();
-  if(!title){ showToast('Give this memory a title.'); return; }
-  D.innerChild.memories.push({id:uid(), age:age||'?', title, desc, date:new Date().toISOString()});
-  document.getElementById('ic-age').value=''; document.getElementById('ic-title').value=''; document.getElementById('ic-desc').value='';
-  addXP(20); saveData();
-  showToast('Added to timeline · +20 XP');
-  renderICTimeline();
-});
-function renderICTimeline(){
-  const el = document.getElementById('ic-timeline');
-  const sorted = [...D.innerChild.memories].sort((a,b)=>(parseInt(a.age)||99)-(parseInt(b.age)||99));
-  if(!sorted.length){ el.innerHTML='<div class="empty"><span class="empty-icon">✧</span>No memories added yet.</div>'; return; }
-  el.innerHTML = '<div class="entry-list">'+sorted.map(m=>`
-    <div class="entry"><span class="entry-date">Age ${m.age}</span><div class="entry-body"><b>${m.title}</b><br>${m.desc}</div><span class="entry-tag">MEMORY</span></div>
-  `).join('')+'</div>';
-}
-document.getElementById('ic-save-letter').addEventListener('click', ()=>{
-  const text = document.getElementById('ic-letter').value.trim();
-  if(!text){ showToast('Write something first.'); return; }
-  D.innerChild.letters.push({id:uid(), text, date:new Date().toISOString()});
-  document.getElementById('ic-letter').value='';
-  addXP(35); saveData();
-  showToast('Letter saved · +35 XP');
-  renderRecentBreakthroughs();
-  renderICLetters();
-});
-function renderICLetters(){
-  const el = document.getElementById('ic-letters');
-  if(!D.innerChild.letters.length){ el.innerHTML=''; return; }
-  el.innerHTML = '<span class="card-title">Previous Letters</span><div class="entry-list">'+D.innerChild.letters.slice().reverse().map(l=>`
-    <div class="entry"><span class="entry-date">${fmtDate(l.date)}</span><div class="entry-body">${l.text.slice(0,140)}${l.text.length>140?'…':''}</div><span class="entry-tag">LETTER</span></div>
-  `).join('')+'</div>';
-}
-window.onPageShow.innerchild = function(){ renderICTimeline(); renderICLetters(); };
-safeInit('innerchild', ()=>{ renderICTimeline(); renderICLetters(); });
-
-/* ================================================================
-   MODULE: DREAM JOURNAL
-================================================================= */
-const DREAM_SYMBOLS = {
-  Water:'Represents the unconscious itself — its clarity or turbulence often mirrors your current relationship to your own emotional depths.',
-  Snake:'A classic symbol of transformation and hidden knowledge — often appearing at moments of psychological shedding or threat.',
-  Mountain:'Represents a challenge, a goal, or the Self as a distant, attainable height — the journey up matters more than the summit.',
-  Ocean:'The vast collective unconscious — dreaming of the ocean often signals contact with something larger than personal experience.',
-  House:'Frequently a symbol for the psyche itself — different rooms can represent different parts of the self, some unvisited for years.',
-  Forest:'Represents the unknown, the unconscious terrain still unexplored — easy to feel lost in, necessary to enter anyway.',
-  Child:'Often symbolizes a new, undeveloped potential within you — or literally, your inner child seeking attention.',
-  Shadow:'A direct appearance of disowned material — often frightening in dreams precisely because it is unfamiliar to the ego.',
-  Death:'Rarely literal — usually signals the end of one phase of identity and the beginning of another.',
-  Fire:'Represents transformation, destruction, and purification simultaneously — old structures burning to make room.',
-  Journey:'Represents individuation itself — the psychological path from where you are to who you are becoming.',
-};
-document.getElementById('dream-save').addEventListener('click', ()=>{
-  const title = document.getElementById('dream-title').value.trim();
-  const text = document.getElementById('dream-text').value.trim();
-  const people = document.getElementById('dream-people').value.trim();
-  const feelings = document.getElementById('dream-feelings').value.trim();
-  const plot = document.getElementById('dream-plot').value.trim();
-  const connection = document.getElementById('dream-connection').value.trim();
-  if(!title && !text){ showToast('Add a title or description.'); return; }
-  D.dreams.unshift({id:uid(), title:title||'Untitled dream', text, people, feelings, plot, connection, date:new Date().toISOString()});
-  ['dream-title','dream-text','dream-people','dream-feelings','dream-plot','dream-connection'].forEach(id=>document.getElementById(id).value='');
-  addXP(30); saveData();
-  showToast('Dream logged · +30 XP');
-  renderDreamList();
-  renderRecentBreakthroughs();
-});
-function renderDreamList(){
-  const el = document.getElementById('dream-list');
-  if(!D.dreams.length){ el.innerHTML='<div class="empty"><span class="empty-icon">☽</span>No dreams logged yet.</div>'; return; }
-  el.innerHTML = '<div class="entry-list">'+D.dreams.map(d=>`
-    <div class="entry"><span class="entry-date">${fmtDate(d.date)}</span><div class="entry-body"><b>${d.title}</b><br>${d.text}
-      ${d.people?'<br><i style="color:var(--gold);">Who: </i>'+d.people:''}
-      ${d.feelings?'<br><i style="color:var(--gold);">Felt: </i>'+d.feelings:''}
-      ${d.plot?'<br><i style="color:var(--gold);">Plot: </i>'+d.plot:''}
-      ${d.connection?'<br><i style="color:var(--gold);">Waking-life link: </i>'+d.connection:''}
-    </div><span class="entry-tag">DREAM</span></div>
-  `).join('')+'</div>';
-}
-function renderSymbolDictionary(){
-  const el = document.getElementById('symbol-dictionary');
-  el.innerHTML = Object.entries(DREAM_SYMBOLS).map(([sym,meaning])=>`
-    <div class="acc-item" data-sym="${sym}">
-      <div class="acc-head" onclick="toggleSymbolAcc('${sym}')"><h4 style="font-size:.78rem;">${sym}</h4><span class="acc-chev">⌄</span></div>
-      <div class="acc-body"><div class="acc-body-inner" style="font-size:.78rem;">${meaning}</div></div>
-    </div>`).join('');
-}
-window.toggleSymbolAcc = function(sym){
-  const item = document.querySelector(`#symbol-dictionary .acc-item[data-sym="${sym}"]`);
-  item.classList.toggle('open');
-};
-window.onPageShow.dreams = function(){ renderDreamList(); renderSymbolDictionary(); };
-safeInit('dreams', ()=>{ renderDreamList(); renderSymbolDictionary(); });
-
-/* ================================================================
-   MODULE: ARCHETYPE TEST
-================================================================= */
-const ARCHETYPES = {
-  King:{
-    questions:['I feel a strong pull to take responsibility and bring order to chaotic situations.','I naturally step up to lead when a group lacks direction.','I feel accountable for outcomes even when they\'re not fully in my control.'],
-    strengths:'Vision, order, the ability to hold a group together.',
-    blind:'Can tip into control, or a need to be the sole authority.',
-    devVariants:[
-      'Practice delegating real power, not just tasks — let someone else own a decision fully, mistakes included.',
-      'Notice where you\'ve made yourself the only person who can hold things together, and hand one piece of that off.',
-      'Ask one person you lead what they actually need from you, and do only that — not more.'
-    ],
-    taskVariants:[
-      'This week, delegate one decision completely — no checking in, no correcting it afterward.',
-      'Identify one area where you\'re the bottleneck, and hand it to someone else before the week ends.',
-      'Ask someone you\'re responsible for what they need, then do exactly that and nothing more.'
-    ]
-  },
-  Warrior:{
-    questions:['I push through difficulty through sheer discipline and force of will.','I stay composed and take action even when a situation is frightening.','I hold myself to a physical and mental standard most people don\'t.'],
-    strengths:'Courage, discipline, resilience under pressure.',
-    blind:'Can suppress vulnerability and struggle to rest or ask for help.',
-    devVariants:[
-      'Practice strength that includes softness — recovery is part of the fight, not a break from it.',
-      'Let someone see you struggle with something, instead of only showing the finished result.',
-      'Take a full rest day this week without treating it as weakness.'
-    ],
-    taskVariants:[
-      'Take one full rest day this week — no training, no proving anything — and notice the discomfort.',
-      'Tell one person about something you\'re currently struggling with, without minimizing it.',
-      'Ask for help with one specific thing you\'d normally push through alone.'
-    ]
-  },
-  Lover:{
-    questions:['I experience the world intensely through emotion, beauty, and connection.','I form deep, passionate attachments to people, places, or pursuits.','I\'m moved easily by art, music, or moments of genuine intimacy.'],
-    strengths:'Passion, empathy, aliveness.',
-    blind:'Can become consumed by feeling, or addicted to intensity.',
-    devVariants:[
-      'Build structure that holds the intensity rather than being ruled by it.',
-      'Practice sitting with a strong feeling for five minutes before acting on it.',
-      'Create one boundary around an intense connection that\'s currently costing you.'
-    ],
-    taskVariants:[
-      'Next time an intense feeling hits, wait five full minutes before reacting to it.',
-      'Set one boundary this week with someone or something you feel intensely about.',
-      'Write down exactly what the intensity is costing you right now.'
-    ]
-  },
-  Magician:{
-    questions:['I\'m drawn to understanding how things work at a deep, almost hidden level.','I notice patterns and connections other people tend to miss.','I\'m more interested in transforming a situation than just managing it.'],
-    strengths:'Insight, transformation, seeing patterns others miss.',
-    blind:'Can intellectualize feelings instead of experiencing them.',
-    devVariants:[
-      'Let yourself not-know something for a while before analyzing it.',
-      'Practice translating an insight into one concrete action within 24 hours.',
-      'Share a half-formed idea with someone before it\'s fully worked out.'
-    ],
-    taskVariants:[
-      'Pick one insight you\'ve had recently and take one concrete action on it within 24 hours.',
-      'Sit with an unanswered question this week without researching it — just let it stay open.',
-      'Share an unfinished idea with someone before you feel ready to.'
-    ]
-  },
-};
-function renderArchetypeQuestions(){
-  const el = document.getElementById('archetype-questions');
-  let qIndex = 0;
-  el.innerHTML = Object.entries(ARCHETYPES).map(([name,data])=>
-    data.questions.map(q=>{
-      qIndex++;
-      return `<div style="margin-bottom:1.3rem;">
-        <p style="font-size:.85rem; margin-bottom:.6rem;">${qIndex}. ${q}</p>
-        <div class="chip-row" data-arch="${name}">
-          ${[1,2,3,4,5].map(v=>`<span class="chip" data-val="${v}" onclick="selectArchetypeVal(this)">${v}</span>`).join('')}
-        </div>
-      </div>`;
-    }).join('')
-  ).join('');
-}
-window.selectArchetypeVal = function(el){
-  const row = el.parentElement;
-  row.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected');
-};
-document.getElementById('archetype-submit').addEventListener('click', ()=>{
-  const scores = {King:[], Warrior:[], Lover:[], Magician:[]};
-  let answered=0;
-  document.querySelectorAll('#archetype-questions [data-arch]').forEach(row=>{
-    const sel = row.querySelector('.chip.selected');
-    const val = sel ? parseInt(sel.dataset.val) : 3;
-    if(sel) answered++;
-    scores[row.dataset.arch].push(val);
-  });
-  if(answered < 6){ showToast('Answer at least half the questions honestly.'); return; }
-  const avgScores = {};
-  Object.entries(scores).forEach(([name,vals])=>{ avgScores[name] = vals.reduce((a,b)=>a+b,0)/vals.length; });
-  D.archetypeResult = {scores:avgScores, date:new Date().toISOString()};
-  // pick a random dev/task pair for the weakest archetype
-  const weakest = Object.entries(avgScores).sort((a,b)=>a[1]-b[1])[0][0];
-  const data = ARCHETYPES[weakest];
-  const vIdx = Math.floor(Math.random()*data.devVariants.length);
-  D.archetypeWeakTask = {archetype:weakest, dev:data.devVariants[vIdx], task:data.taskVariants[vIdx], done:false};
-  saveData();
-  addXP(80);
-  showToast('Archetype profile generated · +80 XP');
-  renderArchetypeResults();
-});
-function renderArchetypeResults(){
-  const el = document.getElementById('archetype-results');
-  if(!D.archetypeResult){ el.innerHTML=''; return; }
-  const scores = D.archetypeResult.scores;
-  // Defend against stale saved data from before the archetype system changed shape —
-  // if any saved archetype name no longer exists in ARCHETYPES, the old test result
-  // is incompatible, so reset it and ask the person to retake the (now shorter) test.
-  const validNames = Object.keys(ARCHETYPES);
-  const isCompatible = scores && Object.keys(scores).every(name => validNames.includes(name)) && Object.keys(scores).length === validNames.length;
-  if(!isCompatible){
-    D.archetypeResult = null;
-    D.archetypeWeakTask = null;
-    saveData();
-    el.innerHTML = `<div class="empty"><span class="empty-icon">♜</span>The archetype test was updated since your last result — retake it above to see your profile.</div>`;
-    return;
-  }
-  const total = Object.values(scores).reduce((a,b)=>a+b,0);
-  const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
-  const wt = D.archetypeWeakTask;
-  el.innerHTML = `
-    <div class="card card-lg" style="margin-bottom:1.3rem;">
-      <span class="card-title">Your Profile</span>
-      ${sorted.map(([name,val])=>`
-        <div style="margin-bottom:.9rem;">
-          <div style="display:flex; justify-content:space-between; font-size:.82rem; margin-bottom:.3rem;"><span>${name}</span><span>${Math.round(val/total*100)}%</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(val/total*100)}%;"></div></div>
-        </div>`).join('')}
-    </div>
-    <div class="grid-4" style="margin-bottom:1.3rem;">
-      ${sorted.map(([name])=>`
-        <div class="card">
-          <span class="card-title">${name}</span>
-          <p style="font-size:.76rem; color:var(--dim-hi); margin-bottom:.6rem;"><b>Strengths:</b> ${ARCHETYPES[name].strengths}</p>
-          <p style="font-size:.76rem; color:var(--dim-hi);"><b>Blind spot:</b> ${ARCHETYPES[name].blind}</p>
-        </div>`).join('')}
-    </div>
-    ${wt ? `<div class="card card-lg">
-      <span class="card-title">Development Focus — ${wt.archetype}</span>
-      <p style="font-size:.85rem; color:var(--dim-hi); margin-bottom:1rem;">${wt.dev}</p>
-      <p style="font-size:.8rem; color:var(--gold); margin-bottom:1rem;"><b>Active task:</b> ${wt.task}</p>
-      ${wt.done
-        ? `<span style="font-family:var(--font-m); font-size:.72rem; color:var(--gold);">TASK COMPLETE</span>`
-        : `<button class="btn btn-gold btn-sm" onclick="completeArchetypeTask()">Mark Task Complete</button>`}
-    </div>` : ''}`;
-}
-window.completeArchetypeTask = function(){
-  if(!D.archetypeWeakTask || D.archetypeWeakTask.done) return;
-  D.archetypeWeakTask.done = true;
-  addXP(30); saveData();
-  showToast('Task complete · +30 XP');
-  renderArchetypeResults();
-  renderRecentBreakthroughs();
-};
-window.onPageShow.archetype = function(){ if(D.archetypeResult) renderArchetypeResults(); };
-safeInit('archetype', ()=>{ renderArchetypeQuestions(); if(D.archetypeResult) renderArchetypeResults(); });
-
-/* ================================================================
-   MODULE: VALUES & PURPOSE
-================================================================= */
-const VALUE_OPTIONS = ['Discipline','Freedom','Family','Honesty','Mastery','Courage','Loyalty','Growth','Health','Legacy','Adventure','Faith','Justice','Creativity','Service','Wealth','Peace','Excellence'];
-function renderValuesChips(){
-  document.getElementById('values-chips').innerHTML = VALUE_OPTIONS.map(v=>`<span class="chip ${D.purpose.values.includes(v)?'selected':''}" data-val="${v}">${v}</span>`).join('');
-}
-document.getElementById('values-chips').addEventListener('click', e=>{
-  if(!e.target.classList.contains('chip')) return;
-  const selectedCount = document.querySelectorAll('#values-chips .chip.selected').length;
-  if(!e.target.classList.contains('selected') && selectedCount>=5){ showToast('Max 5 — deselect one first.'); return; }
-  e.target.classList.toggle('selected');
-});
-document.getElementById('values-save').addEventListener('click', ()=>{
-  D.purpose.values = Array.from(document.querySelectorAll('#values-chips .chip.selected')).map(c=>c.dataset.val);
-  if(!D.purpose.values.length){ showToast('Select up to 5 values first.'); return; }
-  saveData(); addXP(20); showToast('Values saved · +20 XP');
-});
-document.getElementById('ikigai-save').addEventListener('click', ()=>{
-  D.purpose.ikigai = {
-    love: document.getElementById('ikigai-love').value.trim(),
-    good: document.getElementById('ikigai-good').value.trim(),
-    needs: document.getElementById('ikigai-needs').value.trim(),
-    paid: document.getElementById('ikigai-paid').value.trim(),
-  };
-  saveData(); addXP(40); showToast('Ikigai saved · +40 XP');
-});
-document.getElementById('mission-save').addEventListener('click', ()=>{
-  const text = document.getElementById('mission-text').value.trim();
-  if(!text){ showToast('Write a draft first.'); return; }
-  D.purpose.mission = text; D.purpose.missionDate = new Date().toISOString();
-  saveData(); addXP(50); showToast('Mission saved · +50 XP');
-  renderRecentBreakthroughs();
-});
-document.getElementById('vision-save').addEventListener('click', ()=>{
-  const text = document.getElementById('vision-text').value.trim();
-  if(!text){ showToast('Write a draft first.'); return; }
-  D.purpose.vision = text;
-  saveData(); addXP(30); showToast('Vision saved · +30 XP');
-});
-function loadPurposeFields(){
-  if(D.purpose.ikigai){
-    document.getElementById('ikigai-love').value = D.purpose.ikigai.love||'';
-    document.getElementById('ikigai-good').value = D.purpose.ikigai.good||'';
-    document.getElementById('ikigai-needs').value = D.purpose.ikigai.needs||'';
-    document.getElementById('ikigai-paid').value = D.purpose.ikigai.paid||'';
-  }
-  document.getElementById('mission-text').value = D.purpose.mission||'';
-  document.getElementById('vision-text').value = D.purpose.vision||'';
-}
-window.onPageShow.purpose = function(){ safeInit('purpose', ()=>{ renderValuesChips(); loadPurposeFields(); }); };
-renderValuesChips(); loadPurposeFields();
-
-/* ================================================================
-   MODULE: JOURNAL
-================================================================= */
-document.getElementById('journal-save').addEventListener('click', ()=>{
-  const text = document.getElementById('journal-text').value.trim();
-  const mood = document.getElementById('journal-mood').value;
-  const tags = document.getElementById('journal-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
-  if(!text){ showToast('Write something first.'); return; }
-  D.journal.unshift({id:uid(), date:new Date().toISOString(), text, mood:mood||null, tags});
-  document.getElementById('journal-text').value=''; document.getElementById('journal-mood').value=''; document.getElementById('journal-tags').value='';
-  addXP(15); saveData();
-  showToast('Entry saved · +15 XP');
-  renderJournalList();
-  renderRecentBreakthroughs();
-});
-function renderJournalList(filter){
-  const el = document.getElementById('journal-list');
-  filter = (filter||'').toLowerCase();
-  const items = D.journal.filter(j => !filter || j.text.toLowerCase().includes(filter) || (j.tags||[]).some(t=>t.toLowerCase().includes(filter)));
-  if(!items.length){ el.innerHTML='<div class="empty"><span class="empty-icon">✎</span>No entries yet.</div>'; return; }
-  el.innerHTML = '<div class="entry-list">'+items.map(j=>`
-    <div class="entry"><span class="entry-date">${fmtDate(j.date)}</span><div class="entry-body">${j.text}${j.mood?'<br><i style="color:var(--gold);">Mood: '+j.mood+'</i>':''}${(j.tags&&j.tags.length)?'<br><span style="color:var(--dim);">#'+j.tags.join(' #')+'</span>':''}</div><span class="entry-tag">JOURNAL</span></div>
-  `).join('')+'</div>';
-}
-document.getElementById('journal-search').addEventListener('input', e=>renderJournalList(e.target.value));
-window.onPageShow.journal = function(){ renderJournalList(document.getElementById('journal-search').value); };
-safeInit('journal', ()=>renderJournalList());
-
-/* ================================================================
-   MODULE: BREAKTHROUGH TIMELINE
-================================================================= */
-document.getElementById('breakthrough-save').addEventListener('click', ()=>{
-  const text = document.getElementById('breakthrough-text').value.trim();
-  if(!text){ showToast('Write what happened first.'); return; }
-  D.breakthroughs.unshift({date:new Date().toISOString(), text});
-  document.getElementById('breakthrough-text').value='';
-  addXP(40); saveData();
-  showToast('Breakthrough logged · +40 XP');
-  renderFullTimeline();
-  renderRecentBreakthroughs();
-});
-function renderFullTimeline(){
-  const el = document.getElementById('full-timeline');
-  const events = getAllBreakthroughEvents();
-  if(!events.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◷</span>Your record starts the moment you act.</div>'; return; }
-  el.innerHTML = '<div class="entry-list">'+events.map(e=>`
-    <div class="entry"><span class="entry-date">${fmtDate(e.date)}</span><div class="entry-body">${e.label}</div><span class="entry-tag">${e.tag}</span></div>
-  `).join('')+'</div>';
-}
-window.onPageShow.timeline = function(){ renderFullTimeline(); };
-safeInit('timeline', renderFullTimeline);
-
-/* ================================================================
-   MODULE: KNOWLEDGE LIBRARY
-================================================================= */
-const LIBRARY = {
-  'Carl Jung':[
-    {t:'The Collective Unconscious', d:'A layer of the psyche shared across all humans, holding inherited patterns (archetypes) rather than personal memories — the reason certain symbols and stories recur across every unrelated culture.'},
-    {t:'Individuation', d:'The lifelong process of integrating conscious and unconscious material into a coherent, whole self — becoming who you actually are rather than who you were assigned to be.'},
-    {t:'Active Imagination', d:'A technique Jung developed for consciously engaging with unconscious material — images, figures, or dreams — through dialogue rather than passive analysis.'},
-  ],
-  'Viktor Frankl':[
-    {t:'Meaning Over Pleasure', d:'Frankl\'s central claim, forged in the concentration camps of WWII: humans are driven primarily by a search for meaning, not pleasure or power — and meaning can be found even in unavoidable suffering.'},
-    {t:'The Last Freedom', d:'Even when every external circumstance is stripped away, Frankl argued one freedom remains: the choice of attitude toward what happens to you.'},
-  ],
-  'Alfred Adler':[
-    {t:'Inferiority &amp; Compensation', d:'Adler proposed that early feelings of inferiority drive a lifelong compensatory striving — healthy when channeled into growth, unhealthy when it curdles into a superiority complex.'},
-    {t:'Social Interest', d:'Adler considered genuine contribution to others, not personal achievement alone, the clearest marker of psychological health.'},
-  ],
-  'Freud':[
-    {t:'The Unconscious', d:'Freud\'s foundational claim that much of mental life operates outside conscious awareness, and that behavior often serves hidden motives the conscious mind doesn\'t recognize.'},
-    {t:'Defense Mechanisms', d:'Freud (and later his daughter Anna) mapped the unconscious strategies the mind uses to protect itself from unbearable thoughts — repression, denial, projection, and more.'},
-  ],
-  'Joseph Campbell':[
-    {t:'The Hero\'s Journey', d:'Campbell\'s synthesis of mythology across cultures into a single recurring structure: the call to adventure, the descent into the unknown, and the return transformed.'},
-    {t:'Follow Your Bliss', d:'Campbell\'s frequently misunderstood phrase — not hedonism, but the discipline of pursuing what genuinely animates you, trusting the path opens as a result.'},
-  ],
-  'Stoicism':[
-    {t:'The Dichotomy of Control', d:'The Stoic foundation: separate what is within your control (your judgments, actions, effort) from what isn\'t (outcomes, others\' opinions, the past) — and direct all energy toward the former.'},
-    {t:'Memento Mori', d:'The practice of remembering mortality, not as morbidity but as clarifying force — used to cut through trivial anxieties and focus on what actually matters.'},
-  ],
-  'Greek Philosophy':[
-    {t:'Know Thyself', d:'Inscribed at the Temple of Delphi, this became the foundation of Socratic philosophy — the claim that self-knowledge precedes any other kind of wisdom.'},
-    {t:'Eudaimonia', d:'Often mistranslated as "happiness," Aristotle\'s concept is closer to "flourishing through the exercise of virtue" — a life well-lived, not merely a pleasant one.'},
-  ],
-  'Trauma Research':[
-    {t:'The Body Keeps Score (concept)', d:'Modern trauma research confirms what Jung intuited: traumatic memory is often stored somatically, not just narratively — which is why talking alone doesn\'t always resolve it.'},
-    {t:'Polyvagal Theory (concept)', d:'Stephen Porges\' framework describing how the autonomic nervous system moves between safety, mobilization (fight/flight), and shutdown (freeze) states, largely outside conscious control.'},
-  ],
-  'Neuroscience':[
-    {t:'Neuroplasticity', d:'The brain\'s capacity to physically rewire itself in response to repeated thought and behavior — the biological basis for why deliberate practice actually changes who you are.'},
-    {t:'The Negativity Bias', d:'Human brains are wired to register threats and negative experiences more strongly than positive ones — an evolutionary survival trait that now often overreacts to modern, non-lethal stress.'},
-  ],
-};
-function renderLibrary(){
-  const el = document.getElementById('library-content');
-  el.innerHTML = Object.entries(LIBRARY).map(([cat,items])=>`
-    <div style="margin-bottom:2rem;">
-      <span class="card-title" style="font-size:.7rem;">${cat}</span>
-      <div class="grid-3" style="margin-top:.8rem;">
-        ${items.map(i=>`<div class="card"><h4 style="font-family:var(--font-d); font-size:.85rem; margin-bottom:.6rem;">${i.t}</h4><p style="font-size:.78rem; color:var(--dim-hi); line-height:1.65;">${i.d}</p></div>`).join('')}
-      </div>
-    </div>`).join('');
-}
-window.onPageShow.library = function(){ if(!document.getElementById('library-content').innerHTML) renderLibrary(); };
-safeInit('library', renderLibrary);
-
-document.getElementById('library-task-save').addEventListener('click', ()=>{
-  const text = document.getElementById('library-reflection').value.trim();
-  if(!text){ showToast('Write a reflection first.'); return; }
-  D.journal.unshift({id:uid(), date:new Date().toISOString(), text:'[Knowledge Library] '+text, mood:null, tags:['library']});
-  D.shadowProgress.libraryTaskDone = true;
-  addXP(25); saveData();
-  showToast('Reflection saved · +25 XP');
-  document.getElementById('library-reflection').value='';
-  renderRecentBreakthroughs();
-});
-
-/* ================================================================
-   MODULE: THE LABYRINTH
-================================================================= */
-const LABYRINTH_LEVELS = [
-  {id:'fear', label:'Confront Fear', task:'Name, in writing, the single thing you\'re most avoiding right now — and why.', xp:40},
-  {id:'shadow', label:'Face Shadow', task:'Complete at least one full reflection in The Shadow module.', xp:50, requires:m=>m.shadowProgress.readConcepts.length>0},
-  {id:'archetypes', label:'Meet Archetypes', task:'Complete the Archetype Test.', xp:60, requires:m=>!!m.archetypeResult},
-  {id:'emotions', label:'Integrate Emotions', task:'Log one Body Scan area and one Journal entry in the same day.', xp:55, requires:m=>Object.keys(m.bodyScan.notes).length>0 && m.journal.length>0},
-  {id:'purpose', label:'Find Purpose', task:'Draft a Mission Statement in Values & Purpose.', xp:80, requires:m=>!!m.purpose.mission},
-];
-function isLabyrinthUnlocked(i){
-  if(i===0) return true;
-  return D.labyrinth.completed.some(c=>c.id===LABYRINTH_LEVELS[i-1].id);
-}
-function isLabyrinthComplete(id){ return D.labyrinth.completed.some(c=>c.id===id); }
-function drawLabyrinthPath(){
-  const svg = document.getElementById('labyrinth-svg');
-  const n = LABYRINTH_LEVELS.length;
-  const spacing = 640/(n-1);
-  let html='';
-  for(let i=0;i<n-1;i++){
-    const x1=30+i*spacing, x2=30+(i+1)*spacing;
-    const done = isLabyrinthComplete(LABYRINTH_LEVELS[i].id);
-    html += `<line x1="${x1}" y1="110" x2="${x2}" y2="110" stroke="${done?'var(--gold)':'var(--border)'}" stroke-width="2"/>`;
-  }
-  LABYRINTH_LEVELS.forEach((lvl,i)=>{
-    const x=30+i*spacing;
-    const complete = isLabyrinthComplete(lvl.id);
-    const unlocked = isLabyrinthUnlocked(i);
-    const fill = complete? 'var(--gold)' : (unlocked? 'var(--graphite-2)' : 'var(--graphite)');
-    const stroke = complete||unlocked ? 'var(--gold)' : 'var(--border)';
-    html += `<circle cx="${x}" cy="110" r="22" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/>`;
-    html += `<text x="${x}" y="115" text-anchor="middle" fill="${complete?'#100c02':'var(--dim-hi)'}" font-family="JetBrains Mono" font-size="13">${i+1}</text>`;
-    html += `<text x="${x}" y="150" text-anchor="middle" fill="var(--dim-hi)" font-family="Inter" font-size="11">${lvl.label}</text>`;
-  });
-  svg.innerHTML = html;
-}
-function renderLabyrinthLevels(){
-  const el = document.getElementById('labyrinth-levels');
-  el.innerHTML = LABYRINTH_LEVELS.map((lvl,i)=>{
-    const complete = isLabyrinthComplete(lvl.id);
-    const unlocked = isLabyrinthUnlocked(i);
-    const autoOk = !lvl.requires || lvl.requires(D);
-    return `<div class="card" style="margin-bottom:1rem; opacity:${unlocked?1:.45};">
-      <span class="card-title">Level ${i+1} — ${lvl.label} ${complete?'✓':''}</span>
-      <p style="font-size:.85rem; color:var(--dim-hi); margin-bottom:.9rem;">${lvl.task}</p>
-      ${complete
-        ? `<span style="font-family:var(--font-m); font-size:.72rem; color:var(--gold);">COMPLETE</span>`
-        : unlocked
-          ? `<button class="btn btn-gold btn-sm" onclick="completeLabyrinthLevel('${lvl.id}')" ${autoOk?'':'disabled'}>${autoOk? 'Mark Complete +'+lvl.xp+' XP' : 'Complete the linked module first'}</button>`
-          : `<span style="font-family:var(--font-m); font-size:.7rem; color:var(--dim);">LOCKED — complete the previous level</span>`
-      }
-    </div>`;
-  }).join('');
-}
-window.completeLabyrinthLevel = function(id){
-  const lvl = LABYRINTH_LEVELS.find(l=>l.id===id);
-  if(isLabyrinthComplete(id)) return;
-  D.labyrinth.completed.push({id, label:lvl.label, date:new Date().toISOString()});
-  addXP(lvl.xp); saveData();
-  showToast(`Level complete — ${lvl.label} · +${lvl.xp} XP`);
-  drawLabyrinthPath(); renderLabyrinthLevels(); renderRecentBreakthroughs();
-};
-window.onPageShow.labyrinth = function(){ drawLabyrinthPath(); renderLabyrinthLevels(); };
-safeInit('labyrinth', ()=>{ drawLabyrinthPath(); renderLabyrinthLevels(); });
-
-/* ================================================================
-   MODULE: BREATHWORK
-================================================================= */
+/* --- Breathwork (lives inside Emotions) --- */
 const BREATH_PATTERNS = {
   box:{ phases:[{l:'Inhale',s:4,t:1},{l:'Hold',s:4,t:1},{l:'Exhale',s:4,t:0},{l:'Hold',s:4,t:0}] },
   sigh:{ phases:[{l:'Inhale',s:2,t:0.6},{l:'Inhale Again',s:1.5,t:1},{l:'Long Exhale',s:6,t:0}] },
@@ -2352,84 +1921,187 @@ document.getElementById('breath-start').addEventListener('click', ()=>{
   document.getElementById('breath-start').textContent = 'Stop';
   startBreathPhase(performance.now());
 });
-window.onPageShow.breathwork = function(){ drawBreathCircle(0.3); };
-safeInit('breathwork', ()=>drawBreathCircle(0.3));
+
+window.onPageShow.emotions = function(){ drawBodySvg(); drawBreathCircle(0.3); };
+safeInit('emotions', ()=>{ drawBodySvg(); drawBreathCircle(0.3); });
 
 /* ================================================================
-   MODULE: MORNING RITUAL
+   MODULE: RELEASE
 ================================================================= */
-const MORNING_ITEMS = [
-  {id:'movement', label:'Movement'},
-  {id:'sunlight', label:'Sunlight'},
-  {id:'purpose', label:'Purpose reminder read'},
-  {id:'journal', label:'Journal opened'},
-  {id:'hydration', label:'Hydration'},
-  {id:'coldshower', label:'Cold shower'},
-  {id:'workout', label:'Workout logged'},
+const RELEASE_STEPS = [
+  {key:'name', title:'Name It Plainly', prompt:'Say it plainly — what is this pattern, and what has it actually cost you?'},
+  {key:'origin', title:'Acknowledge The Origin', prompt:'"I created this belief to protect myself when…" — finish that sentence, using what you already wrote in My Shadow.'},
+  {key:'body', title:'Feel It In The Body', prompt:'Take a slow breath. Where do you feel this pattern right now, physically, as you write this?'},
+  {key:'voice', title:'Speak What Was Needed', prompt:'What did you need to hear back then, that you can say to yourself now?'},
+  {key:'release', title:'Release & Replace', prompt:'Finish it: "I release the belief that ___. In its place, I choose to practice ___."'},
 ];
-function renderMorningChecklist(){
-  const today = todayStr();
-  document.getElementById('morning-date-label').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'});
-  const rec = D.morning[today] || {checks:{}, intention:''};
-  document.getElementById('morning-intention').value = rec.intention||'';
-  document.getElementById('morning-checklist').innerHTML = MORNING_ITEMS.map(item=>`
-    <label style="display:flex; align-items:center; gap:.7rem; padding:.6rem 0; border-bottom:1px solid var(--border); cursor:pointer; font-size:.85rem;">
-      <input type="checkbox" data-item="${item.id}" ${rec.checks[item.id]?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);"/> ${item.label}
-    </label>`).join('');
+function renderReleasePatternSelect(){
+  const el = document.getElementById('release-pattern-select-wrap');
+  if(!D.patterns.length){
+    el.innerHTML = `<span class="card-title">Choose A Pattern</span><div class="empty"><span class="empty-icon">✦</span>No patterns identified yet.<br><button class="btn btn-gold btn-sm" style="margin-top:1rem;" onclick="goToPage('shadow')">Go To My Shadow</button></div>`;
+    document.getElementById('release-workbook').innerHTML = '';
+    return;
+  }
+  el.innerHTML = `<span class="card-title">Choose A Pattern</span><div class="field"><label>Which pattern are you working on?</label>
+    <select id="release-pattern-select">
+      <option value="">— choose a pattern —</option>
+      ${D.patterns.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+    </select></div>`;
+  document.getElementById('release-pattern-select').addEventListener('change', e=>renderReleaseWorkbook(e.target.value));
 }
-document.getElementById('morning-save').addEventListener('click', ()=>{
-  const today = todayStr();
-  const checks = {};
-  document.querySelectorAll('#morning-checklist input[type=checkbox]').forEach(cb=>{ checks[cb.dataset.item] = cb.checked; });
-  const intention = document.getElementById('morning-intention').value.trim();
-  D.morning[today] = {checks, intention};
-  const completedCount = Object.values(checks).filter(Boolean).length;
-  addXP(completedCount*8); saveData();
-  showToast(`Ritual saved · +${completedCount*8} XP`);
-});
-window.onPageShow.morning = function(){ renderMorningChecklist(); };
-safeInit('morning', renderMorningChecklist);
-
-/* ================================================================
-   MODULE: EVENING INTEGRATION
-================================================================= */
-function renderEveningState(){
-  const today = todayStr();
-  document.getElementById('evening-date-label').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'});
-  const rec = D.evening[today] || {};
-  document.getElementById('evening-wins').value = rec.wins||'';
-  document.getElementById('evening-triggers').value = rec.triggers||'';
-  document.getElementById('evening-lessons').value = rec.lessons||'';
-  document.getElementById('evening-gratitude').value = rec.gratitude||'';
-  document.getElementById('evening-shadow').value = rec.shadow||'';
-  document.querySelectorAll('[data-sleep]').forEach(chip=>{
-    chip.classList.toggle('selected', (rec.sleep||[]).includes(chip.dataset.sleep));
-  });
+function renderReleaseWorkbook(patternId){
+  const el = document.getElementById('release-workbook');
+  if(!patternId){ el.innerHTML=''; return; }
+  const p = D.patterns.find(p=>p.id===patternId);
+  if(!p){ el.innerHTML=''; return; }
+  if(!p.release) p.release = {steps:{},completedSteps:[],currentStep:0,completedDate:null};
+  const cur = p.release.currentStep||0;
+  el.innerHTML = `
+    ${p.addictive ? `<div class="disclaimer" style="margin-bottom:1.3rem;">This workbook can support insight into compulsive patterns like this one, but it isn't clinical treatment. If this pattern feels bigger than you can move on your own, a licensed therapist or a support group built for it is the right next step alongside this.</div>` : ''}
+    <div class="card card-lg" style="margin-bottom:1.2rem;">
+      <span class="card-title">${p.name} — Recap</span>
+      <p style="font-size:.8rem; color:var(--dim-hi); line-height:1.7;">
+        ${p.belief ? `<b>Belief:</b> ${p.belief}<br>` : '<i>No belief recorded yet in My Shadow — you can still work through this, but it may help to fill that in first.</i><br>'}
+        ${(p.origins&&p.origins.length) ? `<b>Origin:</b> ${p.origins[p.origins.length-1].title}` : ''}
+      </p>
+    </div>
+    ${RELEASE_STEPS.map((s,i)=>`
+      <div class="card card-lg" style="margin-bottom:1.1rem; ${i>cur?'opacity:.35;':''}">
+        <span class="card-title">Step ${i+1} — ${s.title}</span>
+        <div class="field"><textarea id="release-step-${i}" ${i>cur?'disabled':''} placeholder="${s.prompt}">${(p.release.steps&&p.release.steps[s.key])||''}</textarea></div>
+        ${i<=cur ? `<button class="btn btn-gold btn-sm" onclick="saveReleaseStep('${p.id}', ${i})">${i===RELEASE_STEPS.length-1 ? 'Complete Release' : 'Save & Continue'}</button>` : ''}
+      </div>
+    `).join('')}
+    ${p.release.completedDate ? `<div class="card card-lg" style="text-align:center;"><span class="card-title">Completed</span><p style="font-size:.85rem; color:var(--gold);">Released on ${fmtDate(p.release.completedDate)}. You can revisit this any time — shadow work rarely resolves in a single pass.</p><div class="chip-row" style="justify-content:center; margin-top:1rem;" id="release-checkin-chips" data-pid="${p.id}"><span class="chip" data-status="Fading">Log It's Fading</span><span class="chip" data-status="Resolved">Log Mostly Resolved</span></div></div>` : ''}
+  `;
+  if(p.release.completedDate){
+    document.getElementById('release-checkin-chips').addEventListener('click', e=>{
+      if(!e.target.classList.contains('chip')) return;
+      logPatternCheckin(p.id, e.target.dataset.status);
+      showToast("Check-in logged from Release.");
+    });
+  }
 }
-document.querySelectorAll('[data-sleep]').forEach(chip=>{
-  chip.addEventListener('click', ()=>chip.classList.toggle('selected'));
-});
-document.getElementById('evening-save').addEventListener('click', ()=>{
-  const today = todayStr();
-  const sleep = Array.from(document.querySelectorAll('[data-sleep].selected')).map(c=>c.dataset.sleep);
-  D.evening[today] = {
-    wins: document.getElementById('evening-wins').value.trim(),
-    triggers: document.getElementById('evening-triggers').value.trim(),
-    lessons: document.getElementById('evening-lessons').value.trim(),
-    gratitude: document.getElementById('evening-gratitude').value.trim(),
-    shadow: document.getElementById('evening-shadow').value.trim(),
-    sleep,
-  };
-  addXP(35); saveData();
-  showToast('Integration saved · +35 XP');
-  if(D.evening[today].shadow){
-    D.breakthroughs.unshift({date:new Date().toISOString(), text:'Shadow encounter: '+D.evening[today].shadow});
-    saveData();
+window.saveReleaseStep = function(patternId, stepIdx){
+  const p = D.patterns.find(p=>p.id===patternId); if(!p) return;
+  const s = RELEASE_STEPS[stepIdx];
+  const text = document.getElementById('release-step-'+stepIdx).value.trim();
+  if(!text){ showToast('Write something before continuing.'); return; }
+  if(!p.release) p.release = {steps:{},completedSteps:[],currentStep:0,completedDate:null};
+  p.release.steps[s.key] = text;
+  if(!p.release.completedSteps.includes(s.key)) p.release.completedSteps.push(s.key);
+  if(stepIdx === RELEASE_STEPS.length-1){
+    p.release.completedDate = new Date().toISOString();
+    addXP(80); saveData();
+    showToast('Release complete · +80 XP');
+  } else {
+    p.release.currentStep = Math.max(p.release.currentStep||0, stepIdx+1);
+    addXP(18); saveData();
+    showToast('Saved · +18 XP');
   }
   renderRecentBreakthroughs();
+  renderReleaseWorkbook(patternId);
+};
+window.onPageShow.release = function(){ renderReleasePatternSelect(); };
+safeInit('release', renderReleasePatternSelect);
+
+const DREAM_SYMBOLS = {
+  Water:'Represents the unconscious itself — its clarity or turbulence often mirrors your current relationship to your own emotional depths.',
+  Snake:'A classic symbol of transformation and hidden knowledge — often appearing at moments of psychological shedding or threat.',
+  Mountain:'Represents a challenge, a goal, or the Self as a distant, attainable height — the journey up matters more than the summit.',
+  Ocean:'The vast collective unconscious — dreaming of the ocean often signals contact with something larger than personal experience.',
+  House:'Frequently a symbol for the psyche itself — different rooms can represent different parts of the self, some unvisited for years.',
+  Forest:'Represents the unknown, the unconscious terrain still unexplored — easy to feel lost in, necessary to enter anyway.',
+  Child:'Often symbolizes a new, undeveloped potential within you — or literally, your inner child seeking attention.',
+  Shadow:'A direct appearance of disowned material — often frightening in dreams precisely because it is unfamiliar to the ego.',
+  Death:'Rarely literal — usually signals the end of one phase of identity and the beginning of another.',
+  Fire:'Represents transformation, destruction, and purification simultaneously — old structures burning to make room.',
+  Journey:'Represents individuation itself — the psychological path from where you are to who you are becoming.',
+};
+document.getElementById('dream-save').addEventListener('click', ()=>{
+  const title = document.getElementById('dream-title').value.trim();
+  const text = document.getElementById('dream-text').value.trim();
+  const people = document.getElementById('dream-people').value.trim();
+  const feelings = document.getElementById('dream-feelings').value.trim();
+  const plot = document.getElementById('dream-plot').value.trim();
+  const connection = document.getElementById('dream-connection').value.trim();
+  if(!title && !text){ showToast('Add a title or description.'); return; }
+  D.dreams.unshift({id:uid(), title:title||'Untitled dream', text, people, feelings, plot, connection, date:new Date().toISOString()});
+  ['dream-title','dream-text','dream-people','dream-feelings','dream-plot','dream-connection'].forEach(id=>document.getElementById(id).value='');
+  addXP(30); saveData();
+  showToast('Dream logged · +30 XP');
+  renderDreamList();
+  renderRecentBreakthroughs();
 });
-window.onPageShow.evening = function(){ renderEveningState(); };
-safeInit('evening', renderEveningState);
+function renderDreamList(){
+  const el = document.getElementById('dream-list');
+  if(!D.dreams.length){ el.innerHTML='<div class="empty"><span class="empty-icon">☽</span>No dreams logged yet.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+D.dreams.map(d=>`
+    <div class="entry"><span class="entry-date">${fmtDate(d.date)}</span><div class="entry-body"><b>${d.title}</b><br>${d.text}
+      ${d.people?'<br><i style="color:var(--gold);">Who: </i>'+d.people:''}
+      ${d.feelings?'<br><i style="color:var(--gold);">Felt: </i>'+d.feelings:''}
+      ${d.plot?'<br><i style="color:var(--gold);">Plot: </i>'+d.plot:''}
+      ${d.connection?'<br><i style="color:var(--gold);">Waking-life link: </i>'+d.connection:''}
+    </div><span class="entry-tag">DREAM</span></div>
+  `).join('')+'</div>';
+}
+function renderSymbolDictionary(){
+  const el = document.getElementById('symbol-dictionary');
+  el.innerHTML = Object.entries(DREAM_SYMBOLS).map(([sym,meaning])=>`
+    <div class="acc-item" data-sym="${sym}">
+      <div class="acc-head" onclick="toggleSymbolAcc('${sym}')"><h4 style="font-size:.78rem;">${sym}</h4><span class="acc-chev">⌄</span></div>
+      <div class="acc-body"><div class="acc-body-inner" style="font-size:.78rem;">${meaning}</div></div>
+    </div>`).join('');
+}
+window.toggleSymbolAcc = function(sym){
+  const item = document.querySelector(`#symbol-dictionary .acc-item[data-sym="${sym}"]`);
+  item.classList.toggle('open');
+};
+/* ---------- INNER CHILD (moved here from My Shadow) ---------- */
+function renderInnerChildPatternSelect(preserveId){
+  const sel = document.getElementById('inner-child-pattern-select');
+  const current = preserveId!==undefined ? preserveId : sel.value;
+  sel.innerHTML = '<option value="">General — not tied to a specific pattern</option>'
+    + D.patterns.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  if(current) sel.value = current;
+}
+document.getElementById('inner-child-add').addEventListener('click', ()=>{
+  const patternId = document.getElementById('inner-child-pattern-select').value;
+  const pattern = D.patterns.find(p=>p.id===patternId);
+  const age = document.getElementById('inner-child-age').value;
+  const title = document.getElementById('inner-child-title').value.trim();
+  const desc = document.getElementById('inner-child-desc').value.trim();
+  if(!title){ showToast('Give this memory a title.'); return; }
+  D.innerChild.unshift({ id:uid(), patternId: patternId||null, patternName: pattern?pattern.name:null, age:age||'?', title, desc, date:new Date().toISOString() });
+  document.getElementById('inner-child-age').value='';
+  document.getElementById('inner-child-title').value='';
+  document.getElementById('inner-child-desc').value='';
+  addXP(20); saveData();
+  showToast('Added to timeline · +20 XP');
+  renderInnerChildTimeline(); renderRecentBreakthroughs();
+});
+function renderInnerChildTimeline(){
+  const el = document.getElementById('inner-child-timeline');
+  if(!D.innerChild.length){ el.innerHTML='<div class="empty"><span class="empty-icon">✧</span>No origin memories logged yet.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+D.innerChild.map(o=>`
+    <div class="entry"><span class="entry-date">Age ${o.age}</span><div class="entry-body"><b>${o.title}</b>${o.patternName?` <span style="color:var(--gold);">· ${o.patternName}</span>`:''}<br>${o.desc||''}</div><span class="entry-tag">INNER CHILD</span>
+      <button class="btn btn-ghost btn-sm" style="margin-top:.5rem;" onclick="deleteInnerChild('${o.id}')">Remove</button>
+    </div>
+  `).join('')+'</div>';
+}
+window.deleteInnerChild = function(id){
+  D.innerChild = D.innerChild.filter(o=>o.id!==id);
+  saveData(); showToast('Entry removed.'); renderInnerChildTimeline();
+};
+window.jumpToInnerChild = function(patternId){
+  goToPage('dreams');
+  setTimeout(()=>{
+    renderInnerChildPatternSelect(patternId);
+    document.getElementById('inner-child-form-card').scrollIntoView({behavior:'smooth', block:'center'});
+  }, 50);
+};
+window.onPageShow.dreams = function(){ renderDreamList(); renderSymbolDictionary(); renderInnerChildPatternSelect(); renderInnerChildTimeline(); };
+safeInit('dreams', ()=>{ renderDreamList(); renderSymbolDictionary(); renderInnerChildPatternSelect(); renderInnerChildTimeline(); });
 </script>
 </body>
 </html>
