@@ -115,6 +115,64 @@ a{color:inherit; text-decoration:none;}
   100%{transform:translateX(2%);}
 }
 
+/* water running through the base of the cave */
+.water-pool{
+  position:absolute; left:0; right:0; bottom:0; height:22%;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg, transparent, rgba(6,9,11,0.5) 35%, rgba(3,5,6,0.88) 100%);
+  border-top:1px solid rgba(200,165,98,0.05);
+}
+.water-shimmer{
+  position:absolute; inset:-20% -40%;
+  background:
+    repeating-linear-gradient(95deg,
+      transparent 0px, transparent 60px,
+      rgba(200,165,98,0.05) 90px, transparent 130px,
+      rgba(255,255,255,0.03) 160px, transparent 210px);
+  animation:watershift 16s linear infinite;
+  opacity:.8;
+}
+@keyframes watershift{
+  0%{transform:translateX(0) translateY(0);}
+  100%{transform:translateX(-25%) translateY(1%);}
+}
+.water-ripple{
+  position:absolute; bottom:18%; border-radius:50%;
+  border:1px solid rgba(200,165,98,0.12);
+  width:10px; height:4px;
+  animation:ripple 7s ease-out infinite;
+  opacity:0;
+}
+.water-ripple.r1{left:22%; animation-delay:0s;}
+.water-ripple.r2{left:58%; animation-delay:2.6s;}
+.water-ripple.r3{left:78%; animation-delay:5s;}
+@keyframes ripple{
+  0%{width:6px; height:2px; opacity:0;}
+  15%{opacity:.5;}
+  70%{opacity:0;}
+  100%{width:140px; height:22px; opacity:0;}
+}
+
+/* faint water trickling down the cave walls */
+.trickle{
+  position:absolute; top:0; width:1px; height:55%;
+  background:linear-gradient(180deg,
+    transparent,
+    rgba(200,165,98,0.10) 20%,
+    rgba(255,255,255,0.06) 45%,
+    transparent 70%);
+  opacity:0;
+  animation:trickledrop 9s ease-in infinite;
+  filter:blur(0.3px);
+}
+@keyframes trickledrop{
+  0%{opacity:0; transform:translateY(-10%);}
+  10%{opacity:.5;}
+  80%{opacity:.3;}
+  100%{opacity:0; transform:translateY(15%);}
+}
+
 /* ============================================================
    BOOT SEQUENCE
    ============================================================ */
@@ -255,7 +313,7 @@ a{color:inherit; text-decoration:none;}
 .sb-item{
   display:flex; align-items:center; gap:14px;
   padding:13px 14px; border-radius:3px;
-  color:var(--grey); position:relative;
+  color:#B7B7B7; position:relative;
   transition:all .25s var(--ease-soft);
   white-space:nowrap; overflow:hidden;
 }
@@ -351,6 +409,8 @@ a{color:inherit; text-decoration:none;}
   #sidebar{
     position:fixed; left:0; top:0; bottom:0; width:var(--sidebar-w-expanded);
     transform:translateX(-100%); z-index:100;
+    background:linear-gradient(180deg, #161616, #060606);
+    box-shadow:20px 0 50px rgba(0,0,0,0.5);
   }
   #sidebar.mobile-open{transform:translateX(0);}
   #sidebar.expanded{width:var(--sidebar-w-expanded);}
@@ -628,7 +688,17 @@ a{color:inherit; text-decoration:none;}
   <div class="gold-ray" style="left:30%; animation-delay:0s;"></div>
   <div class="gold-ray" style="left:68%; animation-delay:4s;"></div>
   <div class="gold-ray" style="left:50%; animation-delay:8s; opacity:.6;"></div>
+  <div class="trickle" style="left:12%; animation-delay:0s;"></div>
+  <div class="trickle" style="left:23%; animation-delay:3.5s;"></div>
+  <div class="trickle" style="left:77%; animation-delay:1.8s;"></div>
+  <div class="trickle" style="left:88%; animation-delay:5.2s;"></div>
   <div class="fog"></div>
+  <div class="water-pool">
+    <div class="water-shimmer"></div>
+    <div class="water-ripple r1"></div>
+    <div class="water-ripple r2"></div>
+    <div class="water-ripple r3"></div>
+  </div>
   <div id="dust-container"></div>
 </div>
 
@@ -656,11 +726,10 @@ a{color:inherit; text-decoration:none;}
   </div>
 </div>
 
-<div id="scrim"></div>
-
 <button id="mobile-toggle">☰</button>
 
 <div id="app">
+  <div id="scrim"></div>
   <nav id="sidebar">
     <div class="sb-brand" id="sb-brand-toggle">
       <div class="sb-brand-mark">S</div>
