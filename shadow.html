@@ -59,6 +59,7 @@ textarea,input,select{font-family:inherit;}
 ::-webkit-scrollbar-track{background:transparent;}
 :focus-visible{outline:1.5px solid var(--gold);outline-offset:2px;}
 @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+body.reduce-motion *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
 
 /* ============ UTILITIES ============ */
 .eyebrow{font-family:var(--font-m);font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);}
@@ -231,6 +232,24 @@ textarea,input,select{font-family:inherit;}
 .chip:hover{ border-color:var(--gold); color:var(--white); }
 .chip.selected{ background:var(--gold-glow); border-color:var(--gold); color:var(--gold); }
 
+/* ---------- SETTINGS: TOGGLE SWITCH ---------- */
+.settings-row{ display:flex; justify-content:space-between; align-items:center; gap:1.2rem; }
+@media (max-width:520px){ .settings-row{ flex-direction:column; align-items:flex-start; gap:.9rem; } .settings-row > *:last-child{ align-self:flex-start; } }
+.settings-row-title{ font-family:var(--font-b); font-weight:600; font-size:.92rem; color:var(--white); margin-bottom:.3rem; }
+.settings-row-desc{ font-family:var(--font-b); font-size:.76rem; color:var(--dim); }
+.toggle-switch{
+  width:52px; height:30px; border-radius:100px; background:var(--graphite-3);
+  position:relative; cursor:pointer; flex-shrink:0; transition:background .3s var(--ease);
+  border:1px solid var(--border);
+}
+.toggle-switch.on{ background:linear-gradient(120deg,var(--gold-deep),var(--gold-bright)); border-color:var(--gold); }
+.toggle-knob{
+  position:absolute; top:2px; left:2px; width:24px; height:24px; border-radius:50%;
+  background:#fff; transition:transform .3s var(--ease), background .3s var(--ease);
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+}
+.toggle-switch.on .toggle-knob{ transform:translateX(22px); background:#100c02; }
+
 /* ACCORDION */
 .acc-item{ border:1px solid var(--border); border-radius:10px; margin-bottom:.7rem; overflow:hidden; background:var(--graphite); }
 .acc-head{ display:flex; align-items:center; justify-content:space-between; padding:1rem 1.2rem; cursor:pointer; }
@@ -239,6 +258,7 @@ textarea,input,select{font-family:inherit;}
 .acc-item.open .acc-chev{ transform:rotate(180deg); }
 .acc-body{ max-height:0; overflow:hidden; transition:max-height .4s var(--ease); }
 .acc-item.open .acc-body{ max-height:900px; }
+.pattern-card.open .acc-body{ max-height:4000px; }
 .acc-body-inner{ padding:0 1.2rem 1.2rem; color:var(--dim-hi); font-size:.85rem; line-height:1.75; font-weight:300; }
 .acc-body-inner p{ margin-bottom:.8rem; }
 
@@ -292,38 +312,6 @@ textarea,input,select{font-family:inherit;}
 .sticky-aside{ position:sticky; top:1.5rem; }
 @media (max-width:900px){ .sticky-aside{ position:static; } }
 
-/* ---------- FOUNDATION: SHADOW WEB DIAGRAM ---------- */
-.web-controls{ display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1rem; }
-#web-canvas-wrap{
-  position:relative; width:100%; height:520px; border:1px solid var(--border); border-radius:10px;
-  background:radial-gradient(circle at 50% 50%, rgba(201,168,96,.05), transparent 65%), rgba(0,0,0,.18);
-  overflow:hidden; touch-action:none;
-}
-#web-canvas{ width:100%; height:100%; display:block; }
-.web-conn-line{ stroke:var(--border-hi); stroke-width:1.4; fill:none; }
-.web-conn-line.connecting-preview{ stroke:var(--gold); stroke-dasharray:4 4; }
-.web-conn-label-bg{ fill:var(--void); opacity:.88; }
-.web-conn-label{ font-family:var(--font-m); font-size:9px; fill:var(--gold); text-anchor:middle; }
-.web-center-node{ cursor:default; }
-.web-center-circle{ fill:rgba(201,168,96,.1); stroke:var(--gold); stroke-width:1.5; }
-.web-center-text{ font-family:var(--font-d); font-size:12px; letter-spacing:.15em; fill:var(--gold-bright); text-anchor:middle; text-transform:uppercase; }
-.web-entry-fo{ overflow:visible; }
-.web-entry-box{
-  width:130px; padding:.5rem .6rem; border-radius:8px; background:rgba(20,17,10,.92);
-  border:1px solid var(--border-hi); cursor:grab; user-select:none; box-shadow:0 6px 18px rgba(0,0,0,.35);
-  transition:border-color .2s;
-}
-.web-entry-box:active{ cursor:grabbing; }
-.web-entry-box.connect-armed{ border-color:var(--gold-bright); box-shadow:0 0 0 2px var(--gold-glow); }
-.web-entry-title{ font-family:var(--font-d); font-size:.68rem; color:var(--gold); letter-spacing:.03em; margin-bottom:.2rem; word-break:break-word; }
-.web-entry-desc{ font-family:var(--font-b); font-size:.62rem; color:var(--dim-hi); line-height:1.35; max-height:2.6em; overflow:hidden; word-break:break-word; }
-.web-entry-remove{
-  position:absolute; top:-8px; right:-8px; width:18px; height:18px; border-radius:50%;
-  background:var(--graphite-2); border:1px solid var(--border-hi); color:var(--dim-hi);
-  font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer;
-}
-.web-entry-remove:hover{ color:var(--gold-bright); border-color:var(--gold); }
-#web-add-form{ margin-top:1.1rem; padding-top:1.1rem; border-top:1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -412,7 +400,7 @@ textarea,input,select{font-family:inherit;}
               <div class="ring-val" id="score-shadow-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
             </div>
             <div class="card" style="text-align:center;">
-              <span class="card-title">Emotions</span>
+              <span class="card-title">Body Memory</span>
               <div style="font-family:var(--font-d); font-size:1.5rem; color:var(--gold);" id="lvl-emotions-num">Lvl 1</div>
               <div class="bar-track" style="margin-top:.5rem;"><div class="bar-fill" id="score-emotions" style="width:0%;"></div></div>
               <div class="ring-val" id="score-emotions-val" style="margin-top:.5rem; font-size:.68rem;">0 / 100 XP</div>
@@ -448,9 +436,6 @@ textarea,input,select{font-family:inherit;}
             <div id="dash-recent-breakthroughs"><div class="empty"><span class="empty-icon">◷</span>Nothing logged yet. Your record starts the moment you act.</div></div>
           </div>
 
-          <span class="page-eyebrow" style="display:block; margin-top:2.4rem;">Your Path</span>
-          <div class="grid-4" id="module-grid" style="margin-top:1rem;"></div>
-
           <div class="disclaimer">This application is educational and designed for guided self-reflection. It is not a replacement for professional mental health care. If you are in crisis, please reach out to a licensed professional or local emergency service.</div>
         </section>
 
@@ -459,30 +444,7 @@ textarea,input,select{font-family:inherit;}
           <h1 class="page-title">The Architecture Of The Self</h1>
           <p class="page-sub">Everything you've disowned about yourself doesn't disappear. It goes underground, and runs your life from there — through the people you envy, the reactions you can't explain, and the things you swear you'd never do. Start here before the three tabs that follow.</p>
 
-          <div class="grid-work">
-            <div>
-              <div id="shadow-accordion"></div>
-            </div>
-
-            <div class="sticky-aside">
-              <div class="card card-lg">
-                <span class="card-title">Your Shadow Web</span>
-                <p style="font-size:.72rem; color:var(--dim); margin-bottom:1rem;">Add anything that feels shadow-related — a trait, a trigger, a person, a memory. Everything connects to the centre by default. Drag entries to arrange them, then link related entries to each other and describe how.</p>
-                <div class="web-controls">
-                  <button class="btn btn-ghost btn-sm" id="web-connect-toggle">Connect Two Entries</button>
-                  <button class="btn btn-ghost btn-sm" id="web-reset-layout">Reset Layout</button>
-                </div>
-                <div id="web-canvas-wrap">
-                  <svg id="web-canvas" viewBox="0 0 600 520"></svg>
-                </div>
-                <div id="web-add-form">
-                  <div class="field"><label>New entry</label><input type="text" id="web-entry-title" placeholder="e.g. Anger, My father, Being laughed at…" maxlength="40"/></div>
-                  <div class="field"><textarea id="web-entry-desc" placeholder="Short explanation (optional)" style="min-height:56px;"></textarea></div>
-                  <button class="btn btn-gold btn-sm" id="web-entry-add">Add To Web</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div id="shadow-accordion"></div>
 
           <div class="disclaimer">This module is educational. It describes patterns, not diagnoses. If any of this surfaces something overwhelming, a licensed therapist is the right next step — not this app.</div>
         </section>
@@ -496,18 +458,10 @@ textarea,input,select{font-family:inherit;}
             <div>
               <div class="card card-lg" style="margin-bottom:1.5rem;">
                 <span class="card-title">Symptoms</span>
-                <p style="font-size:.78rem; color:var(--dim); margin-bottom:.9rem;">Select any that apply, or name your own below.</p>
-                <div class="chip-row" id="pattern-chip-library"></div>
+                <p style="font-size:.78rem; color:var(--dim); margin-bottom:.9rem;">Grouped into a few main strands so this doesn't read like a wall of text. Open a strand, select any that apply, or name your own below — then trace each one below to the emotion underneath it.</p>
+                <div id="pattern-category-accordion"></div>
                 <div class="field" style="margin-top:1.2rem;"><label>Or name your own</label><input type="text" id="pattern-custom-name" placeholder="A pattern not on the list above"/></div>
                 <button class="btn btn-gold btn-sm" id="pattern-add-btn">Add To My Shadow</button>
-              </div>
-
-              <div class="card card-lg" style="margin-bottom:1.5rem;">
-                <span class="card-title">Root Emotions</span>
-                <p style="font-size:.78rem; color:var(--dim); margin-bottom:.9rem;">Underneath the symptom is usually a feeling. Select whatever's actually present right now — as many as apply, across as many families as apply.</p>
-                <div id="root-emotion-groups"></div>
-                <button class="btn btn-gold btn-sm" id="root-emotion-save" style="margin-top:1.2rem;">Log Root Emotions</button>
-                <p style="color:var(--dim); font-size:.72rem; margin-top:1rem;" id="root-emotion-last">No root emotions logged yet.</p>
               </div>
 
               <div id="pattern-list"></div>
@@ -533,8 +487,8 @@ textarea,input,select{font-family:inherit;}
 
         <section class="page" id="page-emotions">
           <span class="page-eyebrow">The Work — Step Two</span>
-          <h1 class="page-title">Emotions</h1>
-          <p class="page-sub">Shift the focus from the event to the emotion itself. What is this feeling, where do you feel it physically, and what belief does it keep reinforcing?</p>
+          <h1 class="page-title">Body Memory</h1>
+          <p class="page-sub">Somatic awareness — the body keeps what the mind won't look at. Find where a feeling actually lives physically, what belief it keeps reinforcing, and how to regulate it in the moment.</p>
 
           <div class="grid-2" style="margin-bottom:1.3rem;">
             <div class="card card-lg" style="display:flex; align-items:center; justify-content:center;">
@@ -570,6 +524,18 @@ textarea,input,select{font-family:inherit;}
             <p style="font-size:.85rem; color:var(--dim-hi); line-height:1.75;">Release doesn't mean the pattern vanishes the moment you name it. It means the belief underneath it stops running unexamined — you've felt where it lives, said what it cost, and consciously chosen what replaces it. Real shadow work isn't linear: a pattern can resurface even after you've worked through it here, and that's normal, not failure. You can run this workbook again for the same pattern any time it comes back around.</p>
           </div>
 
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">The Goal: Feel It Until It Moves</span>
+            <p style="font-size:.82rem; color:var(--dim-hi); line-height:1.7; margin-bottom:1rem;">Emotion is energy that wants to move through the body and complete itself. Most patterns form because a feeling got interrupted — pushed down, distracted from, or never allowed to finish. The goal below isn't to think your way past it. It's to actually feel it fully enough that it breaks up and leaves, instead of going back underground.</p>
+            <ol style="font-size:.82rem; color:var(--dim-hi); line-height:1.9; padding-left:1.2rem;">
+              <li><b style="color:var(--gold);">Locate it.</b> Notice where in your body this emotion actually sits right now — chest, jaw, gut, shoulders. Be specific.</li>
+              <li><b style="color:var(--gold);">Breathe into it, don't push it away.</b> Send your next few breaths directly into that spot instead of distracting yourself from it.</li>
+              <li><b style="color:var(--gold);">Let it move.</b> It may intensify, shake, tighten, or want to come out as a sigh, a sound, or tears. Let it, without judging it or acting on it destructively.</li>
+              <li><b style="color:var(--gold);">Stay with it until it peaks and drops.</b> Keep breathing and observing. There's usually a peak of intensity, then a noticeable release — that drop is the emotion actually discharging, not being suppressed again.</li>
+              <li><b style="color:var(--gold);">Notice what's left.</b> When it eases, check what's underneath — often it's calm, relief, or a quieter, more honest version of the same feeling. That's the sign it's actually moved, not just been argued with.</li>
+            </ol>
+          </div>
+
           <div class="card card-lg" style="margin-bottom:1.3rem;" id="release-pattern-select-wrap"></div>
 
           <div id="release-workbook"></div>
@@ -602,9 +568,11 @@ textarea,input,select{font-family:inherit;}
               <div id="symbol-dictionary"></div>
             </div>
           </div>
+        </section>
 
-          <span class="page-eyebrow" style="display:block; margin-top:2.4rem;">Module 06b</span>
-          <h1 class="page-title" style="font-size:1.6rem;">Inner Child</h1>
+        <section class="page" id="page-innerchild">
+          <span class="page-eyebrow">Module 07</span>
+          <h1 class="page-title">Inner Child</h1>
           <p class="page-sub">Symptom → originating event → belief formed. Trace a pattern from My Shadow back to where it started — the memory, the age, what happened.</p>
 
           <div class="card card-lg" style="margin-bottom:1.3rem;" id="inner-child-form-card">
@@ -625,6 +593,44 @@ textarea,input,select{font-family:inherit;}
           <div class="card card-lg">
             <span class="card-title">Your Timeline</span>
             <div id="inner-child-timeline"></div>
+          </div>
+        </section>
+
+        <section class="page" id="page-settings">
+          <span class="page-eyebrow">System</span>
+          <h1 class="page-title">Settings</h1>
+          <p class="page-sub">Configure the instrument.</p>
+
+          <div class="card card-lg settings-row" style="margin-bottom:1rem;">
+            <div>
+              <div class="settings-row-title">Ambient Sound</div>
+              <div class="settings-row-desc">Metallic clicks, terminal tones, cave echo</div>
+            </div>
+            <div class="toggle-switch" id="toggle-sound" role="switch" aria-checked="false" tabindex="0"><div class="toggle-knob"></div></div>
+          </div>
+
+          <div class="card card-lg settings-row" style="margin-bottom:1rem;">
+            <div>
+              <div class="settings-row-title">Reduced Motion</div>
+              <div class="settings-row-desc">Minimize animation across the interface</div>
+            </div>
+            <div class="toggle-switch" id="toggle-motion" role="switch" aria-checked="false" tabindex="0"><div class="toggle-knob"></div></div>
+          </div>
+
+          <div class="card card-lg settings-row" style="margin-bottom:1rem;">
+            <div>
+              <div class="settings-row-title">Account</div>
+              <div class="settings-row-desc" id="settings-account-email">Not signed in</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="settings-signout-btn">Sign Out</button>
+          </div>
+
+          <div class="card card-lg settings-row">
+            <div>
+              <div class="settings-row-title">Reset Today's Data</div>
+              <div class="settings-row-desc">Clears today's mood check-in and consciousness reading only</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="settings-reset-today">Reset Today</button>
           </div>
         </section>
 
@@ -655,11 +661,15 @@ textarea,input,select{font-family:inherit;}
     <div class="sb-label">The Work</div>
     <li class="sb-item" data-page="foundation"><span class="sb-icon">☾</span><span>Foundation</span></li>
     <li class="sb-item" data-page="shadow"><span class="sb-icon">◈</span><span>My Shadow</span></li>
-    <li class="sb-item" data-page="emotions"><span class="sb-icon">◉</span><span>Emotions</span></li>
+    <li class="sb-item" data-page="emotions"><span class="sb-icon">◉</span><span>Body Memory</span></li>
     <li class="sb-item" data-page="release"><span class="sb-icon">✦</span><span>Release</span></li>
 
     <div class="sb-label">Explore</div>
     <li class="sb-item" data-page="dreams"><span class="sb-icon">☽</span><span>Dream Journal</span></li>
+    <li class="sb-item" data-page="innerchild"><span class="sb-icon">✧</span><span>Inner Child</span></li>
+
+    <div class="sb-label">System</div>
+    <li class="sb-item" data-page="settings"><span class="sb-icon">⚙</span><span>Settings</span></li>
   </ul>
   <div class="sb-foot">
     <div class="sb-streak">🔥 <span id="streak-display">0</span> day streak</div>
@@ -787,6 +797,7 @@ async function enterAppAfterAuth(){
         patterns: Array.isArray(cloud.patterns) ? cloud.patterns : [],
         rootEmotionLogs: Array.isArray(cloud.rootEmotionLogs) ? cloud.rootEmotionLogs : [],
         innerChild: Array.isArray(cloud.innerChild) ? cloud.innerChild : [],
+        settings: Object.assign(defaultData().settings, cloud.settings||{}),
       });
       migrateInnerChild();
       localStorage.setItem(STORE_KEY, JSON.stringify(D));
@@ -797,7 +808,7 @@ async function enterAppAfterAuth(){
   document.getElementById('signout-btn').style.display = 'block';
   setSyncStatus(currentUser.email);
   addXP(0); // triggers streak calc without granting points
-  renderTopStats(); renderModuleGrid(); renderDailyMission(); renderMoodState(); renderRecentBreakthroughs();
+  renderTopStats(); renderDailyMission(); renderMoodState(); renderRecentBreakthroughs();
   Object.keys(window.onPageShow||{}).forEach(k=>{}); // no-op, pages render lazily on click
 }
 
@@ -810,21 +821,23 @@ function defaultData(){
     bodyScan:{ notes:{}, feelings:{} },
     foundationProgress:{
       readConcepts:[], reflections:{},
-      webEntries:[],          // {id,title,desc,x,y}
-      webConnections:[],      // {id,fromId,toId,label}  fromId/toId: 'center' or entry id
     },
     // patterns is the core linked object carrying a pattern through My Shadow -> Emotions -> Release
     patterns:[],             // {id,name,source,dynamic,prompt,exercise,addictive,createdDate,
-                              //  origins:[{id,age,title,desc,date}] (legacy, migrated into innerChild), belief, beliefDate, letter, letterDate,
-                              //  emotionLogs:[{id,date,text,bodyArea,reinforces}], checkins:[{date,status}],
+                              //  origins:[{id,age,title,desc,date}] (legacy, migrated into innerChild),
+                              //  emotionLogs:[{id,date,text,bodyArea,reinforces}],
+                              //  emotionTraces:[{id,root,emotion,thoughts,date}] (symptom -> root emotion -> specific emotion),
+                              //  checkins:[{date,status}],
                               //  release:{steps:{},completedSteps:[],currentStep:0,completedDate:null}}
-    rootEmotionLogs:[],      // {id,date,emotions:[]}
+    rootEmotionLogs:[],      // legacy — general (non-symptom-linked) emotion logging, retired in favour of per-pattern emotionTraces
     innerChild:[],           // {id,patternId|null,patternName,age,title,desc,date}
     innerChildMigrated:false,
     breathSessionsCompleted:0,
+    settings:{ soundEnabled:false, reducedMotion:false },
   };
 }
 let D = loadData();
+if(D.settings && D.settings.reducedMotion) document.body.classList.add('reduce-motion');
 migrateInnerChild();
 function migrateInnerChild(){
   if(D.innerChildMigrated) return;
@@ -848,6 +861,7 @@ function loadData(){
       patterns: Array.isArray(parsed.patterns) ? parsed.patterns : [],
       rootEmotionLogs: Array.isArray(parsed.rootEmotionLogs) ? parsed.rootEmotionLogs : [],
       innerChild: Array.isArray(parsed.innerChild) ? parsed.innerChild : [],
+      settings: Object.assign(base.settings, parsed.settings||{}),
     });
   }catch(e){ return defaultData(); }
 }
@@ -906,8 +920,7 @@ function renderScores(){
 
   const shadowXP = D.patterns.length*20
     + D.patterns.reduce((s,p)=>s+((p.origins||[]).length)*15,0)
-    + D.patterns.filter(p=>p.belief).length*20
-    + D.patterns.filter(p=>p.letter).length*20
+    + D.patterns.reduce((s,p)=>s+((p.emotionTraces||[]).length)*15,0)
     + D.patterns.reduce((s,p)=>s+((p.checkins||[]).length)*8,0);
 
   const emotionsXP = D.patterns.reduce((s,p)=>s+((p.emotionLogs||[]).length)*12,0)
@@ -1108,7 +1121,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('loader').classList.add('hidden-loader');
   }, 2400);
   renderTopStats();
-  renderModuleGrid();
   renderDailyMission();
   renderMoodChips();
   updateConsciousnessLabel();
@@ -1141,6 +1153,7 @@ document.querySelectorAll('.sb-item').forEach(item=>{
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.getElementById('page-'+page).classList.add('active');
     document.getElementById('topbar-title').textContent = item.textContent.trim();
+    if(typeof playTerminalBlip === 'function') playTerminalBlip();
     if(window.onPageShow && window.onPageShow[page]) window.onPageShow[page]();
     if(window.innerWidth<=900) closeMobileSidebar();
   });
@@ -1196,24 +1209,6 @@ window.addEventListener('resize', ()=>{
   }
 });
 
-/* ---------- MODULE GRID (dashboard) ---------- */
-const MODULES = [
-  {id:'foundation', icon:'☾', name:'Foundation', desc:'The Jungian architecture underneath everything else — shadow, persona, ego, Self.'},
-  {id:'shadow', icon:'◈', name:'My Shadow', desc:'Name the pattern, trace it to where it started, name the belief it left behind.'},
-  {id:'emotions', icon:'◉', name:'Emotions', desc:'Where it lives in the body, and what breathing changes about it.'},
-  {id:'release', icon:'✦', name:'Release', desc:'A guided workbook — actually letting go, one small step at a time.'},
-  {id:'dreams', icon:'☽', name:'Dream Journal', desc:'What the unconscious surfaces when you\'re not looking.'},
-];
-function renderModuleGrid(){
-  const grid = document.getElementById('module-grid');
-  grid.innerHTML = MODULES.map(m=>`
-    <div class="mod-card" onclick="goToPage('${m.id}')">
-      <div class="mod-icon">${m.icon}</div>
-      <div class="mod-name">${m.name}</div>
-      <div class="mod-desc">${m.desc}</div>
-    </div>`).join('');
-}
-
 /* ---------- DAILY MISSION ---------- */
 const MISSIONS = [
   "Name one thing you did today to avoid a feeling. Sit with it for sixty seconds.",
@@ -1256,18 +1251,18 @@ const CONSCIOUSNESS_LEVELS = [
 // ROOT_EMOTIONS — as close to exhaustive as a usable checklist can be, grouped by family
 // (loosely after Plutchik's wheel, extended with shadow-relevant social/complex emotions)
 const ROOT_EMOTIONS = {
-  'Anger family':['Anger','Rage','Fury','Irritation','Frustration','Resentment','Bitterness','Hostility','Contempt','Indignation','Hatred','Vengefulness','Exasperation','Annoyance'],
-  'Fear family':['Fear','Terror','Dread','Anxiety','Panic','Nervousness','Worry','Apprehension','Insecurity','Helplessness','Vulnerability','Suspicion','Paranoia'],
-  'Sadness family':['Sadness','Grief','Sorrow','Despair','Loneliness','Melancholy','Heartbreak','Disappointment','Hopelessness','Emptiness','Longing','Regret','Discouragement','Homesickness'],
-  'Shame / guilt family':['Shame','Guilt','Embarrassment','Humiliation','Remorse','Self-disgust','Unworthiness','Inadequacy','Mortification'],
-  'Disgust family':['Disgust','Revulsion','Contempt','Aversion','Repulsion','Distaste'],
-  'Joy family':['Joy','Happiness','Delight','Elation','Excitement','Contentment','Satisfaction','Pleasure','Amusement','Cheerfulness','Bliss','Triumph','Relief'],
-  'Love / connection family':['Love','Affection','Warmth','Tenderness','Compassion','Belonging','Trust','Devotion','Gratitude','Adoration','Nostalgia'],
-  'Surprise family':['Surprise','Shock','Amazement','Astonishment','Confusion','Bewilderment'],
-  'Pride / power family':['Pride','Confidence','Empowerment','Dominance','Superiority','Arrogance','Ambition','Determination'],
-  'Envy / comparison family':['Envy','Jealousy','Inferiority','Insecurity','Competitiveness','Resentment'],
-  'Desire family':['Desire','Craving','Yearning','Curiosity','Anticipation','Hope','Restlessness'],
-  'Numbness / withdrawal family':['Numbness','Apathy','Boredom','Detachment','Indifference','Disconnection','Emptiness','Exhaustion'],
+  'Anger':['Anger','Rage','Fury','Irritation','Frustration','Resentment','Bitterness','Hostility','Contempt','Indignation','Hatred','Vengefulness','Exasperation','Annoyance'],
+  'Fear':['Fear','Terror','Dread','Anxiety','Panic','Nervousness','Worry','Apprehension','Insecurity','Helplessness','Vulnerability','Suspicion','Paranoia'],
+  'Sadness':['Sadness','Grief','Sorrow','Despair','Loneliness','Melancholy','Heartbreak','Disappointment','Hopelessness','Emptiness','Longing','Regret','Discouragement','Homesickness'],
+  'Shame / Guilt':['Shame','Guilt','Embarrassment','Humiliation','Remorse','Self-disgust','Unworthiness','Inadequacy','Mortification'],
+  'Disgust':['Disgust','Revulsion','Contempt','Aversion','Repulsion','Distaste'],
+  'Joy':['Joy','Happiness','Delight','Elation','Excitement','Contentment','Satisfaction','Pleasure','Amusement','Cheerfulness','Bliss','Triumph','Relief'],
+  'Love / Connection':['Love','Affection','Warmth','Tenderness','Compassion','Belonging','Trust','Devotion','Gratitude','Adoration','Nostalgia'],
+  'Surprise':['Surprise','Shock','Amazement','Astonishment','Confusion','Bewilderment'],
+  'Pride / Power':['Pride','Confidence','Empowerment','Dominance','Superiority','Arrogance','Ambition','Determination'],
+  'Envy / Comparison':['Envy','Jealousy','Inferiority','Insecurity','Competitiveness','Resentment'],
+  'Desire':['Desire','Craving','Yearning','Curiosity','Anticipation','Hope','Restlessness'],
+  'Numbness / Withdrawal':['Numbness','Apathy','Boredom','Detachment','Indifference','Disconnection','Emptiness','Exhaustion'],
 };
 function renderMoodChips(){
   document.getElementById('mood-chips').innerHTML = MOOD_OPTIONS.map(m=>`<span class="chip" data-mood="${m}">${m}</span>`).join('');
@@ -1307,14 +1302,12 @@ function getAllBreakthroughEvents(){
   D.dreams.forEach(d=>events.push({date:d.date,label:'Dream — '+d.title,tag:'DREAM'}));
   D.patterns.forEach(p=>{
     events.push({date:p.createdDate,label:'Pattern identified — '+p.name,tag:'SHADOW'});
-    if(p.belief) events.push({date:p.beliefDate||p.createdDate,label:'Belief named for '+p.name,tag:'SHADOW'});
-    if(p.letter) events.push({date:p.letterDate||p.createdDate,label:'Letter written — '+p.name,tag:'SHADOW'});
     (p.checkins||[]).forEach(c=>events.push({date:c.date,label:'Check-in — '+p.name+': '+c.status,tag:'SHADOW'}));
     (p.emotionLogs||[]).forEach(e=>events.push({date:e.date,label:'Emotion logged — '+p.name,tag:'EMOTIONS'}));
+    (p.emotionTraces||[]).forEach(t=>events.push({date:t.date,label:'Traced '+p.name+' → '+t.root+' → '+t.emotion,tag:'SHADOW'}));
     if(p.release && p.release.completedDate) events.push({date:p.release.completedDate,label:'Release completed — '+p.name,tag:'RELEASE'});
   });
   (D.innerChild||[]).forEach(o=>events.push({date:o.date,label:'Origin memory added'+(o.patternName?' — '+o.patternName+': '+o.title:': '+o.title),tag:'INNER CHILD'}));
-  (D.rootEmotionLogs||[]).forEach(r=>events.push({date:r.date,label:'Root emotions logged — '+r.emotions.join(', '),tag:'EMOTIONS'}));
   return events.sort((a,b)=>new Date(b.date)-new Date(a.date));
 }
 function renderRecentBreakthroughs(){
@@ -1384,161 +1377,8 @@ window.saveShadowReflection = function(id){
   renderRecentBreakthroughs();
 };
 
-/* ---------- FOUNDATION: SHADOW WEB DIAGRAM ---------- */
-const WEB_CENTER = {x:300, y:250};
-function svgPoint(svg, clientX, clientY){
-  const pt = svg.createSVGPoint();
-  pt.x = clientX; pt.y = clientY;
-  const ctm = svg.getScreenCTM();
-  if(!ctm) return {x:WEB_CENTER.x, y:WEB_CENTER.y};
-  const loc = pt.matrixTransform(ctm.inverse());
-  return {x:loc.x, y:loc.y};
-}
-function defaultEntryPosition(index, total){
-  const n = Math.max(total, 6);
-  const angle = (index / n) * Math.PI * 2 - Math.PI/2;
-  const radius = 185;
-  return { x: WEB_CENTER.x + Math.cos(angle)*radius, y: WEB_CENTER.y + Math.sin(angle)*radius };
-}
-let webConnectMode = false;
-let webConnectFirstId = null;
-function webNodePos(idRef){
-  if(idRef === 'center') return WEB_CENTER;
-  const e = D.foundationProgress.webEntries.find(en=>en.id===idRef);
-  return e ? {x:e.x, y:e.y} : WEB_CENTER;
-}
-function renderShadowWeb(){
-  const svg = document.getElementById('web-canvas');
-  const entries = D.foundationProgress.webEntries;
-  const conns = D.foundationProgress.webConnections;
-  let html = '';
-  conns.forEach(c=>{
-    const from = webNodePos(c.fromId), to = webNodePos(c.toId);
-    const mx = (from.x+to.x)/2, my = (from.y+to.y)/2;
-    html += `<line class="web-conn-line" x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" data-cid="${c.id}"/>`;
-    if(c.label){
-      const w = Math.min(150, Math.max(30, c.label.length*5.4+14));
-      html += `<rect class="web-conn-label-bg" x="${mx-w/2}" y="${my-9}" width="${w}" height="16" rx="4"/>`;
-      html += `<text class="web-conn-label" x="${mx}" y="${my+3}">${escapeHtml(c.label)}</text>`;
-    }
-  });
-  html += `<g class="web-center-node" data-eid="center"><circle class="web-center-circle" cx="${WEB_CENTER.x}" cy="${WEB_CENTER.y}" r="46"/><text class="web-center-text" x="${WEB_CENTER.x}" y="${WEB_CENTER.y+4}">Shadow</text></g>`;
-  entries.forEach(e=>{
-    html += `
-      <foreignObject class="web-entry-fo" x="${e.x-65}" y="${e.y-30}" width="130" height="90" data-eid="${e.id}">
-        <div xmlns="http://www.w3.org/1999/xhtml" style="position:relative;">
-          <div class="web-entry-box" data-eid="${e.id}">
-            <div class="web-entry-title">${escapeHtml(e.title)}</div>
-            ${e.desc ? `<div class="web-entry-desc">${escapeHtml(e.desc)}</div>` : ''}
-          </div>
-          <div class="web-entry-remove" data-remove-id="${e.id}">×</div>
-        </div>
-      </foreignObject>`;
-  });
-  svg.innerHTML = html;
-  attachWebInteractions();
-}
-function attachWebInteractions(){
-  const svg = document.getElementById('web-canvas');
-
-  document.querySelectorAll('.web-entry-remove').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{ e.stopPropagation(); removeWebEntry(btn.dataset.removeId); });
-  });
-
-  // click-to-connect (checked before drag, since a drag with near-zero movement counts as a click)
-  document.querySelectorAll('[data-eid]').forEach(node=>{
-    node.addEventListener('click', (e)=>{
-      if(!webConnectMode) return;
-      if(e.target.closest('.web-entry-remove')) return;
-      const id = node.dataset.eid;
-      handleWebConnectClick(id, node);
-    });
-  });
-
-  // dragging (entries only, not the center)
-  document.querySelectorAll('.web-entry-box').forEach(box=>{
-    let dragging = false, moved = false, startPt = null;
-    const id = box.dataset.eid;
-    box.addEventListener('pointerdown', (e)=>{
-      if(webConnectMode) return;
-      dragging = true; moved = false;
-      box.setPointerCapture(e.pointerId);
-      startPt = svgPoint(svg, e.clientX, e.clientY);
-    });
-    box.addEventListener('pointermove', (e)=>{
-      if(!dragging) return;
-      const p = svgPoint(svg, e.clientX, e.clientY);
-      if(Math.abs(p.x-startPt.x)>2 || Math.abs(p.y-startPt.y)>2) moved = true;
-      const entry = D.foundationProgress.webEntries.find(en=>en.id===id);
-      if(!entry) return;
-      entry.x = Math.min(580, Math.max(20, p.x));
-      entry.y = Math.min(500, Math.max(20, p.y));
-      renderShadowWeb();
-    });
-    box.addEventListener('pointerup', (e)=>{
-      dragging = false;
-      if(moved) saveData();
-    });
-  });
-}
-function handleWebConnectClick(id, node){
-  if(!webConnectFirstId){
-    webConnectFirstId = id;
-    node.querySelector('.web-entry-box')?.classList.add('connect-armed');
-    if(id==='center') document.querySelector('.web-center-circle').style.stroke = 'var(--gold-bright)';
-    showToast('Now click the entry to connect it to.');
-    return;
-  }
-  if(webConnectFirstId === id){ return; } // same node clicked twice, ignore
-  const exists = D.foundationProgress.webConnections.some(c=>
-    (c.fromId===webConnectFirstId && c.toId===id) || (c.fromId===id && c.toId===webConnectFirstId));
-  if(exists){ showToast('Those two are already connected.'); }
-  else{
-    const label = prompt('How do these two connect? (optional — leave blank to skip)', '') || '';
-    D.foundationProgress.webConnections.push({id:uid(), fromId:webConnectFirstId, toId:id, label:label.trim()});
-    addXP(10); saveData();
-    showToast('Connected · +10 XP');
-  }
-  webConnectFirstId = null;
-  webConnectMode = false;
-  document.getElementById('web-connect-toggle').classList.remove('active');
-  renderShadowWeb();
-}
-window.removeWebEntry = function(id){
-  D.foundationProgress.webEntries = D.foundationProgress.webEntries.filter(e=>e.id!==id);
-  D.foundationProgress.webConnections = D.foundationProgress.webConnections.filter(c=>c.fromId!==id && c.toId!==id);
-  saveData(); showToast('Entry removed.'); renderShadowWeb();
-};
-document.getElementById('web-connect-toggle').addEventListener('click', ()=>{
-  webConnectMode = !webConnectMode;
-  webConnectFirstId = null;
-  document.getElementById('web-connect-toggle').classList.toggle('active', webConnectMode);
-  showToast(webConnectMode ? 'Connect mode on — click two entries.' : 'Connect mode off.');
-  renderShadowWeb();
-});
-document.getElementById('web-reset-layout').addEventListener('click', ()=>{
-  const entries = D.foundationProgress.webEntries;
-  entries.forEach((e,i)=>{ const pos = defaultEntryPosition(i, entries.length); e.x = pos.x; e.y = pos.y; });
-  saveData(); renderShadowWeb();
-  showToast('Layout reset.');
-});
-document.getElementById('web-entry-add').addEventListener('click', ()=>{
-  const title = document.getElementById('web-entry-title').value.trim();
-  const desc = document.getElementById('web-entry-desc').value.trim();
-  if(!title){ showToast('Give the entry a name first.'); return; }
-  const entries = D.foundationProgress.webEntries;
-  const pos = defaultEntryPosition(entries.length, entries.length+1);
-  const entry = {id:uid(), title, desc, x:pos.x, y:pos.y};
-  entries.push(entry);
-  D.foundationProgress.webConnections.push({id:uid(), fromId:'center', toId:entry.id, label:''});
-  document.getElementById('web-entry-title').value='';
-  document.getElementById('web-entry-desc').value='';
-  addXP(12); saveData();
-  showToast('Added to your shadow web · +12 XP');
-  renderShadowWeb();
-});
-window.onPageShow.foundation = function(){ renderShadowAccordion(); renderShadowWeb(); };
-safeInit('foundation', ()=>{ renderShadowAccordion(); renderShadowWeb(); });
+window.onPageShow.foundation = function(){ renderShadowAccordion(); };
+safeInit('foundation', ()=>{ renderShadowAccordion(); });
 /* ================================================================
    MODULE: MY SHADOW
 ================================================================= */
@@ -1606,11 +1446,36 @@ const PATTERN_LIBRARY = {
   'Anxiety about the future': {dynamic:'Often a mind trying to control the uncontrollable by rehearsing every possible bad outcome in advance.', prompt:'What certainty are you demanding from a future that was never going to provide it?', exercise:'Write down the one next action you can actually take today, and stop there.'},
 };
 
+// PATTERN_CATEGORIES — the 61 symptoms above, grouped into a few main strands
+// so the page reads as a handful of categories rather than one long list.
+const PATTERN_CATEGORIES = {
+  'Self-Worth & Identity': ['People pleasing','Low confidence','Need for validation','Imposter syndrome','Chronic self-criticism','Inferiority complex','Superiority complex','Grandiosity','Reputation management'],
+  'Control, Perfectionism & Anxiety': ['Perfectionism','Need for control','Black-and-white thinking','Catastrophizing','Hypervigilance','Scarcity mindset','Anxiety about the future','Chronic lateness'],
+  'Avoidance & Escape': ['Avoidance','Procrastination','Workaholism','Isolation','Difficulty being alone','Nostalgia / living in the past','Laziness'],
+  'Compulsive & Addictive Patterns': ['Porn addiction','Alcohol dependency','Gambling','Social media addiction','Sexual compulsivity','Emotional eating','Materialism'],
+  'Anger & Boundaries': ['Anger','Suppressed anger','Passive aggression','Contempt for weakness','Need to be right','Difficulty setting boundaries','Chronic complaining'],
+  'Fear & Attachment': ['Fear of judgement','Fear of intimacy','Fear of abandonment','Fear of rejection','Fear of success','Commitment issues','Relationship anxiety','Difficulty trusting others','Fear of vulnerability'],
+  'Relational Patterns': ['Codependency','Savior complex','Martyrdom','Overgiving','People-pleasing at work','Difficulty receiving help','Victim mentality'],
+  'Emotional Regulation': ['Emotional numbness','Overthinking','Emotional bypassing','Toxic positivity','Chronic guilt','Jealousy','Self sabotage'],
+};
 function renderPatternChipLibrary(){
-  const el = document.getElementById('pattern-chip-library');
-  el.innerHTML = Object.keys(PATTERN_LIBRARY).map(s=>`<span class="chip" data-pattern="${s}">${s}</span>`).join('');
+  const el = document.getElementById('pattern-category-accordion');
+  el.innerHTML = Object.entries(PATTERN_CATEGORIES).map(([cat, names])=>`
+    <div class="acc-item" data-cat="${cat}">
+      <div class="acc-head" onclick="togglePatternCategory('${cat}')">
+        <h4>${cat}</h4>
+        <span class="acc-chev">⌄</span>
+      </div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div class="chip-row pattern-chip-row">${names.map(s=>`<span class="chip" data-pattern="${s}">${s}</span>`).join('')}</div>
+      </div></div>
+    </div>`).join('');
 }
-document.getElementById('pattern-chip-library').addEventListener('click', e=>{
+window.togglePatternCategory = function(cat){
+  const item = document.querySelector(`#pattern-category-accordion .acc-item[data-cat="${cat}"]`);
+  item.classList.toggle('open');
+};
+document.getElementById('pattern-category-accordion').addEventListener('click', e=>{
   if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
 });
 function newPatternRecord(name, lib){
@@ -1618,71 +1483,88 @@ function newPatternRecord(name, lib){
     id:uid(), name, source: lib ? 'library' : 'custom',
     dynamic: lib ? lib.dynamic : '', prompt: lib ? lib.prompt : 'What do you think is really underneath this?',
     exercise: lib ? lib.exercise : '', addictive: !!(lib && lib.addictive),
-    createdDate:new Date().toISOString(), origins:[], belief:'', beliefDate:null, letter:'', letterDate:null,
-    emotionLogs:[], checkins:[], release:{steps:{},completedSteps:[],currentStep:0,completedDate:null}
+    createdDate:new Date().toISOString(), origins:[],
+    emotionLogs:[], emotionTraces:[], checkins:[], release:{steps:{},completedSteps:[],currentStep:0,completedDate:null}
   };
 }
 document.getElementById('pattern-add-btn').addEventListener('click', ()=>{
-  const selected = Array.from(document.querySelectorAll('#pattern-chip-library .chip.selected')).map(c=>c.dataset.pattern);
+  const selected = Array.from(document.querySelectorAll('#pattern-category-accordion .chip.selected')).map(c=>c.dataset.pattern);
   const customName = document.getElementById('pattern-custom-name').value.trim();
   if(!selected.length && !customName){ showToast('Select at least one, or name your own.'); return; }
   let added = 0;
   selected.forEach(name=>{
     if(D.patterns.some(p=>p.name===name)) return;
-    D.patterns.push(newPatternRecord(name, PATTERN_LIBRARY[name]));
+    const rec = newPatternRecord(name, PATTERN_LIBRARY[name]);
+    D.patterns.push(rec); openPatternIds.add(rec.id);
     added++;
   });
   if(customName && !D.patterns.some(p=>p.name===customName)){
-    D.patterns.push(newPatternRecord(customName, null));
+    const rec = newPatternRecord(customName, null);
+    D.patterns.push(rec); openPatternIds.add(rec.id);
     added++;
   }
   if(!added){ showToast('Already tracking that pattern.'); return; }
-  document.querySelectorAll('#pattern-chip-library .chip.selected').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('#pattern-category-accordion .chip.selected').forEach(c=>c.classList.remove('selected'));
   document.getElementById('pattern-custom-name').value='';
   addXP(added*20); saveData();
   showToast(`${added} pattern${added>1?'s':''} added · +${added*20} XP`);
   renderPatternList();
 });
+let openPatternIds = new Set();
 function renderPatternList(){
   const el = document.getElementById('pattern-list');
   if(!D.patterns.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◈</span>No patterns identified yet. Select one above to begin.</div>'; return; }
   el.innerHTML = D.patterns.map(p=>`
-    <div class="card card-lg pattern-card" style="margin-bottom:1.2rem;" data-pid="${p.id}">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
-        <div>
-          <span class="card-title">${p.name}</span>
-          ${p.dynamic?`<p style="font-size:.82rem; color:var(--dim-hi); line-height:1.7; margin-bottom:.6rem;">${p.dynamic}</p>`:''}
-          ${p.prompt?`<p style="font-size:.78rem; color:var(--gold); margin-bottom:.6rem;"><b>Ask yourself:</b> ${p.prompt}</p>`:''}
-          ${p.exercise?`<p style="font-size:.78rem; color:var(--dim);"><b>Try:</b> ${p.exercise}</p>`:''}
-        </div>
-        <div style="display:flex; flex-direction:column; gap:.5rem; align-items:flex-end;">
+    <div class="acc-item pattern-card${openPatternIds.has(p.id)?' open':''}" data-pid="${p.id}" style="margin-bottom:.9rem;">
+      <div class="acc-head" onclick="togglePatternCard('${p.id}')">
+        <h4>${p.name}</h4>
+        <span class="acc-chev">⌄</span>
+      </div>
+      <div class="acc-body"><div class="acc-body-inner">
+        <div style="display:flex; justify-content:flex-end; gap:.5rem; flex-wrap:wrap; margin-bottom:1.2rem;">
           <button class="btn btn-ghost btn-sm" onclick="deletePattern('${p.id}')">Remove</button>
           <button class="btn btn-ghost btn-sm" onclick="jumpToInnerChild('${p.id}')">Trace Origin →</button>
         </div>
-      </div>
+        ${p.dynamic?`<p style="font-size:.82rem; color:var(--dim-hi); line-height:1.7; margin-bottom:.6rem;">${p.dynamic}</p>`:''}
+        ${p.prompt?`<p style="font-size:.78rem; color:var(--gold); margin-bottom:.6rem;"><b>Ask yourself:</b> ${p.prompt}</p>`:''}
+        ${p.exercise?`<p style="font-size:.78rem; color:var(--dim);"><b>Try:</b> ${p.exercise}</p>`:''}
 
-      <div style="margin-top:1.3rem; padding-top:1.2rem; border-top:1px solid var(--border);">
-        <span class="card-title" style="font-size:.6rem;">The Belief It Formed</span>
-        <div class="field"><textarea id="belief-${p.id}" placeholder="Because of that, I came to believe…">${p.belief||''}</textarea></div>
-        <button class="btn btn-ghost btn-sm" onclick="savePatternBelief('${p.id}')">Save Belief</button>
-      </div>
-
-      <div style="margin-top:1.3rem; padding-top:1.2rem; border-top:1px solid var(--border);">
-        <span class="card-title" style="font-size:.6rem;">A Letter To That Version Of You (Optional)</span>
-        <div class="field"><textarea id="letter-${p.id}" placeholder="What did he need to hear then, that you can say to him now?">${p.letter||''}</textarea></div>
-        <button class="btn btn-ghost btn-sm" onclick="savePatternLetter('${p.id}')">Save Letter</button>
-      </div>
-
-      <div style="margin-top:1.3rem; padding-top:1.2rem; border-top:1px solid var(--border);">
-        <span class="card-title" style="font-size:.6rem;">Where Is This Pattern Now?</span>
-        <div class="chip-row pattern-checkin-chips" data-pid="${p.id}">
-          <span class="chip" data-status="Strong">Still Strong</span>
-          <span class="chip" data-status="Present">Present</span>
-          <span class="chip" data-status="Fading">Fading</span>
-          <span class="chip" data-status="Resolved">Mostly Resolved</span>
+        <div style="margin-top:1.3rem; padding-top:1.2rem; border-top:1px solid var(--border);">
+          <span class="card-title" style="font-size:.6rem;">Trace It To An Emotion</span>
+          <p style="font-size:.72rem; color:var(--dim); margin-bottom:.8rem;">Tap a root emotion, then the specific version of it that's actually underneath this symptom.</p>
+          <div class="pattern-emotion-trace" data-pid="${p.id}">
+            <div class="chip-row pattern-root-cards" data-pid="${p.id}">
+              ${Object.keys(ROOT_EMOTIONS).map(root=>`<span class="chip root-emotion-card" data-root="${root}">${root}</span>`).join('')}
+            </div>
+            <div class="pattern-emotion-detail" data-pid="${p.id}" style="margin-top:.8rem;"></div>
+          </div>
+          <div class="field" style="margin-top:1rem;">
+            <label>What Needs To Be Said</label>
+            <textarea id="needs-said-${p.id}" placeholder="Whatever wants to come out — no editing required"></textarea>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="saveEmotionTrace('${p.id}')">Save</button>
+          ${(p.emotionTraces&&p.emotionTraces.length) ? `
+            <div style="margin-top:1.1rem; padding-top:1rem; border-top:1px solid var(--border);">
+              <span class="card-title" style="font-size:.58rem;">Past Traces</span>
+              ${p.emotionTraces.slice().reverse().map(t=>`
+                <div style="font-size:.76rem; color:var(--dim-hi); padding:.5rem 0; border-bottom:1px solid var(--border);">
+                  <b style="color:var(--gold);">${t.root} → ${t.emotion}</b>${t.thoughts?' — '+escapeHtml(t.thoughts):''}
+                  <br><span style="color:var(--dim); font-size:.66rem;">${fmtDate(t.date)}</span>
+                </div>`).join('')}
+            </div>` : ''}
         </div>
-        ${(p.checkins||[]).length ? `<p style="font-size:.72rem; color:var(--dim); margin-top:.8rem;">Last check-in: ${p.checkins[p.checkins.length-1].status} — ${fmtDate(p.checkins[p.checkins.length-1].date)} · ${p.checkins.length} total check-ins</p>` : ''}
-      </div>
+
+        <div style="margin-top:1.3rem; padding-top:1.2rem; border-top:1px solid var(--border);">
+          <span class="card-title" style="font-size:.6rem;">Where Is This Pattern Now?</span>
+          <div class="chip-row pattern-checkin-chips" data-pid="${p.id}">
+            <span class="chip" data-status="Strong">Still Strong</span>
+            <span class="chip" data-status="Present">Present</span>
+            <span class="chip" data-status="Fading">Fading</span>
+            <span class="chip" data-status="Resolved">Mostly Resolved</span>
+          </div>
+          ${(p.checkins||[]).length ? `<p style="font-size:.72rem; color:var(--dim); margin-top:.8rem;">Last check-in: ${p.checkins[p.checkins.length-1].status} — ${fmtDate(p.checkins[p.checkins.length-1].date)} · ${p.checkins.length} total check-ins</p>` : ''}
+        </div>
+      </div></div>
     </div>
   `).join('');
   document.querySelectorAll('.pattern-checkin-chips').forEach(row=>{
@@ -1692,27 +1574,60 @@ function renderPatternList(){
     });
   });
 }
+/* ---------- SYMPTOM -> EMOTION TRACE (per pattern) ---------- */
+document.getElementById('pattern-list').addEventListener('click', e=>{
+  const rootCard = e.target.closest('.root-emotion-card');
+  if(rootCard){
+    const pid = rootCard.closest('.pattern-emotion-trace').dataset.pid;
+    toggleTraceRoot(pid, rootCard.dataset.root);
+    return;
+  }
+  const emoChip = e.target.closest('.pattern-emotion-detail .chip[data-emotion]');
+  if(emoChip){
+    const detail = emoChip.closest('.pattern-emotion-detail');
+    detail.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+    emoChip.classList.add('selected');
+    return;
+  }
+});
+function toggleTraceRoot(pid, root){
+  const detail = document.querySelector(`.pattern-emotion-detail[data-pid="${pid}"]`);
+  const cards = document.querySelectorAll(`.pattern-root-cards[data-pid="${pid}"] .root-emotion-card`);
+  const wasOpen = detail.dataset.openRoot === root;
+  cards.forEach(c=>c.classList.remove('selected'));
+  if(wasOpen){ detail.innerHTML=''; detail.dataset.openRoot=''; return; }
+  document.querySelector(`.pattern-root-cards[data-pid="${pid}"] .root-emotion-card[data-root="${root}"]`).classList.add('selected');
+  detail.dataset.openRoot = root;
+  detail.innerHTML = `
+    <p style="font-family:var(--font-m); font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim-hi); margin-bottom:.5rem;">${root} — more specific</p>
+    <div class="chip-row">${ROOT_EMOTIONS[root].map(e=>`<span class="chip" data-emotion="${e}">${e}</span>`).join('')}</div>
+  `;
+}
+window.saveEmotionTrace = function(pid){
+  const p = D.patterns.find(p=>p.id===pid); if(!p) return;
+  const detail = document.querySelector(`.pattern-emotion-detail[data-pid="${pid}"]`);
+  const root = detail ? detail.dataset.openRoot : '';
+  const emotionChip = detail ? detail.querySelector('.chip.selected[data-emotion]') : null;
+  const emotion = emotionChip ? emotionChip.dataset.emotion : '';
+  const thoughtsEl = document.getElementById('needs-said-'+pid);
+  const thoughts = thoughtsEl ? thoughtsEl.value.trim() : '';
+  if(!root || !emotion){ showToast('Pick a root emotion, then a specific one, first.'); return; }
+  if(!p.emotionTraces) p.emotionTraces = [];
+  p.emotionTraces.push({id:uid(), root, emotion, thoughts, date:new Date().toISOString()});
+  addXP(15); saveData();
+  showToast('Traced · +15 XP');
+  renderRecentBreakthroughs();
+  renderPatternList();
+};
+window.togglePatternCard = function(pid){
+  if(openPatternIds.has(pid)) openPatternIds.delete(pid); else openPatternIds.add(pid);
+  const item = document.querySelector(`.pattern-card[data-pid="${pid}"]`);
+  if(item) item.classList.toggle('open');
+};
 window.deletePattern = function(id){
   D.patterns = D.patterns.filter(p=>p.id!==id);
+  openPatternIds.delete(id);
   saveData(); showToast('Pattern removed.'); renderPatternList();
-};
-window.savePatternBelief = function(id){
-  const text = document.getElementById('belief-'+id).value.trim();
-  if(!text){ showToast('Write the belief first.'); return; }
-  const p = D.patterns.find(p=>p.id===id); if(!p) return;
-  p.belief = text; p.beliefDate = new Date().toISOString();
-  addXP(20); saveData();
-  showToast('Belief saved · +20 XP');
-  renderRecentBreakthroughs();
-};
-window.savePatternLetter = function(id){
-  const text = document.getElementById('letter-'+id).value.trim();
-  if(!text){ showToast('Write something first.'); return; }
-  const p = D.patterns.find(p=>p.id===id); if(!p) return;
-  p.letter = text; p.letterDate = new Date().toISOString();
-  addXP(30); saveData();
-  showToast('Letter saved · +30 XP');
-  renderRecentBreakthroughs();
 };
 window.logPatternCheckin = function(id, status){
   const p = D.patterns.find(p=>p.id===id); if(!p) return;
@@ -1722,34 +1637,6 @@ window.logPatternCheckin = function(id, status){
   showToast('Check-in logged · +8 XP');
   renderRecentBreakthroughs(); renderPatternList();
 };
-/* ---------- ROOT EMOTIONS (My Shadow) ---------- */
-function renderRootEmotionGroups(){
-  const el = document.getElementById('root-emotion-groups');
-  el.innerHTML = Object.entries(ROOT_EMOTIONS).map(([family, emotions])=>`
-    <div style="margin-bottom:.9rem;">
-      <p style="font-family:var(--font-m); font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim-hi); margin-bottom:.5rem;">${family}</p>
-      <div class="chip-row">${emotions.map(e=>`<span class="chip" data-emotion="${e}">${e}</span>`).join('')}</div>
-    </div>`).join('');
-}
-document.getElementById('root-emotion-groups').addEventListener('click', e=>{
-  if(e.target.classList.contains('chip')) e.target.classList.toggle('selected');
-});
-document.getElementById('root-emotion-save').addEventListener('click', ()=>{
-  const selected = Array.from(document.querySelectorAll('#root-emotion-groups .chip.selected')).map(c=>c.dataset.emotion);
-  if(!selected.length){ showToast('Select at least one root emotion.'); return; }
-  D.rootEmotionLogs.push({id:uid(), date:new Date().toISOString(), emotions:selected});
-  document.querySelectorAll('#root-emotion-groups .chip.selected').forEach(c=>c.classList.remove('selected'));
-  addXP(10); saveData();
-  showToast(`Root emotions logged · +10 XP`);
-  renderRootEmotionState();
-});
-function renderRootEmotionState(){
-  const last = D.rootEmotionLogs[D.rootEmotionLogs.length-1];
-  document.getElementById('root-emotion-last').textContent = last
-    ? `Last logged: ${last.emotions.join(', ')} — ${fmtDate(last.date)}`
-    : 'No root emotions logged yet.';
-}
-
 /* ---------- HAWKINS SCALE — My Shadow variant (separate widget, same underlying log) ---------- */
 function updateShadowConsciousnessLabel(){
   const idx = parseInt(document.getElementById('shadow-consciousness-slider').value);
@@ -1774,12 +1661,10 @@ function renderShadowConsciousnessState(){
 }
 window.onPageShow.shadow = function(){
   renderPatternChipLibrary(); renderPatternList();
-  renderRootEmotionGroups(); renderRootEmotionState();
   updateShadowConsciousnessLabel(); renderShadowConsciousnessState();
 };
 safeInit('shadow', ()=>{
   renderPatternChipLibrary(); renderPatternList();
-  renderRootEmotionGroups(); renderRootEmotionState();
   updateShadowConsciousnessLabel(); renderShadowConsciousnessState();
 });
 
@@ -1970,8 +1855,9 @@ function renderReleaseWorkbook(patternId){
     <div class="card card-lg" style="margin-bottom:1.2rem;">
       <span class="card-title">${p.name} — Recap</span>
       <p style="font-size:.8rem; color:var(--dim-hi); line-height:1.7;">
-        ${p.belief ? `<b>Belief:</b> ${p.belief}<br>` : '<i>No belief recorded yet in My Shadow — you can still work through this, but it may help to fill that in first.</i><br>'}
-        ${(p.origins&&p.origins.length) ? `<b>Origin:</b> ${p.origins[p.origins.length-1].title}` : ''}
+        ${(()=>{ const origin = D.innerChild.find(o=>o.patternId===p.id); return origin
+          ? `<b>Origin:</b> ${origin.title}${origin.age?` (age ${origin.age})`:''}`
+          : '<i>No origin memory traced yet — use "Trace Origin" from My Shadow, or log one directly in Inner Child.</i>'; })()}
       </p>
     </div>
     ${RELEASE_STEPS.map((s,i)=>`
@@ -2103,14 +1989,154 @@ window.deleteInnerChild = function(id){
   saveData(); showToast('Entry removed.'); renderInnerChildTimeline();
 };
 window.jumpToInnerChild = function(patternId){
-  goToPage('dreams');
+  goToPage('innerchild');
   setTimeout(()=>{
     renderInnerChildPatternSelect(patternId);
     document.getElementById('inner-child-form-card').scrollIntoView({behavior:'smooth', block:'center'});
   }, 50);
 };
-window.onPageShow.dreams = function(){ renderDreamList(); renderSymbolDictionary(); renderInnerChildPatternSelect(); renderInnerChildTimeline(); };
-safeInit('dreams', ()=>{ renderDreamList(); renderSymbolDictionary(); renderInnerChildPatternSelect(); renderInnerChildTimeline(); });
+window.onPageShow.dreams = function(){ renderDreamList(); renderSymbolDictionary(); };
+safeInit('dreams', ()=>{ renderDreamList(); renderSymbolDictionary(); });
+window.onPageShow.innerchild = function(){ renderInnerChildPatternSelect(); renderInnerChildTimeline(); };
+safeInit('innerchild', ()=>{ renderInnerChildPatternSelect(); renderInnerChildTimeline(); });
+
+/* ================================================================
+   MODULE: SETTINGS — ambient sound engine, reduced motion, account, reset
+================================================================= */
+/* ---------- AMBIENT SOUND ENGINE (Web Audio, no external files) ---------- */
+let audioCtx = null;
+let ambientNodes = null;
+let ambientInterval = null;
+function ensureAudioCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq, dur, type, peakVol, delay){
+  if(!D.settings.soundEnabled) return;
+  const ctx = ensureAudioCtx();
+  const t0 = ctx.currentTime + (delay||0);
+  const osc = ctx.createOscillator(); const gain = ctx.createGain();
+  osc.type = type||'sine';
+  osc.frequency.setValueAtTime(freq, t0);
+  gain.gain.setValueAtTime(0, t0);
+  gain.gain.linearRampToValueAtTime(peakVol||.05, t0+.012);
+  gain.gain.exponentialRampToValueAtTime(.0001, t0+dur);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(t0); osc.stop(t0+dur+.05);
+}
+window.playMetallicClick = function(){
+  if(!D.settings.soundEnabled) return;
+  const ctx = ensureAudioCtx();
+  const t0 = ctx.currentTime;
+  const osc = ctx.createOscillator(); const gain = ctx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(1800, t0);
+  osc.frequency.exponentialRampToValueAtTime(500, t0+.045);
+  gain.gain.setValueAtTime(.05, t0);
+  gain.gain.exponentialRampToValueAtTime(.0001, t0+.06);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(t0); osc.stop(t0+.08);
+};
+window.playTerminalBlip = function(){
+  if(!D.settings.soundEnabled) return;
+  playTone(760, .1, 'sine', .045, 0);
+  playTone(1140, .1, 'sine', .03, .06);
+};
+function startAmbient(){
+  if(ambientInterval || !D.settings.soundEnabled) return;
+  const ctx = ensureAudioCtx();
+  const droneOsc = ctx.createOscillator();
+  const droneGain = ctx.createGain();
+  droneOsc.type = 'sine'; droneOsc.frequency.value = 55;
+  droneGain.gain.value = 0;
+  droneGain.gain.linearRampToValueAtTime(.014, ctx.currentTime+2.2);
+  const delayNode = ctx.createDelay(2); delayNode.delayTime.value = .65;
+  const feedback = ctx.createGain(); feedback.gain.value = .38;
+  droneOsc.connect(droneGain);
+  droneGain.connect(ctx.destination);
+  droneGain.connect(delayNode); delayNode.connect(feedback); feedback.connect(delayNode); delayNode.connect(ctx.destination);
+  droneOsc.start();
+  ambientNodes = {droneOsc, droneGain};
+  ambientInterval = setInterval(()=>{
+    if(!D.settings.soundEnabled) return;
+    playTone(180+Math.random()*320, 1.4, 'sine', .018);
+  }, 4200);
+}
+function stopAmbient(){
+  if(ambientNodes){
+    try{
+      const ctx = ensureAudioCtx();
+      ambientNodes.droneGain.gain.linearRampToValueAtTime(0, ctx.currentTime+.6);
+      ambientNodes.droneOsc.stop(ctx.currentTime+.7);
+    }catch(e){}
+    ambientNodes = null;
+  }
+  if(ambientInterval){ clearInterval(ambientInterval); ambientInterval = null; }
+}
+function setSoundEnabled(on){
+  D.settings.soundEnabled = on; saveData();
+  const el = document.getElementById('toggle-sound');
+  el.classList.toggle('on', on); el.setAttribute('aria-checked', on);
+  if(on){ ensureAudioCtx(); startAmbient(); playMetallicClick(); }
+  else{ stopAmbient(); }
+}
+document.getElementById('toggle-sound').addEventListener('click', ()=>setSoundEnabled(!D.settings.soundEnabled));
+document.getElementById('toggle-sound').addEventListener('keydown', e=>{
+  if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setSoundEnabled(!D.settings.soundEnabled); }
+});
+// Autoplay policies block audio until a real user gesture — resume ambient on the first one, if it was left on.
+let audioUnlocked = false;
+function unlockAudioOnce(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  if(D.settings.soundEnabled){ ensureAudioCtx(); startAmbient(); }
+  document.removeEventListener('pointerdown', unlockAudioOnce);
+  document.removeEventListener('keydown', unlockAudioOnce);
+}
+document.addEventListener('pointerdown', unlockAudioOnce);
+document.addEventListener('keydown', unlockAudioOnce);
+// Global click hook — a soft metallic click on interactive elements, only while sound is on.
+document.addEventListener('click', (e)=>{
+  if(!D.settings.soundEnabled) return;
+  if(e.target.closest('.btn, .chip, .sb-item, .acc-head, .toggle-switch')) playMetallicClick();
+});
+
+/* ---------- REDUCED MOTION ---------- */
+function setReducedMotion(on){
+  D.settings.reducedMotion = on; saveData();
+  document.body.classList.toggle('reduce-motion', on);
+  const el = document.getElementById('toggle-motion');
+  el.classList.toggle('on', on); el.setAttribute('aria-checked', on);
+}
+document.getElementById('toggle-motion').addEventListener('click', ()=>setReducedMotion(!D.settings.reducedMotion));
+document.getElementById('toggle-motion').addEventListener('keydown', e=>{
+  if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setReducedMotion(!D.settings.reducedMotion); }
+});
+
+/* ---------- ACCOUNT + RESET ---------- */
+document.getElementById('settings-signout-btn').addEventListener('click', ()=>{
+  document.getElementById('signout-btn').click();
+});
+document.getElementById('settings-reset-today').addEventListener('click', ()=>{
+  const todayStr = new Date().toDateString();
+  const before = D.moods.length;
+  D.moods = D.moods.filter(m=>new Date(m.date).toDateString() !== todayStr);
+  saveData();
+  showToast(before===D.moods.length ? "Nothing logged today to reset." : "Today's check-in cleared.");
+  renderMoodState();
+});
+
+function renderSettingsPage(){
+  document.getElementById('toggle-sound').classList.toggle('on', !!D.settings.soundEnabled);
+  document.getElementById('toggle-sound').setAttribute('aria-checked', !!D.settings.soundEnabled);
+  document.getElementById('toggle-motion').classList.toggle('on', !!D.settings.reducedMotion);
+  document.getElementById('toggle-motion').setAttribute('aria-checked', !!D.settings.reducedMotion);
+  document.getElementById('settings-account-email').textContent = currentUser ? currentUser.email : 'Not signed in — using local data only.';
+  document.getElementById('settings-signout-btn').style.display = currentUser ? 'inline-flex' : 'none';
+}
+window.onPageShow.settings = renderSettingsPage;
+safeInit('settings', renderSettingsPage);
 </script>
 </body>
 </html>
