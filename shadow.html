@@ -596,6 +596,35 @@ body.reduce-motion *{ animation-duration:.001ms !important; transition-duration:
           </div>
         </section>
 
+        <section class="page" id="page-unfiltered">
+          <span class="page-eyebrow">Module 08</span>
+          <h1 class="page-title">Unfiltered</h1>
+          <p class="page-sub">No structure required. Talk it out — out loud or on the page — and let it land somewhere instead of just circling in your head.</p>
+
+          <div class="card card-lg" style="margin-bottom:1.3rem;">
+            <span class="card-title">New Entry</span>
+            <div class="field"><label>Title</label><input type="text" id="unfiltered-title" placeholder="Optional — a few words is enough"/></div>
+            <div class="field">
+              <label>Get it out</label>
+              <div style="position:relative;">
+                <textarea id="unfiltered-text" placeholder="Type it, or tap the mic and just talk." style="min-height:160px;"></textarea>
+                <button class="btn btn-ghost btn-sm" id="unfiltered-mic" style="position:absolute; top:.6rem; right:.6rem;" title="Voice to text">🎙 Talk</button>
+              </div>
+              <div id="unfiltered-mic-hint" style="font-size:.68rem; color:var(--dim); margin-top:.4rem;"></div>
+            </div>
+            <div class="field">
+              <label>Topics <span style="color:var(--dim); font-weight:400; text-transform:none; letter-spacing:0;">— suggested from what you wrote, tap to adjust</span></label>
+              <div class="chip-row" id="unfiltered-topic-chips"></div>
+            </div>
+            <button class="btn btn-gold btn-sm" id="unfiltered-save" style="margin-top:.9rem;">Save Entry</button>
+          </div>
+
+          <div class="card card-lg">
+            <span class="card-title">Your Entries</span>
+            <div id="unfiltered-list"></div>
+          </div>
+        </section>
+
         <section class="page" id="page-settings">
           <span class="page-eyebrow">System</span>
           <h1 class="page-title">Settings</h1>
@@ -667,6 +696,7 @@ body.reduce-motion *{ animation-duration:.001ms !important; transition-duration:
     <div class="sb-label">Explore</div>
     <li class="sb-item" data-page="dreams"><span class="sb-icon">☽</span><span>Dream Journal</span></li>
     <li class="sb-item" data-page="innerchild"><span class="sb-icon">✧</span><span>Inner Child</span></li>
+    <li class="sb-item" data-page="unfiltered"><span class="sb-icon">◍</span><span>Unfiltered</span></li>
 
     <div class="sb-label">System</div>
     <li class="sb-item" data-page="settings"><span class="sb-icon">⚙</span><span>Settings</span></li>
@@ -797,6 +827,7 @@ async function enterAppAfterAuth(){
         patterns: Array.isArray(cloud.patterns) ? cloud.patterns : [],
         rootEmotionLogs: Array.isArray(cloud.rootEmotionLogs) ? cloud.rootEmotionLogs : [],
         innerChild: Array.isArray(cloud.innerChild) ? cloud.innerChild : [],
+        unfiltered: Array.isArray(cloud.unfiltered) ? cloud.unfiltered : [],
         settings: Object.assign(defaultData().settings, cloud.settings||{}),
       });
       migrateInnerChild();
@@ -832,6 +863,7 @@ function defaultData(){
     rootEmotionLogs:[],      // legacy — general (non-symptom-linked) emotion logging, retired in favour of per-pattern emotionTraces
     innerChild:[],           // {id,patternId|null,patternName,age,title,desc,date}
     innerChildMigrated:false,
+    unfiltered:[],           // {id,title,text,topics:[],date} — free-form voice/text unload, no other module depends on it
     breathSessionsCompleted:0,
     settings:{ soundEnabled:false, reducedMotion:false },
   };
@@ -861,6 +893,7 @@ function loadData(){
       patterns: Array.isArray(parsed.patterns) ? parsed.patterns : [],
       rootEmotionLogs: Array.isArray(parsed.rootEmotionLogs) ? parsed.rootEmotionLogs : [],
       innerChild: Array.isArray(parsed.innerChild) ? parsed.innerChild : [],
+      unfiltered: Array.isArray(parsed.unfiltered) ? parsed.unfiltered : [],
       settings: Object.assign(base.settings, parsed.settings||{}),
     });
   }catch(e){ return defaultData(); }
@@ -1308,6 +1341,7 @@ function getAllBreakthroughEvents(){
     if(p.release && p.release.completedDate) events.push({date:p.release.completedDate,label:'Release completed — '+p.name,tag:'RELEASE'});
   });
   (D.innerChild||[]).forEach(o=>events.push({date:o.date,label:'Origin memory added'+(o.patternName?' — '+o.patternName+': '+o.title:': '+o.title),tag:'INNER CHILD'}));
+  (D.unfiltered||[]).forEach(u=>events.push({date:u.date,label:'Unfiltered — '+u.title,tag:'UNFILTERED'}));
   return events.sort((a,b)=>new Date(b.date)-new Date(a.date));
 }
 function renderRecentBreakthroughs(){
@@ -1999,6 +2033,125 @@ window.onPageShow.dreams = function(){ renderDreamList(); renderSymbolDictionary
 safeInit('dreams', ()=>{ renderDreamList(); renderSymbolDictionary(); });
 window.onPageShow.innerchild = function(){ renderInnerChildPatternSelect(); renderInnerChildTimeline(); };
 safeInit('innerchild', ()=>{ renderInnerChildPatternSelect(); renderInnerChildTimeline(); });
+
+/* ================================================================
+   MODULE: UNFILTERED — free-form voice/text unload, no structure required.
+   Topics are auto-suggested from keyword matches against the transcript,
+   but never override a chip the user has already touched by hand.
+================================================================= */
+const UNFILTERED_TOPICS = ['Mindset','Body & Training','Brand & Content','Relationships','Work','Recovery'];
+const UNFILTERED_TOPIC_KEYWORDS = {
+  'Mindset':['mindset','mental','thought','belief','discipline','motivation','focus','annoyed','lazy','congruent'],
+  'Body & Training':['gym','workout','train','run','swim','sea','body','fitness','food','diet','sleep','recovery day'],
+  'Brand & Content':['video','content','brand','youtube','tiktok','post','film','edit','record'],
+  'Relationships':['friend','partner','relationship','family','people','talk to someone'],
+  'Work':['shift','work','morrisons','job','uni','university','study','cardiff'],
+  'Recovery':['recovery','rest','tired','burnout','break','chill','relax','slow start'],
+};
+let unfilteredChipsTouched = false;
+function renderUnfilteredTopicChips(selected){
+  selected = selected || [];
+  document.getElementById('unfiltered-topic-chips').innerHTML = UNFILTERED_TOPICS.map(t=>
+    `<span class="chip${selected.includes(t)?' selected':''}" data-topic="${t}">${t}</span>`
+  ).join('');
+}
+document.getElementById('unfiltered-topic-chips').addEventListener('click', (e)=>{
+  if(!e.target.classList.contains('chip')) return;
+  unfilteredChipsTouched = true;
+  e.target.classList.toggle('selected');
+});
+function suggestUnfilteredTopics(text){
+  if(unfilteredChipsTouched || !text) return;
+  const lower = text.toLowerCase();
+  const matched = UNFILTERED_TOPICS.filter(t => (UNFILTERED_TOPIC_KEYWORDS[t]||[]).some(kw => lower.includes(kw)));
+  if(matched.length) renderUnfilteredTopicChips(matched);
+}
+document.getElementById('unfiltered-text').addEventListener('input', (e)=>{
+  suggestUnfilteredTopics(e.target.value);
+});
+
+/* ---------- VOICE TO TEXT (Web Speech API — graceful fallback to typing) ---------- */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+const unfilteredMicBtn = document.getElementById('unfiltered-mic');
+const unfilteredMicHint = document.getElementById('unfiltered-mic-hint');
+let unfilteredRecognition = null;
+let unfilteredListening = false;
+if(SpeechRec){
+  unfilteredRecognition = new SpeechRec();
+  unfilteredRecognition.continuous = true;
+  unfilteredRecognition.interimResults = true;
+  unfilteredRecognition.lang = 'en-GB';
+  let baseText = '';
+  unfilteredRecognition.onstart = ()=>{
+    unfilteredListening = true;
+    baseText = document.getElementById('unfiltered-text').value;
+    if(baseText && !/\s$/.test(baseText)) baseText += ' ';
+    unfilteredMicBtn.classList.add('active');
+    unfilteredMicBtn.textContent = '⏹ Stop';
+    unfilteredMicHint.textContent = 'Listening…';
+  };
+  unfilteredRecognition.onresult = (e)=>{
+    let interim = '', final = '';
+    for(let i=e.resultIndex; i<e.results.length; i++){
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) final += t; else interim += t;
+    }
+    if(final) baseText += final;
+    const ta = document.getElementById('unfiltered-text');
+    ta.value = baseText + interim;
+    suggestUnfilteredTopics(ta.value);
+  };
+  unfilteredRecognition.onerror = (e)=>{
+    unfilteredMicHint.textContent = e.error==='not-allowed' ? 'Microphone access denied.' : 'Voice input hit an error — you can still type.';
+  };
+  unfilteredRecognition.onend = ()=>{
+    unfilteredListening = false;
+    unfilteredMicBtn.classList.remove('active');
+    unfilteredMicBtn.textContent = '🎙 Talk';
+    if(unfilteredMicHint.textContent==='Listening…') unfilteredMicHint.textContent='';
+  };
+  unfilteredMicBtn.addEventListener('click', ()=>{
+    if(unfilteredListening) unfilteredRecognition.stop();
+    else{ try{ unfilteredRecognition.start(); }catch(e){} }
+  });
+}else{
+  unfilteredMicBtn.style.display = 'none';
+  unfilteredMicHint.textContent = 'Voice input isn\'t supported in this browser — just type instead.';
+}
+
+document.getElementById('unfiltered-save').addEventListener('click', ()=>{
+  if(unfilteredRecognition && unfilteredListening) unfilteredRecognition.stop();
+  const title = document.getElementById('unfiltered-title').value.trim();
+  const text = document.getElementById('unfiltered-text').value.trim();
+  const topics = Array.from(document.querySelectorAll('#unfiltered-topic-chips .chip.selected')).map(c=>c.dataset.topic);
+  if(!text){ showToast('Get at least a little down before saving.'); return; }
+  D.unfiltered.unshift({id:uid(), title:title||'Untitled', text, topics, date:new Date().toISOString()});
+  document.getElementById('unfiltered-title').value='';
+  document.getElementById('unfiltered-text').value='';
+  unfilteredChipsTouched = false;
+  renderUnfilteredTopicChips([]);
+  addXP(20); saveData();
+  showToast('Entry saved · +20 XP');
+  renderUnfilteredList();
+  renderRecentBreakthroughs();
+});
+function renderUnfilteredList(){
+  const el = document.getElementById('unfiltered-list');
+  if(!D.unfiltered.length){ el.innerHTML='<div class="empty"><span class="empty-icon">◍</span>Nothing logged yet. Talk it out whenever you need to.</div>'; return; }
+  el.innerHTML = '<div class="entry-list">'+D.unfiltered.map(u=>`
+    <div class="entry"><span class="entry-date">${fmtDate(u.date)}</span><div class="entry-body"><b>${escapeHtml(u.title)}</b><br>${escapeHtml(u.text)}
+      ${u.topics&&u.topics.length?'<br>'+u.topics.map(t=>`<span class="chip" style="pointer-events:none; margin:.3rem .3rem 0 0; display:inline-block;">${t}</span>`).join(''):''}
+    </div><span class="entry-tag">UNFILTERED</span>
+      <button class="btn btn-ghost btn-sm" style="margin-top:.5rem;" onclick="deleteUnfiltered('${u.id}')">Remove</button>
+    </div>
+  `).join('')+'</div>';
+}
+window.deleteUnfiltered = function(id){
+  D.unfiltered = D.unfiltered.filter(u=>u.id!==id);
+  saveData(); showToast('Entry removed.'); renderUnfilteredList();
+};
+window.onPageShow.unfiltered = function(){ renderUnfilteredList(); renderUnfilteredTopicChips(); unfilteredChipsTouched=false; };
+safeInit('unfiltered', ()=>{ renderUnfilteredList(); renderUnfilteredTopicChips(); });
 
 /* ================================================================
    MODULE: SETTINGS — ambient sound engine, reduced motion, account, reset
