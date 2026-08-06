@@ -540,6 +540,16 @@ a{color:inherit; text-decoration:none;}
 .habit-remove{color:var(--gunmetal); font-size:12px; padding:4px 8px; transition:color .2s;}
 .habit-remove:hover{color:var(--danger);}
 
+.routine-complete-row{margin-top:22px; padding-top:22px; border-top:1px solid var(--gunmetal);}
+.complete-routine-btn{
+  width:100%; padding:14px; background:var(--gold); color:var(--matte-black);
+  font-weight:600; letter-spacing:1px; text-transform:uppercase; font-size:12px;
+  border-radius:3px; transition:all .3s var(--ease-soft);
+}
+.complete-routine-btn:hover{background:var(--gold-bright); box-shadow:0 0 24px rgba(200,165,98,0.3);}
+.complete-routine-btn.updated{background:var(--stone); color:var(--gold); border:1px solid var(--gold-dim);}
+.routine-result{margin-top:10px; text-align:center; font-size:12px; color:var(--gold-dim); letter-spacing:0.4px; min-height:16px;}
+
 /* ============================================================
    SHADOW RELEASE
    ============================================================ */
@@ -807,6 +817,10 @@ a{color:inherit; text-decoration:none;}
           <button class="add-habit-btn" data-list="morning">+ Add Directive</button>
         </div>
         <div class="habit-list" id="morning-list"></div>
+        <div class="routine-complete-row">
+          <button class="complete-routine-btn" id="morning-complete-btn" data-list="morning">Complete Routine</button>
+          <div class="routine-result" id="morning-result"></div>
+        </div>
       </section>
 
       <!-- ============ EVENING PROTOCOL ============ -->
@@ -826,6 +840,10 @@ a{color:inherit; text-decoration:none;}
           <button class="add-habit-btn" data-list="evening">+ Add Directive</button>
         </div>
         <div class="habit-list" id="evening-list"></div>
+        <div class="routine-complete-row">
+          <button class="complete-routine-btn" id="evening-complete-btn" data-list="evening">Complete Routine</button>
+          <div class="routine-result" id="evening-result"></div>
+        </div>
       </section>
 
       <!-- ============ SHADOW RELEASE ============ -->
@@ -959,6 +977,7 @@ const state = {
   authIsRegister: false,
   habits: [],          // {id, list, name, sort}
   logs: {},            // `${habit_id}|${date}` -> true
+  routineScores: {},    // `${list}|${date}` -> score (0-100) recorded on "Complete Routine"
   dayHistory: {},       // date -> {done, total}  (last 14 days, computed)
   shadow: [],           // {id, root, sub, what, body, need, created_at, released_at}
   notes: [],            // {id, folder, title, body, updated_at}
@@ -1147,17 +1166,19 @@ async function loadAllData(){
   if(!sb || !state.user){ seedLocalDefaults(); return; }
   const uid = state.user.id;
   try{
-    const [h, l, s, n] = await Promise.all([
+    const [h, l, s, n, r] = await Promise.all([
       sb.from('sentinel_habits').select('*').eq('user_id', uid).order('sort'),
       sb.from('sentinel_habit_logs').select('*').eq('user_id', uid),
       sb.from('sentinel_shadow').select('*').eq('user_id', uid).order('created_at', {ascending:false}),
       sb.from('sentinel_notes').select('*').eq('user_id', uid).order('updated_at', {ascending:false}),
+      sb.from('sentinel_routine_scores').select('*').eq('user_id', uid),
     ]);
     state.habits = h.data || [];
     if(state.habits.length===0){ await seedRemoteDefaults(); }
     (l.data||[]).forEach(row=>{ state.logs[row.habit_id+'|'+row.log_date]=true; });
     state.shadow = s.data || [];
     state.notes = n.data || [];
+    (r.data||[]).forEach(row=>{ state.routineScores[row.list+'|'+row.log_date]=row.score; });
   }catch(e){
     console.warn('Load failed, using local defaults', e);
     seedLocalDefaults();
@@ -1335,7 +1356,45 @@ function renderHabits(list){
   const circumference = 213;
   document.getElementById(list+'-ring-fill').style.strokeDashoffset = circumference - (circumference*pct/100);
   document.getElementById(list+'-ring-pct').textContent = pct+'%';
+
+  const recorded = state.routineScores[list+'|'+todayStr()];
+  const btnEl = document.getElementById(list+'-complete-btn');
+  const resultEl = document.getElementById(list+'-result');
+  if(btnEl){
+    btnEl.textContent = recorded!=null ? 'Update Completion' : 'Complete Routine';
+    btnEl.classList.toggle('updated', recorded!=null);
+  }
+  if(resultEl){
+    resultEl.textContent = recorded!=null ? `Logged today at ${recorded}%` : 'Not yet logged today';
+  }
 }
+
+async function completeRoutine(list){
+  const items = state.habits.filter(h=>h.list===list);
+  const total = items.length || 1;
+  const done = items.filter(h=>state.logs[h.id+'|'+todayStr()]).length;
+  const pct = Math.round((done/total)*100);
+  const key = list+'|'+todayStr();
+  state.routineScores[key] = pct;
+
+  playClick(pct>=100?680:460, 0.08);
+  if(navigator.vibrate) navigator.vibrate(pct>=100?[10,40,10]:14);
+
+  if(sb && state.user){
+    try{
+      await sb.from('sentinel_routine_scores').upsert(
+        {user_id:state.user.id, list, log_date:todayStr(), score:pct, completed_at:new Date().toISOString()},
+        {onConflict:'user_id,list,log_date'}
+      );
+    }catch(e){ console.warn('routine score sync failed', e); }
+  }
+
+  toast(pct>=100 ? 'Routine completed — 100%' : `Routine completed at ${pct}%`);
+  renderHabits(list);
+}
+document.querySelectorAll('.complete-routine-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> completeRoutine(btn.dataset.list));
+});
 
 document.querySelectorAll('.add-habit-btn').forEach(btn=>{
   btn.addEventListener('click', async ()=>{
@@ -1555,14 +1614,22 @@ function computeStreak(){
   return streak;
 }
 
+function avgRoutineCompletion(){
+  const scores = Object.values(state.routineScores);
+  if(!scores.length) return null;
+  return Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+}
+
 function renderProgress(){
   const streak = computeStreak();
   const morningTotal = state.habits.filter(h=>h.list==='morning').length || 1;
   const morningDoneDays = countDaysAtFullCompletion('morning');
   const shadowReleased = state.shadow.filter(s=>s.released_at).length;
+  const avgCompletion = avgRoutineCompletion();
 
   document.getElementById('progress-grid').innerHTML = `
     <div class="card progress-stat-card"><div class="progress-stat-val">${streak}</div><div class="progress-stat-label">Current Streak</div></div>
+    <div class="card progress-stat-card"><div class="progress-stat-val">${avgCompletion!=null ? avgCompletion+'%' : '—'}</div><div class="progress-stat-label">Avg Routine Completion</div></div>
     <div class="card progress-stat-card"><div class="progress-stat-val">${state.shadow.length}</div><div class="progress-stat-label">Shadow Entries</div></div>
     <div class="card progress-stat-card"><div class="progress-stat-val">${shadowReleased}</div><div class="progress-stat-label">Shadow Releases</div></div>
     <div class="card progress-stat-card"><div class="progress-stat-val">${state.notes.length}</div><div class="progress-stat-label">Journal Entries</div></div>
@@ -1618,8 +1685,11 @@ document.getElementById('settings-signout').addEventListener('click', async ()=>
 document.getElementById('settings-reset-today').addEventListener('click', async ()=>{
   const ds = todayStr();
   state.habits.forEach(h=>delete state.logs[h.id+'|'+ds]);
+  delete state.routineScores['morning|'+ds];
+  delete state.routineScores['evening|'+ds];
   if(sb && state.user){
     await sb.from('sentinel_habit_logs').delete().eq('user_id', state.user.id).eq('log_date', ds);
+    await sb.from('sentinel_routine_scores').delete().eq('user_id', state.user.id).eq('log_date', ds);
   }
   toast('Today reset');
   renderHabits('morning'); renderHabits('evening'); renderDashboard();
