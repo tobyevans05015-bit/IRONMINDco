@@ -262,28 +262,6 @@ img{max-width:100%;display:block;}
 @keyframes scrollpulse{ 0%,100%{opacity:.3;} 50%{opacity:1;} }
 
 /* ============================================================
-   SHADOW LAB EMBED MODAL
-============================================================ */
-.shadow-lab-modal{
-  position:fixed; inset:0; z-index:9999; background:#000;
-  display:flex; flex-direction:column;
-  opacity:0; pointer-events:none; transform:scale(0.98);
-  transition:opacity .35s var(--ease), transform .35s var(--ease);
-}
-.shadow-lab-modal.active{ opacity:1; pointer-events:auto; transform:scale(1); }
-.shadow-lab-modal-bar{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:.9rem 1.4rem; background:#0a0a0a; border-bottom:1px solid rgba(255,255,255,.08);
-  font-family:var(--font-head,inherit); letter-spacing:.12em; font-size:.8rem; color:var(--silver,#ccc);
-}
-.shadow-lab-modal-bar button{
-  background:none; border:1px solid rgba(255,255,255,.2); color:#eee; border-radius:6px;
-  width:32px; height:32px; cursor:pointer; font-size:1rem; line-height:1;
-}
-.shadow-lab-modal-bar button:hover{ border-color:var(--glow,#c9a24b); color:var(--glow,#c9a24b); }
-.shadow-lab-modal iframe{ flex:1; width:100%; border:0; }
-
-/* ============================================================
    FIVE PILLARS GRID
 ============================================================ */
 .pillars-grid{
@@ -584,7 +562,7 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
           <span class="shadow-chip">Shame</span>
           <span class="shadow-chip">Identity</span>
         </div>
-        <a href="javascript:void(0)" onclick="openShadowLab()" class="btn btn-ghost" data-magnetic>Enter Shadow Lab →</a>
+        <a href="https://tobyevans05015-bit.github.io/IRONMINDco/shadow.html" target="_blank" rel="noopener" class="btn btn-ghost" data-magnetic>Enter Shadow Lab →</a>
       </div>
 
       <div class="pillar-card glass reveal" id="pillars-wealth">
@@ -1032,26 +1010,5 @@ updatePath();
 
 })();
 </script>
-  <div id="shadow-lab-modal" class="shadow-lab-modal">
-    <div class="shadow-lab-modal-bar">
-      <span>SHADOW LAB</span>
-      <button onclick="closeShadowLab()" aria-label="Close Shadow Lab">✕</button>
-    </div>
-    <iframe id="shadow-lab-frame" src="" title="Shadow Lab"></iframe>
-  </div>
-
-  <script>
-    function openShadowLab(){
-      var modal = document.getElementById('shadow-lab-modal');
-      var frame = document.getElementById('shadow-lab-frame');
-      if(!frame.src){ frame.src = 'https://tobyevans05015-bit.github.io/IRONMINDco/shadow.html'; }
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeShadowLab(){
-      document.getElementById('shadow-lab-modal').classList.remove('active');
-      document.body.style.overflow = '';
-    }
-  </script>
 </body>
 </html>
