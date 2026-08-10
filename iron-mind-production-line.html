@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iron Mind — Production Line</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --steel-black:#121417;
+    --panel:#1c2024;
+    --panel-raised:#22262b;
+    --iron-line:#383e46;
+    --paper:#ECE8DF;
+    --paper-dim:#9a9791;
+    --forge:#FF5A36;
+    --forge-dim:#7a3323;
+    --hazard:#F2C44C;
+    --hazard-dim:#6f5a24;
+    --signal:#3AA6B9;
+    --signal-dim:#255a63;
+    --danger:#E8491D;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--steel-black);
+    color:var(--paper);
+    font-family:'Archivo',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(circle at 100% 0%, rgba(255,90,54,0.05), transparent 40%),
+      radial-gradient(circle at 0% 100%, rgba(58,166,185,0.05), transparent 40%);
+  }
+  h1,h2,h3{font-family:'Oswald',sans-serif; margin:0; text-transform:uppercase; letter-spacing:0.03em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  #app{max-width:880px; margin:0 auto; padding:0 18px 80px;}
+
+  /* ---------- HEADER / RAIL ---------- */
+  .rail{
+    position:sticky; top:0; z-index:50;
+    background:linear-gradient(180deg, var(--steel-black) 70%, transparent);
+    padding:16px 0 10px;
+  }
+  .rail-title{font-family:'Oswald'; font-size:0.72rem; letter-spacing:0.14em; color:var(--paper-dim);}
+  .rail-title b{color:var(--paper);}
+  .rail-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+  .rail-pct{font-family:'JetBrains Mono'; font-size:0.72rem; color:var(--forge);}
+  .rail-track{
+    position:relative; height:26px;
+    background:var(--panel);
+    border:1px solid var(--iron-line);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .rail-dashes{
+    position:absolute; inset:0;
+    background-image:repeating-linear-gradient(90deg, var(--iron-line) 0 10px, transparent 10px 22px);
+    opacity:0.9;
+  }
+  .car{
+    position:absolute; top:50%; left:0%;
+    transform:translate(-50%,-50%);
+    transition:left .5s cubic-bezier(.4,0,.2,1);
+    filter:drop-shadow(0 0 6px rgba(255,90,54,.6));
+  }
+
+  /* ---------- TOOLBAR ---------- */
+  .toolbar{display:flex; gap:8px; margin:14px 0 20px; flex-wrap:wrap;}
+  button{
+    font-family:'JetBrains Mono'; font-size:0.72rem; letter-spacing:0.04em;
+    background:var(--panel); color:var(--paper); border:1px solid var(--iron-line);
+    padding:9px 14px; border-radius:3px; cursor:pointer; text-transform:uppercase;
+  }
+  button:hover{border-color:var(--forge); color:var(--forge);}
+  button.primary{background:var(--forge); border-color:var(--forge); color:#1a0d08; font-weight:700;}
+  button.primary:hover{background:#ff744f; color:#1a0d08;}
+  button.ghost{background:transparent;}
+  button.small{padding:5px 9px; font-size:0.64rem;}
+  button:disabled{opacity:.35; cursor:not-allowed;}
+
+  /* ---------- LOT PANEL ---------- */
+  .lot-panel{
+    background:var(--panel); border:1px solid var(--iron-line); border-radius:4px;
+    padding:16px; margin-bottom:24px;
+  }
+  .lot-panel.hidden{display:none;}
+  .lot-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:10px; margin-top:12px;}
+  .lot-card{
+    background:var(--panel-raised); border:1px solid var(--iron-line); border-radius:3px;
+    padding:10px; font-size:0.78rem; display:flex; flex-direction:column; gap:6px;
+  }
+  .lot-card h4{font-family:'Oswald'; font-size:0.85rem; margin:0; line-height:1.15;}
+  .lot-tags{display:flex; gap:5px; flex-wrap:wrap;}
+  .tag{font-family:'JetBrains Mono'; font-size:0.6rem; padding:2px 6px; border-radius:2px; text-transform:uppercase; letter-spacing:.03em;}
+  .tag.tof{background:var(--forge-dim); color:var(--forge);}
+  .tag.mof{background:var(--hazard-dim); color:var(--hazard);}
+  .tag.bof{background:var(--signal-dim); color:var(--signal);}
+  .lot-card-actions{display:flex; gap:5px; margin-top:4px;}
+  .lot-empty{color:var(--paper-dim); font-size:0.8rem; font-style:italic;}
+  .compare-check{display:flex; align-items:center; gap:5px; font-size:0.62rem; font-family:'JetBrains Mono'; color:var(--paper-dim);}
+
+  #comparePanel table{width:100%; border-collapse:collapse; margin-top:14px; font-size:0.78rem;}
+  #comparePanel th, #comparePanel td{border:1px solid var(--iron-line); padding:7px 9px; text-align:left; vertical-align:top;}
+  #comparePanel th{background:var(--panel-raised); font-family:'JetBrains Mono'; font-size:0.65rem; text-transform:uppercase; color:var(--paper-dim);}
+
+  /* ---------- PRODUCTION LINE ---------- */
+  .line{position:relative; padding-left:26px;}
+  .line::before{
+    content:''; position:absolute; left:9px; top:6px; bottom:6px; width:2px;
+    background-image:repeating-linear-gradient(180deg, var(--iron-line) 0 8px, transparent 8px 16px);
+  }
+  .station{
+    position:relative;
+    background:var(--panel); border:1px solid var(--iron-line); border-radius:4px;
+    padding:20px 20px 22px; margin-bottom:16px;
+  }
+  .station::before{
+    content:''; position:absolute; left:-26px; top:22px; width:11px; height:11px;
+    background:var(--steel-black); border:2px solid var(--iron-line); border-radius:50%;
+  }
+  .station.filled::before{border-color:var(--forge); background:var(--forge);}
+  .station-head{display:flex; align-items:baseline; gap:10px; margin-bottom:4px; flex-wrap:wrap;}
+  .station-num{font-family:'JetBrains Mono'; font-size:0.72rem; color:var(--forge); letter-spacing:.04em;}
+  .station-head h2{font-size:1.15rem;}
+  .station-sub{font-family:'JetBrains Mono'; font-size:0.66rem; color:var(--paper-dim); text-transform:uppercase; letter-spacing:.05em;}
+  .hint{font-size:0.8rem; color:var(--paper-dim); margin:6px 0 14px; line-height:1.45; border-left:2px solid var(--iron-line); padding-left:10px;}
+
+  label.field-label{display:block; font-family:'JetBrains Mono'; font-size:0.66rem; text-transform:uppercase; letter-spacing:.05em; color:var(--paper-dim); margin-bottom:6px; margin-top:14px;}
+  label.field-label:first-of-type{margin-top:0;}
+  input[type=text], input[type=number], textarea, select{
+    width:100%; background:var(--panel-raised); border:1px solid var(--iron-line); color:var(--paper);
+    padding:10px 11px; border-radius:3px; font-family:'Archivo'; font-size:0.88rem; line-height:1.4;
+  }
+  textarea{resize:vertical; min-height:64px;}
+  input:focus, textarea:focus, select:focus{outline:none; border-color:var(--forge);}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media(max-width:560px){.grid-2{grid-template-columns:1fr;}}
+
+  /* card-style radio choices */
+  .choice-row{display:flex; flex-direction:column; gap:8px;}
+  .choice-row.cols3{flex-direction:row; flex-wrap:wrap;}
+  .choice{
+    display:flex; align-items:flex-start; gap:10px; cursor:pointer;
+    background:var(--panel-raised); border:1px solid var(--iron-line); border-radius:3px; padding:10px 12px;
+    flex:1; min-width:140px;
+  }
+  .choice input{margin-top:3px; accent-color:var(--forge);}
+  .choice span.ctitle{display:block; font-family:'JetBrains Mono'; font-size:0.75rem; text-transform:uppercase; letter-spacing:.03em;}
+  .choice span.cdesc{display:block; font-size:0.72rem; color:var(--paper-dim); margin-top:2px;}
+  .choice:has(input:checked){border-color:var(--forge); background:rgba(255,90,54,0.08);}
+  .choice.mof:has(input:checked){border-color:var(--hazard); background:rgba(242,196,76,0.08);}
+  .choice.bof:has(input:checked){border-color:var(--signal); background:rgba(58,166,185,0.08);}
+
+  .rung-row{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .rung-row label.choice{padding:8px 10px; min-width:120px; flex:0 0 auto;}
+  .rung-row input[type=text]{flex:1;}
+
+  .toggle-row{display:flex; gap:8px;}
+  .toggle-row .choice{justify-content:center; text-align:center;}
+  .warn-box{margin-top:10px; padding:9px 11px; border-radius:3px; background:rgba(232,73,29,.12); border:1px solid var(--danger); font-size:0.76rem; color:#ffb199; display:none;}
+  .warn-box.show{display:block;}
+
+  .gauge-out{margin-top:12px; padding:14px; background:var(--panel-raised); border:1px dashed var(--iron-line); border-radius:3px; text-align:center;}
+  .gauge-out .num{font-family:'Oswald'; font-size:1.6rem; color:var(--forge);}
+  .gauge-out .lbl{font-family:'JetBrains Mono'; font-size:0.62rem; color:var(--paper-dim); text-transform:uppercase; letter-spacing:.06em;}
+
+  .pillars{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;}
+  @media(max-width:560px){.pillars{grid-template-columns:1fr;}}
+  .pillar-item{display:flex; align-items:center; gap:8px; font-size:0.8rem; background:var(--panel-raised); border:1px solid var(--iron-line); padding:8px 10px; border-radius:3px;}
+  .pillar-item input{accent-color:var(--forge);}
+
+  .cta-suggest{margin-top:10px; padding:10px 12px; background:var(--panel-raised); border-left:3px solid var(--forge); font-size:0.8rem; color:var(--paper-dim); border-radius:0 3px 3px 0;}
+
+  /* ---------- SHIPPING DOCK ---------- */
+  .dock{border-color:var(--forge);}
+  .script-preview{
+    background:var(--steel-black); border:1px solid var(--iron-line); border-radius:3px;
+    padding:16px; margin-top:14px; font-size:0.86rem; line-height:1.7; white-space:pre-wrap;
+  }
+  .script-preview .seg-label{font-family:'JetBrains Mono'; font-size:0.62rem; color:var(--forge); text-transform:uppercase; letter-spacing:.06em; display:block; margin-top:12px;}
+  .script-preview .seg-label:first-child{margin-top:0;}
+  .dock-actions{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .ship-msg{font-size:0.76rem; color:var(--danger); margin-top:8px; display:none;}
+  .ship-msg.show{display:block;}
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--forge); color:#1a0d08; font-family:'JetBrains Mono'; font-size:0.78rem;
+    padding:10px 18px; border-radius:4px; opacity:0; pointer-events:none; transition:opacity .3s, bottom .3s;
+    z-index:100; font-weight:700;
+  }
+  .toast.show{opacity:1; bottom:34px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="rail">
+    <div class="rail-top">
+      <span class="rail-title">IRON MIND <b>&mdash; PRODUCTION LINE</b></span>
+      <span class="rail-pct mono" id="pctLabel">0% BUILT</span>
+    </div>
+    <div class="rail-track">
+      <div class="rail-dashes"></div>
+      <svg class="car" id="carIcon" width="34" height="20" viewBox="0 0 34 20">
+        <rect x="2" y="6" width="24" height="9" rx="1.5" fill="#FF5A36"/>
+        <rect x="20" y="2" width="10" height="9" rx="1.5" fill="#FF5A36"/>
+        <rect x="21" y="3.5" width="7" height="5" rx="0.5" fill="#121417"/>
+        <circle cx="9" cy="16" r="3.2" fill="#121417" stroke="#ECE8DF" stroke-width="1"/>
+        <circle cx="24" cy="16" r="3.2" fill="#121417" stroke="#ECE8DF" stroke-width="1"/>
+      </svg>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="primary" id="newBuildBtn">+ New Build</button>
+    <button id="toggleLotBtn">Production Lot (<span id="lotCount">0</span>)</button>
+    <button class="ghost" id="compareBtn" style="display:none;">Compare Selected</button>
+  </div>
+
+  <section class="lot-panel hidden" id="lotPanel">
+    <h3 style="font-size:0.95rem;">Production Lot</h3>
+    <p class="hint" style="margin-top:6px;">Every build you've shipped. Open one to keep editing, duplicate one to test a new combination without losing the original, or select two and compare their levers side by side.</p>
+    <div class="lot-grid" id="lotGrid"></div>
+    <div id="comparePanel"></div>
+  </section>
+
+  <main class="line">
+
+    <!-- 01 -->
+    <section class="station" data-s="1">
+      <div class="station-head"><span class="station-num mono">01</span><h2>Blueprint</h2><span class="station-sub">North Star</span></div>
+      <p class="hint">One sentence. What is this specific video actually for? Different goals pull different levers everywhere downstream — decide this first or every choice after it is a guess.</p>
+      <label class="field-label">This video's goal</label>
+      <select id="northStarGoal">
+        <option value="">Select a goal…</option>
+        <option value="reach">Grow reach — get in front of new people</option>
+        <option value="authority">Build authority — prove I know what I'm talking about</option>
+        <option value="convert">Convert — move someone toward the offer</option>
+        <option value="nurture">Nurture — deepen trust with people already following</option>
+      </select>
+      <label class="field-label">In your own words</label>
+      <textarea id="northStar" placeholder="e.g. Show men that discipline without inner work is just avoidance in a uniform."></textarea>
+    </section>
+
+    <!-- 02 -->
+    <section class="station" data-s="2">
+      <div class="station-head"><span class="station-num mono">02</span><h2>Chassis</h2><span class="station-sub">Topic &amp; TAM Ladder</span></div>
+      <p class="hint">Every topic sits on a ladder. Climb one rung and your ceiling gets bigger without leaving your lane. Write the same core idea at each altitude, then pick which one this build is actually using.</p>
+      <label class="field-label">Core topic</label>
+      <input type="text" id="topic" placeholder="e.g. self-sabotage right when things start working">
+      <label class="field-label" style="margin-top:16px;">TAM ladder — pick the altitude, write the framing</label>
+      <div id="tamRungs"></div>
+    </section>
+
+    <!-- 03 -->
+    <section class="station" data-s="3">
+      <div class="station-head"><span class="station-num mono">03</span><h2>Engine</h2><span class="station-sub">Funnel Stage</span></div>
+      <p class="hint">This decides how hard you're allowed to sell, and how broad the hook should reach.</p>
+      <div class="choice-row cols3" id="funnelChoices"></div>
+    </section>
+
+    <!-- 04 -->
+    <section class="station" data-s="4">
+      <div class="station-head"><span class="station-num mono">04</span><h2>Bodywork</h2><span class="station-sub">Format</span></div>
+      <p class="hint">Clone format is nearly overplayed. Series are back and convert views to followers better than anything else. Green screen is the easiest entry point if you're short on setup.</p>
+      <label class="field-label">Format</label>
+      <select id="format">
+        <option value="">Select a format…</option>
+        <option>Talking head</option>
+        <option>Green screen</option>
+        <option>Whiteboard / on-screen list</option>
+        <option>Series (multi-part)</option>
+        <option>Clone format</option>
+        <option>Live stream</option>
+        <option value="other">Other…</option>
+      </select>
+      <textarea id="formatOther" placeholder="Describe the format" style="display:none; margin-top:10px;"></textarea>
+    </section>
+
+    <!-- 05 -->
+    <section class="station" data-s="5">
+      <div class="station-head"><span class="station-num mono">05</span><h2>Ignition</h2><span class="station-sub">Hook</span></div>
+      <p class="hint">Simple and slightly aggressive beats clever. Your two proven hook mechanisms: self-diagnostic framing ("do you come under any of these") and a broad accusation. Whatever you write, plan to reopen the loop again roughly every 15 seconds — one hook does not carry a whole video.</p>
+      <label class="field-label">Hook type</label>
+      <select id="hookType">
+        <option value="">Select a type…</option>
+        <option>Self-diagnostic</option>
+        <option>Broad accusation</option>
+        <option>Gun-to-the-head reframe</option>
+        <option>Curiosity gap</option>
+        <option value="other">Other…</option>
+      </select>
+      <label class="field-label">The actual hook line</label>
+      <textarea id="hook" placeholder="Say it exactly how you'll say it on camera."></textarea>
+    </section>
+
+    <!-- 06 -->
+    <section class="station" data-s="6">
+      <div class="station-head"><span class="station-num mono">06</span><h2>Under the Hood</h2><span class="station-sub">Stance &amp; Diagnosis</span></div>
+      <p class="hint">The stance is the unhedged position you actually hold — say it once, flat, no softening. The diagnosis is the real content underneath it, the thing that's actually teaching someone something.</p>
+      <label class="field-label">Controversial take (only if you'd defend it off-camera)</label>
+      <textarea id="stance" placeholder="State it flat. One sentence, no hedging."></textarea>
+      <label class="field-label">Diagnosis — the real value</label>
+      <textarea id="diagnosis" placeholder="What are you actually teaching here? Write it the way you'd say it out loud."></textarea>
+    </section>
+
+    <!-- 07 -->
+    <section class="station" data-s="7">
+      <div class="station-head"><span class="station-num mono">07</span><h2>Fuel Mix</h2><span class="station-sub">Illustration</span></div>
+      <p class="hint">This is what makes the diagnosis land instead of just being information — story, case, metaphor, stat, or quote.</p>
+      <label class="field-label">Method</label>
+      <select id="illustrationMethod">
+        <option value="">Select a method…</option>
+        <option>Personal story</option>
+        <option>Case example</option>
+        <option>Metaphor</option>
+        <option>Statistic</option>
+        <option>Quote</option>
+      </select>
+      <label class="field-label">The illustration itself</label>
+      <textarea id="illustration" placeholder="One concrete scene, not a summary."></textarea>
+    </section>
+
+    <!-- 08 -->
+    <section class="station" data-s="8">
+      <div class="station-head"><span class="station-num mono">08</span><h2>Traction</h2><span class="station-sub">Conversation Driver &amp; Polarization</span></div>
+      <p class="hint">Pick what this video is actually optimizing for — comments, sends, or saves rarely all peak from the same video. If you're taking a stance, know exactly who it's for and who it pushes away.</p>
+      <label class="field-label">Conversation driver</label>
+      <div class="choice-row cols3" id="driverChoices"></div>
+      <label class="field-label" style="margin-top:18px;">Would you defend this stance in a private conversation, not just on camera?</label>
+      <div class="toggle-row" id="believeChoices"></div>
+      <div class="warn-box" id="believeWarn">If the honest answer is no — reconsider it. Manufactured outrage builds views and zero fandom.</div>
+      <div class="grid-2" style="margin-top:14px;">
+        <div>
+          <label class="field-label">Who this is for</label>
+          <input type="text" id="polFor" placeholder="Who nods along">
+        </div>
+        <div>
+          <label class="field-label">Who this pushes away</label>
+          <input type="text" id="polAgainst" placeholder="Who argues in the comments">
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section class="station" data-s="9">
+      <div class="station-head"><span class="station-num mono">09</span><h2>Gauge</h2><span class="station-sub">Viral For You</span></div>
+      <p class="hint">Virality is relative to your own baseline, not a fixed number. 4&ndash;5x your recent average counts as viral for you — and the target should keep climbing as your baseline does.</p>
+      <label class="field-label">Your recent average views</label>
+      <input type="number" id="vfyBaseline" placeholder="e.g. 900" min="0">
+      <div class="gauge-out">
+        <div class="num mono" id="vfyOut">&mdash;</div>
+        <div class="lbl">Viral for you</div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="station" data-s="10">
+      <div class="station-head"><span class="station-num mono">10</span><h2>Quality Control</h2><span class="station-sub">CTA &amp; Pillars</span></div>
+      <p class="hint">The ask should match the funnel stage you picked back at the Engine — top of funnel barely asks anything, bottom of funnel gets one clean ask.</p>
+      <div class="cta-suggest mono" id="ctaSuggest">Pick a funnel stage and conversation driver above to see a suggested CTA.</div>
+      <label class="field-label">Final CTA</label>
+      <textarea id="ctaFinal" placeholder="What you'll actually say."></textarea>
+      <label class="field-label" style="margin-top:18px;">Pillars check — not gating, just an inspection stamp</label>
+      <div class="pillars" id="pillars"></div>
+    </section>
+
+    <!-- 11 -->
+    <section class="station dock" data-s="11">
+      <div class="station-head"><span class="station-num mono">11</span><h2>Shipping Dock</h2><span class="station-sub">Final Assembly</span></div>
+      <p class="hint">The last two connective beats — reopening the loop, and the payoff before your CTA — get written here, once you can see the whole car assembled.</p>
+      <label class="field-label">Title</label>
+      <input type="text" id="title" placeholder="Working title for this video">
+      <label class="field-label">Reopen the loop (right after the hook)</label>
+      <textarea id="reopen" placeholder="One line that keeps them watching past the hook."></textarea>
+      <label class="field-label">Payoff (right before the CTA)</label>
+      <textarea id="payoff" placeholder="The line that lands the whole point."></textarea>
+      <label class="field-label">Description / caption</label>
+      <textarea id="description" placeholder="Caption for the post."></textarea>
+
+      <label class="field-label">Assembled script</label>
+      <div class="script-preview mono" id="scriptPreview"></div>
+
+      <div class="dock-actions">
+        <button id="copyBtn" class="ghost">Copy Script</button>
+        <button id="shipBtn" class="primary">Ship to Production Lot</button>
+      </div>
+      <div class="ship-msg" id="shipMsg">Add at least a topic and a title before shipping.</div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+
+  const FUNNEL_OPTS = [
+    {v:'TOF', cls:'', title:'TOF — Top of Funnel', desc:'Broad, still on-throughline, built for reach. Light ask or none.'},
+    {v:'MOF', cls:'mof', title:'MOF — Middle of Funnel', desc:'The mind-blower. No CTA — pure trust and authority.'},
+    {v:'BOF', cls:'bof', title:'BOF — Bottom of Funnel', desc:'Sneak-peek narrative. One soft, implied ask.'}
+  ];
+  const DRIVER_OPTS = [
+    {v:'Comments', desc:'Controversy or a planted detail people have to ask about.'},
+    {v:'Sends', desc:'Communal — the kind of thing sent to a specific group chat.'},
+    {v:'Saves', desc:'Pure reference value, something to come back to.'}
+  ];
+  const BELIEVE_OPTS = [
+    {v:'yes', title:'Yes — I would say this off-camera too'},
+    {v:'no', title:'No — I do not fully believe this'}
+  ];
+  const TAM_LABELS = [
+    'Rung 1 — Narrowest',
+    'Rung 2 — One layer up',
+    'Rung 3 — Two layers up',
+    'Rung 4 — Maximum reach'
+  ];
+  const PILLARS = [
+    ['pStrategy','Strategy set — TOF/MOF/BOF decided'],
+    ['pIdeation','Ideation sourced, not invented cold'],
+    ['pScript','Scripted intentionally, not AI-written'],
+    ['pTalent','Talent/energy fit — right format for how you record'],
+    ['pEdit','Edit plan — overlays, cuts, pacing decided'],
+    ['pGrowth','Growth tactic attached — series link, CTA, or stories follow-up']
+  ];
+
+  const FIELD_IDS = ['northStarGoal','northStar','topic','tamRung0','tamRung1','tamRung2','tamRung3',
+    'tam0','tam1','tam2','tam3','funnel','format','formatOther','hookType','hook','stance','diagnosis',
+    'illustrationMethod','illustration','driver','believe','polFor','polAgainst','vfyBaseline','ctaFinal',
+    'title','reopen','payoff','description',
+    'pStrategy','pIdeation','pScript','pTalent','pEdit','pGrowth'];
+
+  function blankBuild(){
+    const b = {id:null, createdAt:null};
+    FIELD_IDS.forEach(k=>{ b[k] = (k.startsWith('p') && k.length>1 && PILLARS.some(p=>p[0]===k)) ? false : ''; });
+    return b;
+  }
+
+  let current = blankBuild();
+  let builds = [];
+  let compareSelection = [];
+  let saveTimer = null;
+
+  // ---------- storage helpers ----------
+  async function loadBuilds(){
+    try{
+      const r = await window.storage.get('builds', false);
+      builds = r && r.value ? JSON.parse(r.value) : [];
+    }catch(e){ builds = []; }
+  }
+  async function persistBuilds(){
+    try{ await window.storage.set('builds', JSON.stringify(builds), false); }catch(e){}
+  }
+  async function loadDraft(){
+    try{
+      const r = await window.storage.get('draft', false);
+      if(r && r.value){ current = Object.assign(blankBuild(), JSON.parse(r.value)); }
+    }catch(e){}
+  }
+  function queueDraftSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async ()=>{
+      try{ await window.storage.set('draft', JSON.stringify(current), false); }catch(e){}
+    }, 700);
+  }
+
+  // ---------- render: choice groups ----------
+  function renderChoiceGroup(container, opts, name, current_val, onPick, cardClassKey){
+    container.innerHTML = '';
+    opts.forEach(o=>{
+      const label = document.createElement('label');
+      label.className = 'choice' + (cardClassKey ? ' ' + (o[cardClassKey]||'') : '');
+      const checked = current_val === o.v ? 'checked' : '';
+      label.innerHTML = `<input type="radio" name="${name}" value="${o.v}" ${checked}>
+        <span><span class="ctitle">${o.title||o.v}</span>${o.desc?`<span class="cdesc">${o.desc}</span>`:''}</span>`;
+      label.querySelector('input').addEventListener('change', ()=>onPick(o.v));
+      container.appendChild(label);
+    });
+  }
+
+  function renderTamRungs(){
+    const wrap = document.getElementById('tamRungs');
+    wrap.innerHTML = '';
+    TAM_LABELS.forEach((lbl,i)=>{
+      const row = document.createElement('div');
+      row.className = 'rung-row';
+      const checked = current.tamRung == i ? 'checked' : '';
+      row.innerHTML = `
+        <label class="choice" style="cursor:pointer;">
+          <input type="radio" name="tamRung" value="${i}" ${checked}>
+          <span><span class="ctitle">${lbl}</span></span>
+        </label>
+        <input type="text" id="tam${i}" placeholder="How would you frame the topic at this altitude?" value="${escapeAttr(current['tam'+i]||'')}">
+      `;
+      wrap.appendChild(row);
+      row.querySelector('input[type=radio]').addEventListener('change', ()=>{ current.tamRung = i; markDirty(); });
+      row.querySelector('input[type=text]').addEventListener('input', (e)=>{ current['tam'+i] = e.target.value; markDirty(); });
+    });
+  }
+
+  function renderPillars(){
+    const wrap = document.getElementById('pillars');
+    wrap.innerHTML = '';
+    PILLARS.forEach(([key,label])=>{
+      const item = document.createElement('label');
+      item.className = 'pillar-item';
+      item.innerHTML = `<input type="checkbox" id="${key}" ${current[key]?'checked':''}> ${label}`;
+      item.querySelector('input').addEventListener('change', (e)=>{ current[key]=e.target.checked; markDirty(); });
+      wrap.appendChild(item);
+    });
+  }
+
+  function escapeAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+  function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ---------- bind simple fields ----------
+  const simpleFields = ['northStarGoal','northStar','topic','format','formatOther','hookType','hook',
+    'stance','diagnosis','illustrationMethod','illustration','polFor','polAgainst','vfyBaseline',
+    'ctaFinal','title','reopen','payoff','description'];
+
+  function bindSimpleFields(){
+    simpleFields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.value = current[id] || '';
+      el.addEventListener('input', ()=>{ current[id] = el.value; markDirty(); onFieldChange(id); });
+    });
+  }
+
+  function onFieldChange(id){
+    if(id === 'format'){
+      document.getElementById('formatOther').style.display = current.format==='other' ? 'block' : 'none';
+    }
+    if(id === 'vfyBaseline'){ renderVfy(); }
+    if(['funnel','driver'].includes(id)){ renderCtaSuggest(); }
+    renderScript();
+    renderProgress();
+  }
+
+  function renderVfy(){
+    const base = parseFloat(current.vfyBaseline);
+    const out = document.getElementById('vfyOut');
+    if(!base || base<=0){ out.textContent = '—'; return; }
+    out.textContent = Math.round(base*4).toLocaleString() + ' – ' + Math.round(base*5).toLocaleString();
+  }
+
+  function renderCtaSuggest(){
+    const el = document.getElementById('ctaSuggest');
+    const f = current.funnel, d = current.driver;
+    if(!f){ el.textContent = "Pick a funnel stage and conversation driver above to see a suggested CTA."; return; }
+    let txt = '';
+    if(f==='TOF') txt = 'Keep it light — a comment prompt or "follow for part 2." No link.';
+    if(f==='MOF') txt = 'No CTA. Let the diagnosis do the work — the goal is "if I paid someone, it would be this guy."';
+    if(f==='BOF') txt = 'One clean, soft ask — imply the offer through the story, do not pitch it outright.';
+    if(d==='Comments') txt += ' End on a question, or plant a detail they have to ask about.';
+    if(d==='Sends') txt += ' Phrase it so it reads as "us" — the kind of line someone forwards to a specific person.';
+    if(d==='Saves') txt += ' Frame it as something worth coming back to, not a one-time watch.';
+    el.textContent = txt;
+  }
+
+  // ---------- progress ----------
+  const PROGRESS_CHECKS = [
+    b=>!!b.northStar, b=>!!b.topic, b=>!!b.funnel, b=>!!b.format,
+    b=>!!b.hook, b=>!!(b.stance||b.diagnosis), b=>!!b.illustration,
+    b=>!!b.driver, b=>!!b.ctaFinal, b=>!!(b.title && b.topic)
+  ];
+  function renderProgress(){
+    const done = PROGRESS_CHECKS.filter(f=>f(current)).length;
+    const pct = Math.round((done/PROGRESS_CHECKS.length)*100);
+    document.getElementById('pctLabel').textContent = pct + '% BUILT';
+    const track = document.querySelector('.rail-track');
+    const w = track.clientWidth;
+    document.getElementById('carIcon').style.left = Math.min(96, Math.max(4,pct)) + '%';
+    document.querySelectorAll('.station').forEach((s,i)=>{
+      const idx = i; // stations 0..10 correspond to array position; approximate fill flag
+      s.classList.toggle('filled', stationHasData(idx+1));
+    });
+  }
+  function stationHasData(n){
+    switch(n){
+      case 1: return !!current.northStar;
+      case 2: return !!current.topic;
+      case 3: return !!current.funnel;
+      case 4: return !!current.format;
+      case 5: return !!current.hook;
+      case 6: return !!(current.stance || current.diagnosis);
+      case 7: return !!current.illustration;
+      case 8: return !!current.driver;
+      case 9: return !!current.vfyBaseline;
+      case 10: return !!current.ctaFinal;
+      case 11: return !!(current.title || current.reopen || current.payoff);
+      default: return false;
+    }
+  }
+
+  // ---------- script assembly ----------
+  function renderScript(){
+    const parts = [];
+    if(current.hook) parts.push(['HOOK', current.hook]);
+    if(current.reopen) parts.push(['REOPEN', current.reopen]);
+    if(current.stance) parts.push(['STANCE', current.stance]);
+    if(current.diagnosis) parts.push(['DIAGNOSIS', current.diagnosis]);
+    if(current.illustration) parts.push(['ILLUSTRATION', current.illustration]);
+    if(current.payoff) parts.push(['PAYOFF', current.payoff]);
+    if(current.ctaFinal) parts.push(['CTA', current.ctaFinal]);
+    const el = document.getElementById('scriptPreview');
+    if(parts.length===0){ el.innerHTML = '<span style="color:var(--paper-dim);">Fill in the stations above — the script builds itself here as you go.</span>'; return; }
+    el.innerHTML = parts.map(([lbl,txt])=>`<span class="seg-label">${lbl}</span>${escapeHtml(txt)}`).join('\\n');
+  }
+
+  function fullScriptText(){
+    const parts = [];
+    if(current.title) parts.push(current.title.toUpperCase() + '\\n');
+    ['hook','reopen','stance','diagnosis','illustration','payoff','ctaFinal'].forEach(k=>{
+      if(current[k]) parts.push(current[k]);
+    });
+    return parts.join('\\n\\n');
+  }
+
+  // ---------- markDirty ----------
+  function markDirty(){ queueDraftSave(); renderProgress(); renderScript(); }
+
+  // ---------- ship / lot ----------
+  async function shipBuild(){
+    if(!current.topic || !current.title){
+      document.getElementById('shipMsg').classList.add('show');
+      return;
+    }
+    document.getElementById('shipMsg').classList.remove('show');
+    if(!current.id){ current.id = 'v' + Date.now(); current.createdAt = new Date().toISOString(); }
+    const idx = builds.findIndex(b=>b.id===current.id);
+    const snapshot = JSON.parse(JSON.stringify(current));
+    if(idx>=0) builds[idx] = snapshot; else builds.push(snapshot);
+    await persistBuilds();
+    renderLot();
+    showToast(idx>=0 ? 'Updated in the lot.' : 'Shipped to the production lot.');
+  }
+
+  function newBuild(){
+    current = blankBuild();
+    hydrateForm();
+    showToast('New chassis on the line.');
+  }
+
+  function openBuild(id){
+    const b = builds.find(x=>x.id===id);
+    if(!b) return;
+    current = Object.assign(blankBuild(), JSON.parse(JSON.stringify(b)));
+    hydrateForm();
+    document.getElementById('lotPanel').classList.add('hidden');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function duplicateBuild(id){
+    const b = builds.find(x=>x.id===id);
+    if(!b) return;
+    current = Object.assign(blankBuild(), JSON.parse(JSON.stringify(b)));
+    current.id = null; current.createdAt = null;
+    current.title = (current.title||'Untitled') + ' — variant';
+    hydrateForm();
+    document.getElementById('lotPanel').classList.add('hidden');
+    window.scrollTo({top:0, behavior:'smooth'});
+    showToast('Duplicated. Change one lever, then ship it.');
+  }
+
+  async function deleteBuild(id){
+    builds = builds.filter(b=>b.id!==id);
+    compareSelection = compareSelection.filter(x=>x!==id);
+    await persistBuilds();
+    renderLot();
+  }
+
+  function toggleCompare(id, checked){
+    if(checked){
+      if(compareSelection.length>=2) compareSelection.shift();
+      compareSelection.push(id);
+    } else {
+      compareSelection = compareSelection.filter(x=>x!==id);
+    }
+    document.getElementById('compareBtn').style.display = compareSelection.length===2 ? 'inline-block' : 'none';
+  }
+
+  function renderCompare(){
+    const panel = document.getElementById('comparePanel');
+    if(compareSelection.length!==2){ panel.innerHTML=''; return; }
+    const a = builds.find(b=>b.id===compareSelection[0]);
+    const c = builds.find(b=>b.id===compareSelection[1]);
+    if(!a || !c){ panel.innerHTML=''; return; }
+    const rows = [
+      ['Title', a.title, c.title],
+      ['Topic', a.topic, c.topic],
+      ['TAM rung', TAM_LABELS[a.tamRung]||'—', TAM_LABELS[c.tamRung]||'—'],
+      ['Funnel stage', a.funnel, c.funnel],
+      ['Format', a.format==='other'?a.formatOther:a.format, c.format==='other'?c.formatOther:c.format],
+      ['Hook type', a.hookType, c.hookType],
+      ['Hook', a.hook, c.hook],
+      ['Conversation driver', a.driver, c.driver],
+      ['Believes stance', a.believe, c.believe],
+      ['CTA', a.ctaFinal, c.ctaFinal]
+    ];
+    panel.innerHTML = '<table><tr><th>Lever</th><th>' + escapeHtml(a.title||'Build A') + '</th><th>' + escapeHtml(c.title||'Build B') + '</th></tr>' +
+      rows.map(r=>`<tr><th>${r[0]}</th><td>${escapeHtml(r[1]||'—')}</td><td>${escapeHtml(r[2]||'—')}</td></tr>`).join('') +
+      '</table>';
+  }
+
+  function renderLot(){
+    document.getElementById('lotCount').textContent = builds.length;
+    const grid = document.getElementById('lotGrid');
+    if(builds.length===0){
+      grid.innerHTML = '<div class="lot-empty">No builds shipped yet. Finish a build and hit "Ship to Production Lot."</div>';
+      document.getElementById('comparePanel').innerHTML = '';
+      return;
+    }
+    grid.innerHTML = '';
+    builds.slice().reverse().forEach(b=>{
+      const card = document.createElement('div');
+      card.className = 'lot-card';
+      const checked = compareSelection.includes(b.id) ? 'checked' : '';
+      card.innerHTML = `
+        <h4>${escapeHtml(b.title||'Untitled')}</h4>
+        <div style="color:var(--paper-dim); font-size:0.7rem;">${escapeHtml(b.topic||'')}</div>
+        <div class="lot-tags">
+          ${b.funnel?`<span class="tag ${b.funnel.toLowerCase()}">${b.funnel}</span>`:''}
+          ${b.format?`<span class="tag">${escapeHtml(b.format==='other'?b.formatOther:b.format)}</span>`:''}
+        </div>
+        <div class="lot-card-actions">
+          <button class="small" data-act="open">Open</button>
+          <button class="small" data-act="dup">Duplicate</button>
+          <button class="small" data-act="del">Delete</button>
+        </div>
+        <label class="compare-check"><input type="checkbox" ${checked}> compare</label>
+      `;
+      card.querySelector('[data-act=open]').addEventListener('click', ()=>openBuild(b.id));
+      card.querySelector('[data-act=dup]').addEventListener('click', ()=>duplicateBuild(b.id));
+      card.querySelector('[data-act=del]').addEventListener('click', ()=>{ if(confirm('Delete this build?')) deleteBuild(b.id); });
+      card.querySelector('.compare-check input').addEventListener('change', (e)=>{ toggleCompare(b.id, e.target.checked); renderCompare(); });
+      grid.appendChild(card);
+    });
+    renderCompare();
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+
+  // ---------- hydrate whole form from `current` ----------
+  function hydrateForm(){
+    bindSimpleFields();
+    document.getElementById('formatOther').style.display = current.format==='other' ? 'block' : 'none';
+    renderChoiceGroup(document.getElementById('funnelChoices'), FUNNEL_OPTS, 'funnel', current.funnel, (v)=>{ current.funnel=v; markDirty(); onFieldChange('funnel'); }, 'cls');
+    renderChoiceGroup(document.getElementById('driverChoices'), DRIVER_OPTS, 'driver', current.driver, (v)=>{ current.driver=v; markDirty(); onFieldChange('driver'); });
+    renderChoiceGroup(document.getElementById('believeChoices'), BELIEVE_OPTS, 'believe', current.believe, (v)=>{ current.believe=v; document.getElementById('believeWarn').classList.toggle('show', v==='no'); markDirty(); });
+    document.getElementById('believeWarn').classList.toggle('show', current.believe==='no');
+    renderTamRungs();
+    renderPillars();
+    renderVfy();
+    renderCtaSuggest();
+    renderScript();
+    renderProgress();
+    document.getElementById('shipMsg').classList.remove('show');
+  }
+
+  // ---------- init ----------
+  document.getElementById('newBuildBtn').addEventListener('click', newBuild);
+  document.getElementById('toggleLotBtn').addEventListener('click', ()=>{
+    document.getElementById('lotPanel').classList.toggle('hidden');
+  });
+  document.getElementById('compareBtn').addEventListener('click', ()=>{
+    document.getElementById('lotPanel').classList.remove('hidden');
+    renderCompare();
+    document.getElementById('comparePanel').scrollIntoView({behavior:'smooth'});
+  });
+  document.getElementById('shipBtn').addEventListener('click', shipBuild);
+  document.getElementById('copyBtn').addEventListener('click', ()=>{
+    const text = fullScriptText();
+    if(!text){ showToast('Nothing to copy yet.'); return; }
+    navigator.clipboard.writeText(text).then(()=>showToast('Script copied.')).catch(()=>showToast('Could not copy — select the text manually.'));
+  });
+
+  (async function init(){
+    await loadBuilds();
+    await loadDraft();
+    hydrateForm();
+    renderLot();
+    window.addEventListener('resize', renderProgress);
+  })();
+
+})();
+</script>
+</body>
+</html>
