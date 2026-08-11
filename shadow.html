@@ -2341,7 +2341,7 @@ function renderArchetypePage(){
   if(!root) return;
   const aq = D.archetypeQuiz;
   if(aq.result && aq.index >= AQ_SHUFFLED.length){ renderArchetypeResults(root); }
-  else if(aq.index > 0 && aq.index < AQ_SHUFFLED.length){ renderArchetypeQuestion(root); }
+  else if(aq.index > 0 && aq.index <= AQ_SHUFFLED.length){ renderArchetypeQuestion(root); }
   else { renderArchetypeIntro(root); }
 }
 
