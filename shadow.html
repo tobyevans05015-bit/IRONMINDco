@@ -270,6 +270,28 @@ body.reduce-motion *{ animation-duration:.001ms !important; transition-duration:
 .empty{ text-align:center; padding:2.5rem 1rem; color:var(--dim); font-size:.85rem; }
 .empty-icon{ font-size:1.6rem; display:block; margin-bottom:.6rem; opacity:.6; }
 
+/* ---------- ARCHETYPE QUIZ ---------- */
+:root{ --arch-king:#d8b968; --arch-warrior:#c26a5a; --arch-lover:#c98aa0; --arch-magician:#7f8fc9; }
+.aq-progress-row{ display:flex; align-items:center; gap:1rem; margin-bottom:1.6rem; }
+.aq-progress-row .bar-track{ flex:1; }
+.aq-qnum{ font-family:var(--font-m); font-size:.68rem; color:var(--dim); white-space:nowrap; }
+.aq-question{ font-family:var(--font-d); font-size:1.15rem; line-height:1.5; margin-bottom:1.4rem; color:var(--white); }
+.aq-option{ display:block; width:100%; text-align:left; background:var(--graphite-2); border:1px solid var(--border); border-radius:10px; padding:.95rem 1.1rem; margin-bottom:.7rem; color:var(--dim-hi); font-family:var(--font-b); font-size:.85rem; line-height:1.45; cursor:pointer; transition:.25s var(--ease); }
+.aq-option:hover{ border-color:var(--gold); color:var(--white); background:var(--graphite-3); transform:translateX(3px); }
+.aq-pie-wrap{ display:flex; flex-wrap:wrap; gap:2rem; align-items:center; justify-content:center; margin-bottom:1.6rem; }
+.aq-legend{ display:flex; flex-direction:column; gap:.7rem; min-width:200px; }
+.aq-legend-item{ display:flex; align-items:center; gap:.6rem; font-size:.8rem; color:var(--dim-hi); }
+.aq-swatch{ width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+.aq-legend-pct{ margin-left:auto; font-family:var(--font-m); color:var(--white); }
+.aq-result-card{ border-left:3px solid var(--gold); padding-left:1.1rem; margin-bottom:1.4rem; }
+.aq-result-card.weak{ border-left-color:var(--danger); }
+.aq-result-tag{ font-family:var(--font-m); font-size:.6rem; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:.4rem; }
+.aq-result-card.weak .aq-result-tag{ color:var(--danger); }
+.aq-result-name{ font-family:var(--font-d); font-size:1.15rem; margin-bottom:.5rem; }
+.aq-sub-label{ font-family:var(--font-m); font-size:.6rem; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); margin:.9rem 0 .4rem; }
+.aq-list{ margin:0; padding-left:1.1rem; color:var(--dim-hi); font-size:.82rem; line-height:1.6; }
+.aq-list li{ margin-bottom:.3rem; }
+
 /* ENTRY LIST (journal/dream/timeline) */
 .entry-list{ display:flex; flex-direction:column; gap:.8rem; }
 .entry{ display:grid; grid-template-columns:90px 1fr auto; gap:1rem; align-items:start; padding:.9rem 0; border-bottom:1px solid var(--border); }
@@ -596,6 +618,13 @@ body.reduce-motion *{ animation-duration:.001ms !important; transition-duration:
           </div>
         </section>
 
+        <section class="page" id="page-archetypes">
+          <span class="page-eyebrow">Module 09</span>
+          <h1 class="page-title">King, Warrior, Lover, Magician</h1>
+          <p class="page-sub">Twenty-five questions to map which of the four mature masculine archetypes you lead with, and which are underdeveloped. This isn't a personality label — it's a diagnostic. Where you're weak is where your shadow is running the show.</p>
+          <div id="archetype-quiz-root"></div>
+        </section>
+
         <section class="page" id="page-unfiltered">
           <span class="page-eyebrow">Module 08</span>
           <h1 class="page-title">Unfiltered</h1>
@@ -696,6 +725,7 @@ body.reduce-motion *{ animation-duration:.001ms !important; transition-duration:
     <div class="sb-label">Explore</div>
     <li class="sb-item" data-page="dreams"><span class="sb-icon">☽</span><span>Dream Journal</span></li>
     <li class="sb-item" data-page="innerchild"><span class="sb-icon">✧</span><span>Inner Child</span></li>
+    <li class="sb-item" data-page="archetypes"><span class="sb-icon">♛</span><span>Archetypes</span></li>
     <li class="sb-item" data-page="unfiltered"><span class="sb-icon">◍</span><span>Unfiltered</span></li>
 
     <div class="sb-label">System</div>
@@ -829,6 +859,10 @@ async function enterAppAfterAuth(){
         innerChild: Array.isArray(cloud.innerChild) ? cloud.innerChild : [],
         unfiltered: Array.isArray(cloud.unfiltered) ? cloud.unfiltered : [],
         settings: Object.assign(defaultData().settings, cloud.settings||{}),
+        archetypeQuiz: Object.assign(defaultData().archetypeQuiz, cloud.archetypeQuiz||{}, {
+          answers: Array.isArray(cloud.archetypeQuiz && cloud.archetypeQuiz.answers) ? cloud.archetypeQuiz.answers : [],
+          history: Array.isArray(cloud.archetypeQuiz && cloud.archetypeQuiz.history) ? cloud.archetypeQuiz.history : [],
+        }),
       });
       migrateInnerChild();
       localStorage.setItem(STORE_KEY, JSON.stringify(D));
@@ -866,6 +900,7 @@ function defaultData(){
     unfiltered:[],           // {id,title,text,topics:[],date} — free-form voice/text unload, no other module depends on it
     breathSessionsCompleted:0,
     settings:{ soundEnabled:false, reducedMotion:false },
+    archetypeQuiz:{ index:0, answers:[], result:null, history:[] }, // King/Warrior/Lover/Magician assessment — result:{counts,pct,order,date}, history:[{date,counts,pct}]
   };
 }
 let D = loadData();
@@ -895,6 +930,10 @@ function loadData(){
       innerChild: Array.isArray(parsed.innerChild) ? parsed.innerChild : [],
       unfiltered: Array.isArray(parsed.unfiltered) ? parsed.unfiltered : [],
       settings: Object.assign(base.settings, parsed.settings||{}),
+      archetypeQuiz: Object.assign(base.archetypeQuiz, parsed.archetypeQuiz||{}, {
+        answers: Array.isArray(parsed.archetypeQuiz && parsed.archetypeQuiz.answers) ? parsed.archetypeQuiz.answers : [],
+        history: Array.isArray(parsed.archetypeQuiz && parsed.archetypeQuiz.history) ? parsed.archetypeQuiz.history : [],
+      }),
     });
   }catch(e){ return defaultData(); }
 }
@@ -2032,6 +2071,439 @@ window.jumpToInnerChild = function(patternId){
 window.onPageShow.dreams = function(){ renderDreamList(); renderSymbolDictionary(); };
 safeInit('dreams', ()=>{ renderDreamList(); renderSymbolDictionary(); });
 window.onPageShow.innerchild = function(){ renderInnerChildPatternSelect(); renderInnerChildTimeline(); };
+
+/* ================================================================
+   MODULE 09: KING / WARRIOR / LOVER / MAGICIAN ARCHETYPE QUIZ
+================================================================= */
+const AQ_INFO = {
+  king: {
+    name:'King', glyph:'♔', color:'var(--arch-king)',
+    essence:"The King is the archetype of order, vision, and calm authority. Strong King energy means you can hold a room without raising your voice, make a hard call and actually stand behind it, and take responsibility for outcomes — yours and other people's — without needing to control every detail. It's the difference between leading and merely managing.",
+    weak:[
+      "Struggles to make decisions and stand by them once made — constantly revisiting or outsourcing the choice",
+      "Either goes invisible in group settings or overcorrects into rigid, anxious control",
+      "Feels resentment toward authority figures while quietly waiting for someone else to take charge",
+      "No clear personal code or standard — decisions get made by mood, not principle",
+      "Personal domain (finances, home, health admin) drifts into disorder because no one is 'ruling' it"
+    ],
+    inward:[
+      "Notice the exact moments you go invisible in a room, and the moments you overcorrect into control — both are the same unhealed King",
+      "Ask yourself what decision about your own life you've been quietly avoiding for months",
+      "Identify whose permission you're still waiting for before you'll act like the authority in your own life",
+      "Sit with where you abdicated responsibility for something, then resented the person who picked it up"
+    ],
+    outward:[
+      "Write a personal code — five non-negotiable principles — and run your next ten decisions through it",
+      "Make one decision this week and deliberately don't revisit or second-guess it out loud",
+      "Take ownership of one area currently in disorder and bring it fully under order within 30 days",
+      "Practice setting a boundary once, clearly, with zero over-explaining"
+    ]
+  },
+  warrior: {
+    name:'Warrior', glyph:'⚔', color:'var(--arch-warrior)',
+    essence:"The Warrior is discipline, follow-through, and courage under discomfort. Strong Warrior energy shows up as doing the hard thing on schedule regardless of mood, finishing what you start, and being able to hold a boundary or have the confrontation you'd rather avoid. It's not aggression — it's the willingness to act despite fear.",
+    weak:[
+      "Procrastinates on anything uncomfortable, then feels shame about the avoidance rather than fixing it",
+      "Avoids confrontation and swallows disrespect rather than setting a boundary in the moment",
+      "Starts strong and quits once the task stops being fun or gets genuinely hard",
+      "Says yes when the honest answer is no, then resents the obligation afterward",
+      "Discomfort of any kind (physical, social, emotional) gets escaped rather than moved through"
+    ],
+    inward:[
+      "Track the exact moment you back down from something and ask what you're actually afraid of losing",
+      "Name the last three times you said yes when you meant no, and what stopped you from saying it",
+      "Notice what you reach for to numb or escape discomfort instead of sitting inside it",
+      "Ask where your unexpressed anger has actually gone — it rarely disappears, it usually becomes passivity"
+    ],
+    outward:[
+      "Pick one physical discipline and don't miss a single session for 30 days, regardless of mood",
+      "Practice a direct 'no' this week with no justification attached",
+      "Finish one task you've already abandoned before you allow yourself to start anything new",
+      "Have the conversation you've been putting off within the next seven days"
+    ]
+  },
+  lover: {
+    name:'Lover', glyph:'♥', color:'var(--arch-lover)',
+    essence:"The Lover is aliveness, feeling, and connection — to your body, to beauty, to other people. Strong Lover energy means you can feel something fully without needing to fix, analyze, or escape it, stay present in intimacy, and take real pleasure in things with no productivity attached. It's what keeps the King's order and the Warrior's discipline from turning cold.",
+    weak:[
+      "Feels numb or disconnected from your own emotions until they leak out sideways as irritability or exhaustion",
+      "Relationships and interactions start to feel transactional rather than genuinely felt",
+      "Reaches for distraction (scrolling, work, substances) the moment an emotion gets uncomfortable",
+      "Struggles to enjoy anything without guilt about the time or productivity 'lost'",
+      "Talks about feelings in the abstract rather than actually feeling them in the body"
+    ],
+    inward:[
+      "Notice where you go numb instead of letting yourself feel something all the way through",
+      "Ask what you habitually reach for to avoid sitting with an emotion — and what it's protecting you from",
+      "Practice naming the actual physical sensation of a feeling, not just the label for it",
+      "Trace back to where you first learned that feeling deeply was unsafe, embarrassing, or weak"
+    ],
+    outward:[
+      "Build one weekly ritual of sensory pleasure with zero productivity attached — music, food, nature, touch",
+      "Say one true, vulnerable thing to someone you trust this week",
+      "Make something with no utility at all — just to make it",
+      "Practice full presence and eye contact in one conversation a day, phone away"
+    ]
+  },
+  magician: {
+    name:'Magician', glyph:'✦', color:'var(--arch-magician)',
+    essence:"The Magician is clarity, perspective, and pattern recognition. Strong Magician energy means you can step back from an emotionally charged situation and see the actual mechanics of it, learn quickly, connect dots other people miss, and turn raw experience into insight you can teach. It's the archetype that transforms information into wisdom.",
+    weak:[
+      "Reacts on autopilot rather than pausing to see the pattern behind what's happening",
+      "Gets overwhelmed by information without ever synthesizing it into something usable",
+      "Stays inside the same comfort zone of knowledge rather than actively learning anything new",
+      "Struggles to explain or teach what you actually know — it stays vague, even to yourself",
+      "Externalizes blame ('bad luck', 'people always do this to me') instead of extracting the actual lesson"
+    ],
+    inward:[
+      "Where are you reacting on autopilot instead of pausing to notice the pattern repeating?",
+      "Ask what belief about yourself keeps showing up across problems that seem unrelated",
+      "Notice where you withhold insight you actually have, out of fear of being challenged or seen",
+      "Ask where you've let confusion become a convenient excuse not to decide"
+    ],
+    outward:[
+      "Journal the pattern connecting your last three setbacks — the root is almost always the same",
+      "Teach or explain one thing you actually know to someone else this week — teaching forces real clarity",
+      "Spend 20 minutes a day studying something outside your usual comfort zone",
+      "Before reacting to conflict, write the situation down as objectively as a stranger watching it"
+    ]
+  }
+};
+
+const AQ_QUESTIONS = [
+  {q:"When a decision needs to be made and no one's stepping up, what actually happens?", a:[
+    {t:"I usually end up making the call, even if no one asked me to.", k:'king'},
+    {t:"I push through it — I'd rather act imperfectly than sit frozen.", k:'warrior'},
+    {t:"I check in on how everyone's feeling about it before anything gets decided.", k:'lover'},
+    {t:"I map out the options and consequences before anyone else has framed the problem.", k:'magician'}
+  ]},
+  {q:"You're handed critical feedback in front of other people. What's your first internal reaction?", a:[
+    {t:"A flash of anger, then I brace to defend myself.", k:'warrior'},
+    {t:"I feel it in my chest first — hurt — before I think anything at all.", k:'lover'},
+    {t:"I immediately start analyzing whether the criticism is actually accurate.", k:'magician'},
+    {t:"I stay composed — I don't let a room see me rattled.", k:'king'}
+  ]},
+  {q:"What does a genuinely good weekend look like to you?", a:[
+    {t:"Time with people I love, doing very little, fully present.", k:'lover'},
+    {t:"Reading, researching, or going deep on something that sharpens my thinking.", k:'magician'},
+    {t:"Getting my systems in order — house, finances, plans — so the week ahead runs clean.", k:'king'},
+    {t:"A hard physical session that leaves nothing left in the tank.", k:'warrior'}
+  ]},
+  {q:"Someone disrespects you in a group setting. What's closest to your real response?", a:[
+    {t:"I say something in the moment, calmly, and make the line clear.", k:'king'},
+    {t:"I clock exactly what they're doing and why, without reacting yet.", k:'magician'},
+    {t:"It stings more than I let on, and I think about it for days.", k:'lover'},
+    {t:"Something in me wants to push back hard, right there.", k:'warrior'}
+  ]},
+  {q:"Which of these is hardest for you, honestly?", a:[
+    {t:"Sitting with an uncomfortable emotion instead of fixing or explaining it away.", k:'magician'},
+    {t:"Following through on something after the initial motivation is gone.", k:'warrior'},
+    {t:"Letting someone else be right without needing to prove I'm not wrong.", k:'king'},
+    {t:"Being fully vulnerable with someone without pulling back halfway through.", k:'lover'}
+  ]},
+  {q:"When you're under serious pressure, what tends to happen?", a:[
+    {t:"I get sharper, colder, more analytical — feelings go quiet.", k:'magician'},
+    {t:"I get louder and more forceful, ready to fight the problem head-on.", k:'warrior'},
+    {t:"I feel it in my body first — tight chest, restless — before I can think straight.", k:'lover'},
+    {t:"I steady myself and start giving direction, even if I'm unsure underneath.", k:'king'}
+  ]},
+  {q:"What kind of compliment actually lands with you?", a:[
+    {t:"\"You always know what to do.\"", k:'king'},
+    {t:"\"You never back down.\"", k:'warrior'},
+    {t:"\"Being around you feels good — you're present.\"", k:'lover'},
+    {t:"\"You explained that better than anyone I've heard.\"", k:'magician'}
+  ]},
+  {q:"You start a new project or habit. Three weeks in, what usually happens?", a:[
+    {t:"I'm still going, purely because I said I would.", k:'warrior'},
+    {t:"I've already reorganized it into something more efficient than the original plan.", k:'magician'},
+    {t:"I'm still enjoying it, or I've quietly let it go — either way it stays personal, not forced.", k:'lover'},
+    {t:"I've set the standard and I'm holding myself and anyone involved to it.", k:'king'}
+  ]},
+  {q:"What's your instinct when someone close to you is struggling?", a:[
+    {t:"I sit with them and just let them feel whatever they're feeling.", k:'lover'},
+    {t:"I try to understand the actual pattern behind why this keeps happening to them.", k:'magician'},
+    {t:"I step in and start organizing a plan to fix it.", k:'king'},
+    {t:"I tell them straight what they need to hear, even if it's not gentle.", k:'warrior'}
+  ]},
+  {q:"How do you actually feel about rest and pleasure?", a:[
+    {t:"I earn it — if I haven't worked for it, it feels wrong to enjoy it.", k:'warrior'},
+    {t:"I need it to function — cutting it out makes everything else worse.", k:'lover'},
+    {t:"It's useful in moderation, mainly to reset before the next push.", k:'king'},
+    {t:"I overthink it instead of just doing it — I'll research the 'optimal' way to rest.", k:'magician'}
+  ]},
+  {q:"When a plan falls apart at the last minute, what's your first move?", a:[
+    {t:"Stay calm, reassess, and give the group a new direction fast.", k:'king'},
+    {t:"Push through with whatever's left of the original plan — momentum matters more than elegance.", k:'warrior'},
+    {t:"Step back and ask what this failure is actually trying to teach me.", k:'magician'},
+    {t:"Check how everyone else is feeling about the change before deciding anything.", k:'lover'}
+  ]},
+  {q:"What does respect mean to you, at the core of it?", a:[
+    {t:"Being listened to and trusted to make the call.", k:'king'},
+    {t:"Being taken seriously — not tested or pushed around.", k:'warrior'},
+    {t:"Being truly seen, not just tolerated.", k:'lover'},
+    {t:"Being genuinely understood, not just agreed with.", k:'magician'}
+  ]},
+  {q:"How do you tend to learn something new best?", a:[
+    {t:"By doing it badly first, then correcting through repetition.", k:'warrior'},
+    {t:"By connecting it to a wider system or framework I already understand.", k:'magician'},
+    {t:"By feeling my way through it and trusting instinct over instruction.", k:'lover'},
+    {t:"By deciding on a standard for 'good' first, then working toward it.", k:'king'}
+  ]},
+  {q:"What's your relationship with your own anger, honestly?", a:[
+    {t:"I use it — it sharpens me and gets things done.", k:'warrior'},
+    {t:"I keep it contained and controlled; I rarely let it show.", k:'king'},
+    {t:"I tend to swallow it until it comes out as something else entirely.", k:'lover'},
+    {t:"I analyze it more than I feel it — I want to know where it's coming from.", k:'magician'}
+  ]},
+  {q:"In a group project, which role do you naturally gravitate toward?", a:[
+    {t:"Setting the direction and making sure everyone's aligned.", k:'king'},
+    {t:"Doing the hardest, most grinding part nobody else wants to touch.", k:'warrior'},
+    {t:"Keeping the group's morale and connection intact.", k:'lover'},
+    {t:"Solving the trickiest problem or spotting the flaw no one else caught.", k:'magician'}
+  ]},
+  {q:"What's closest to how you actually handle being told 'no'?", a:[
+    {t:"I push again, harder, until I get a real answer.", k:'warrior'},
+    {t:"I take it personally more than I'd like to admit.", k:'lover'},
+    {t:"I ask why, genuinely curious about the reasoning behind it.", k:'magician'},
+    {t:"I accept it, but I quietly note it and remember.", k:'king'}
+  ]},
+  {q:"How do you feel about being fully seen by another person — flaws included?", a:[
+    {t:"I crave it, even though it terrifies me a little.", k:'lover'},
+    {t:"I keep certain parts of myself private, even from people close to me.", k:'king'},
+    {t:"I'd rather be respected for my competence than known for my mess.", k:'warrior'},
+    {t:"I'm more comfortable being understood intellectually than emotionally exposed.", k:'magician'}
+  ]},
+  {q:"What does 'success' mean to you right now, honestly?", a:[
+    {t:"Having built something that runs well and that people rely on me for.", k:'king'},
+    {t:"Having done the hard things I said I'd do, on schedule.", k:'warrior'},
+    {t:"Feeling genuinely connected and alive, not just productive.", k:'lover'},
+    {t:"Understanding things at a level most people never bother to reach.", k:'magician'}
+  ]},
+  {q:"When you fail at something publicly, what's your instinct?", a:[
+    {t:"Pick it apart afterward to understand exactly what went wrong.", k:'magician'},
+    {t:"Get back in and try again immediately, before doubt sets in.", k:'warrior'},
+    {t:"Feel the embarrassment fully before I can move past it.", k:'lover'},
+    {t:"Stay composed publicly, process it privately later.", k:'king'}
+  ]},
+  {q:"What's your default when someone needs a hard boundary set with them?", a:[
+    {t:"I say it plainly, once, and don't repeat myself.", k:'king'},
+    {t:"I avoid it as long as I can, then eventually explode.", k:'warrior'},
+    {t:"I soften it so much the boundary barely lands.", k:'lover'},
+    {t:"I overthink the wording until the moment has passed.", k:'magician'}
+  ]},
+  {q:"Which describes your energy in unfamiliar or chaotic situations?", a:[
+    {t:"I get more decisive — someone has to steady the ship.", k:'king'},
+    {t:"I get more alert and ready to act, almost energized by it.", k:'warrior'},
+    {t:"I try to read the emotional undercurrent of the room first.", k:'lover'},
+    {t:"I try to find the underlying logic before I move.", k:'magician'}
+  ]},
+  {q:"What's your honest relationship with your own body?", a:[
+    {t:"It's a tool I train and push — mostly functional.", k:'warrior'},
+    {t:"I don't think about it much unless something's wrong.", k:'magician'},
+    {t:"I'm fairly attuned to it — I notice sensation and feeling easily.", k:'lover'},
+    {t:"I keep it disciplined because how I show up matters to me.", k:'king'}
+  ]},
+  {q:"How do you typically respond to praise?", a:[
+    {t:"I brush past it quickly and move to the next thing.", k:'warrior'},
+    {t:"I actually let myself take it in and enjoy it.", k:'lover'},
+    {t:"I quietly note it as confirmation the standard was met.", k:'king'},
+    {t:"I wonder if it's actually accurate before I accept it.", k:'magician'}
+  ]},
+  {q:"When was the last time you truly lost track of time doing something?", a:[
+    {t:"Deep in a book, a theory, or figuring something out.", k:'magician'},
+    {t:"Training or grinding through something physically demanding.", k:'warrior'},
+    {t:"In real conversation or connection with someone I care about.", k:'lover'},
+    {t:"Building or organizing something that will outlast the moment.", k:'king'}
+  ]},
+  {q:"If you're honest, which of these costs you the most right now?", a:[
+    {t:"Not fully owning my life and decisions — still half-waiting for permission.", k:'king'},
+    {t:"Avoiding the hard, uncomfortable thing I know I should be doing.", k:'warrior'},
+    {t:"Staying numb or disconnected from what I actually feel.", k:'lover'},
+    {t:"Reacting instead of stepping back to see the real pattern.", k:'magician'}
+  ]}
+];
+
+function aqShuffleAnswers(list){
+  // Deterministic-feeling shuffle per question so the same archetype slot isn't always in the same position
+  return list.map((q,qi)=>{
+    const arr = q.a.slice();
+    for(let i=arr.length-1;i>0;i--){
+      const j = (qi*7 + i*13) % (i+1);
+      [arr[i],arr[j]] = [arr[j],arr[i]];
+    }
+    return {q:q.q, a:arr};
+  });
+}
+const AQ_SHUFFLED = aqShuffleAnswers(AQ_QUESTIONS);
+
+function renderArchetypePage(){
+  const root = document.getElementById('archetype-quiz-root');
+  if(!root) return;
+  const aq = D.archetypeQuiz;
+  if(aq.result && aq.index >= AQ_SHUFFLED.length){ renderArchetypeResults(root); }
+  else if(aq.index > 0 && aq.index < AQ_SHUFFLED.length){ renderArchetypeQuestion(root); }
+  else { renderArchetypeIntro(root); }
+}
+
+function renderArchetypeIntro(root){
+  const hasHistory = D.archetypeQuiz.history && D.archetypeQuiz.history.length;
+  root.innerHTML = `
+    <div class="card card-lg">
+      <span class="card-title">Before You Begin</span>
+      <p style="color:var(--dim-hi); font-size:.88rem; line-height:1.7; margin-bottom:1.2rem;">
+        25 questions. Four answers each, one per archetype. Answer with your first instinct — not who you want to be,
+        who you actually are most days. There's no "good" or "bad" archetype and no way to fail this — the only way
+        to get a useless result is to answer performatively.
+      </p>
+      <button class="btn btn-gold" id="aq-start-btn">${hasHistory ? 'Retake The Assessment' : 'Begin The Assessment'}</button>
+    </div>
+    ${hasHistory ? `<div class="card card-lg" style="margin-top:1.3rem;"><span class="card-title">Your Last Result</span>${aqRenderPie(D.archetypeQuiz.history[0].counts, D.archetypeQuiz.history[0].pct)}</div>` : ''}
+  `;
+  document.getElementById('aq-start-btn').addEventListener('click', startArchetypeQuiz);
+}
+
+function startArchetypeQuiz(){
+  D.archetypeQuiz.index = 1;
+  D.archetypeQuiz.answers = [];
+  D.archetypeQuiz.result = null;
+  saveData();
+  renderArchetypePage();
+}
+
+function renderArchetypeQuestion(root){
+  const i = D.archetypeQuiz.index - 1;
+  const q = AQ_SHUFFLED[i];
+  const pct = Math.round((i/AQ_SHUFFLED.length)*100);
+  root.innerHTML = `
+    <div class="card card-lg">
+      <div class="aq-progress-row">
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;"></div></div>
+        <span class="aq-qnum">${i+1} / ${AQ_SHUFFLED.length}</span>
+      </div>
+      <div class="aq-question">${q.q}</div>
+      <div id="aq-options">
+        ${q.a.map((opt,oi)=>`<button class="aq-option" data-k="${opt.k}">${opt.t}</button>`).join('')}
+      </div>
+    </div>
+  `;
+  root.querySelectorAll('.aq-option').forEach(btn=>{
+    btn.addEventListener('click', ()=>answerArchetypeQuestion(btn.dataset.k));
+  });
+}
+
+function answerArchetypeQuestion(k){
+  D.archetypeQuiz.answers.push(k);
+  D.archetypeQuiz.index++;
+  if(D.archetypeQuiz.index > AQ_SHUFFLED.length){
+    finishArchetypeQuiz();
+  }else{
+    saveData();
+    renderArchetypePage();
+  }
+}
+
+function finishArchetypeQuiz(){
+  const counts = {king:0, warrior:0, lover:0, magician:0};
+  D.archetypeQuiz.answers.forEach(k=>{ if(counts[k]!==undefined) counts[k]++; });
+  const total = D.archetypeQuiz.answers.length || 1;
+  const pct = {};
+  Object.keys(counts).forEach(k=>{ pct[k] = Math.round((counts[k]/total)*100); });
+  const order = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  const result = { counts, pct, order, date: new Date().toISOString() };
+  D.archetypeQuiz.result = result;
+  D.archetypeQuiz.history = D.archetypeQuiz.history || [];
+  D.archetypeQuiz.history.unshift({ date: result.date, counts, pct });
+  D.archetypeQuiz.history = D.archetypeQuiz.history.slice(0,10);
+  saveData();
+  addXP(15);
+  renderArchetypePage();
+  showToast('Assessment complete · +15 XP');
+}
+
+function aqRenderPie(counts, pct){
+  const order = ['king','warrior','lover','magician'];
+  const total = order.reduce((s,k)=>s+counts[k],0) || 1;
+  const r = 70, cx = 90, cy = 90, circumference = 2*Math.PI*r;
+  let offset = 0;
+  const segments = order.map(k=>{
+    const frac = counts[k]/total;
+    const len = frac*circumference;
+    const seg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${AQ_INFO[k].color}" stroke-width="24"
+      stroke-dasharray="${len} ${circumference-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset += len;
+    return seg;
+  }).join('');
+  return `
+    <div class="aq-pie-wrap">
+      <svg viewBox="0 0 180 180" style="width:180px; height:180px; flex-shrink:0;">
+        ${segments}
+        <text x="90" y="86" text-anchor="middle" font-family="var(--font-d)" font-size="13" fill="var(--dim)" letter-spacing="1">STRONGEST</text>
+        <text x="90" y="106" text-anchor="middle" font-family="var(--font-d)" font-size="15" fill="var(--gold)" text-transform="uppercase">${AQ_INFO[order.slice().sort((a,b)=>counts[b]-counts[a])[0]].name}</text>
+      </svg>
+      <div class="aq-legend">
+        ${order.map(k=>`
+          <div class="aq-legend-item">
+            <span class="aq-swatch" style="background:${AQ_INFO[k].color};"></span>
+            <span>${AQ_INFO[k].glyph} ${AQ_INFO[k].name}</span>
+            <span class="aq-legend-pct">${pct[k]}%</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderArchetypeResults(root){
+  const r = D.archetypeQuiz.result;
+  const order = r.order;
+  const strongest = order[0];
+  const weakest = order.slice(-2); // two weakest, weakest-of-the-weak last
+  root.innerHTML = `
+    <div class="card card-lg" style="margin-bottom:1.3rem;">
+      <span class="card-title">Your Breakdown</span>
+      ${aqRenderPie(r.counts, r.pct)}
+    </div>
+
+    <div class="card card-lg" style="margin-bottom:1.3rem;">
+      <span class="card-title">Strongest — ${AQ_INFO[strongest].glyph} ${AQ_INFO[strongest].name} (${r.pct[strongest]}%)</span>
+      <div class="aq-result-card">
+        <p style="color:var(--dim-hi); font-size:.85rem; line-height:1.7;">${AQ_INFO[strongest].essence}</p>
+      </div>
+    </div>
+
+    <div class="card card-lg" style="margin-bottom:1.3rem;">
+      <span class="card-title">Your Two Weakest Archetypes</span>
+      <p style="color:var(--dim-hi); font-size:.82rem; line-height:1.6; margin-bottom:1.2rem;">
+        This is where your shadow has the most room to operate unnoticed. Low expression here isn't a character flaw —
+        it's underdeveloped territory. Below is what it typically looks like, and how to build it from both directions:
+        turning inward at the shadow driving the gap, and outward at the actual skill.
+      </p>
+      ${weakest.reverse().map(k=>`
+        <div class="aq-result-card weak">
+          <span class="aq-result-tag">Underdeveloped (${r.pct[k]}%)</span>
+          <div class="aq-result-name">${AQ_INFO[k].glyph} ${AQ_INFO[k].name}</div>
+          <p style="color:var(--dim-hi); font-size:.82rem; line-height:1.65;">${AQ_INFO[k].essence}</p>
+          <div class="aq-sub-label">What This Typically Looks Like</div>
+          <ul class="aq-list">${AQ_INFO[k].weak.map(s=>`<li>${s}</li>`).join('')}</ul>
+          <div class="aq-sub-label">Inward — Facing The Shadow</div>
+          <ul class="aq-list">${AQ_INFO[k].inward.map(s=>`<li>${s}</li>`).join('')}</ul>
+          <div class="aq-sub-label">Outward — Building The Skill</div>
+          <ul class="aq-list">${AQ_INFO[k].outward.map(s=>`<li>${s}</li>`).join('')}</ul>
+        </div>
+      `).join('')}
+    </div>
+
+    <button class="btn btn-ghost btn-sm" id="aq-retake-btn">Retake The Assessment</button>
+  `;
+  document.getElementById('aq-retake-btn').addEventListener('click', ()=>{
+    D.archetypeQuiz.index = 0;
+    D.archetypeQuiz.answers = [];
+    D.archetypeQuiz.result = null;
+    saveData();
+    renderArchetypePage();
+  });
+}
+
+window.onPageShow.archetypes = renderArchetypePage;
 safeInit('innerchild', ()=>{ renderInnerChildPatternSelect(); renderInnerChildTimeline(); });
 
 /* ================================================================
