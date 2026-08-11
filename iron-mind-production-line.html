@@ -192,10 +192,45 @@
     z-index:100; font-weight:700;
   }
   .toast.show{opacity:1; bottom:34px;}
+
+  /* ---------- AUTH / ENTRY ---------- */
+  .hidden{ display:none !important; }
+  #entry{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .auth-card{
+    width:100%; max-width:380px; background:var(--panel); border:1px solid var(--iron-line);
+    border-radius:4px; padding:26px 24px;
+  }
+  .auth-title{ font-family:'Oswald'; font-size:0.85rem; letter-spacing:.1em; color:var(--paper-dim); margin-bottom:18px; text-align:center; }
+  .auth-title span{ color:var(--forge); }
+  .auth-tabs{ display:flex; gap:8px; margin-bottom:18px; }
+  .auth-tabs button{ flex:1; }
+  .auth-tabs button.active{ border-color:var(--forge); color:var(--forge); background:rgba(255,90,54,.08); }
+  .auth-error{ font-size:0.72rem; color:var(--danger); min-height:1em; margin-top:8px; }
+  .auth-hint{ font-size:0.7rem; color:var(--paper-dim); line-height:1.5; margin-top:16px; text-align:center; }
+  .sync-status{ font-family:'JetBrains Mono'; font-size:0.62rem; color:var(--paper-dim); align-self:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 </style>
 </head>
 <body>
-<div id="app">
+<div id="entry">
+  <div class="auth-card">
+    <div class="auth-title">IRON MIND <span>&mdash; PRODUCTION LINE</span></div>
+    <div class="auth-tabs">
+      <button class="ghost small active" id="signinBtn" onclick="setAuthMode('signin')" type="button">Sign In</button>
+      <button class="ghost small" id="signupBtn" onclick="setAuthMode('signup')" type="button">Create Account</button>
+    </div>
+    <label class="field-label">Email</label>
+    <input type="text" id="authEmail" placeholder="you@example.com">
+    <label class="field-label">Password</label>
+    <input type="password" id="authPassword" placeholder="At least 6 characters">
+    <div class="auth-error" id="authError"></div>
+    <button class="primary" id="enter-btn" style="width:100%; margin-top:12px;" onclick="doAuth()" type="button">Sign In</button>
+    <p class="auth-hint">Same account as Shadow Lab, Iron Forge, and the rest of the Iron Mind apps &mdash; sign in once, stay signed in everywhere.</p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
 
   <header class="rail">
     <div class="rail-top">
@@ -218,6 +253,8 @@
     <button class="primary" id="newBuildBtn">+ New Build</button>
     <button id="toggleLotBtn">Production Lot (<span id="lotCount">0</span>)</button>
     <button class="ghost" id="compareBtn" style="display:none;">Compare Selected</button>
+    <span class="sync-status mono" id="sync-status"></span>
+    <button class="ghost small" id="signout-btn" style="display:none;">Sign Out</button>
   </div>
 
   <section class="lot-panel hidden" id="lotPanel">
@@ -398,6 +435,144 @@
 
 <script>
 (function(){
+"use strict";
+
+  /* ================================================================
+     SUPABASE — shared account with the rest of the Iron Mind ecosystem
+     Same project, same anon key, same session storage key, so a user
+     already signed in elsewhere (Shadow Lab, Iron Forge...) is
+     automatically recognized here too.
+  ================================================================= */
+  const SB_URL = 'https://yiadmxoafcyxeqjpvxfq.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpYWRteG9hZmN5eGVxanB2eGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjUwMTgsImV4cCI6MjA5ODMwMTAxOH0.z--MpEskebYS6vVRrqzj3qEnlnYDnBHFFuaJ0uquVmU';
+  const SESSION_KEY = 'if_session'; // shared key with the rest of the ecosystem
+  let currentUser = null;
+  let accessToken = null;
+  let cloudSyncTimer = null;
+  let authMode = 'signin';
+
+  function sbHeaders(token){
+    return { 'apikey': SB_KEY, 'Authorization': `Bearer ${token||SB_KEY}`, 'Content-Type':'application/json' };
+  }
+  async function sbSignIn(email, password){
+    const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error_description || data.message || data.msg || 'Sign in failed');
+    return data;
+  }
+  async function sbSignUp(email, password){
+    const res = await fetch(`${SB_URL}/auth/v1/signup`, {
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error_description || data.message || data.msg || 'Sign up failed');
+    return data;
+  }
+  async function sbSignOut(){
+    try{ await fetch(`${SB_URL}/auth/v1/logout`, {method:'POST', headers:sbHeaders(accessToken)}); }catch(e){}
+  }
+  async function sbGetProductionData(userId){
+    const res = await fetch(`${SB_URL}/rest/v1/production_line_data?id=eq.${userId}&select=data`, { headers: sbHeaders(accessToken) });
+    const rows = await res.json();
+    return Array.isArray(rows) && rows[0] ? rows[0].data : null;
+  }
+  async function sbSaveProductionData(userId, dataObj){
+    await fetch(`${SB_URL}/rest/v1/production_line_data`, {
+      method:'POST',
+      headers:{ ...sbHeaders(accessToken), 'Prefer':'resolution=merge-duplicates' },
+      body: JSON.stringify({ id:userId, data:dataObj, updated_at:new Date().toISOString() })
+    });
+  }
+  function saveSession(data){ localStorage.setItem(SESSION_KEY, JSON.stringify({access_token:data.access_token, user:data.user})); }
+  function loadSession(){ try{ return JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){ return null; } }
+  function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+  function setSyncStatus(text){ const el=document.getElementById('sync-status'); if(el) el.textContent=text; }
+
+  window.setAuthMode = function(mode){
+    authMode = mode;
+    document.getElementById('signinBtn').classList.toggle('active', mode==='signin');
+    document.getElementById('signupBtn').classList.toggle('active', mode==='signup');
+    document.getElementById('enter-btn').textContent = mode==='signin' ? 'Sign In' : 'Create Account';
+    document.getElementById('authError').textContent = '';
+  };
+  window.doAuth = async function(){
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const errEl = document.getElementById('authError');
+    const btn = document.getElementById('enter-btn');
+    errEl.style.color = 'var(--danger)'; errEl.textContent = '';
+    if(!email || !password){ errEl.textContent = 'Enter an email and password.'; return; }
+    btn.disabled = true; btn.textContent = authMode==='signin' ? 'Signing In…' : 'Creating Account…';
+    try{
+      let data;
+      if(authMode==='signin') data = await sbSignIn(email, password);
+      else data = await sbSignUp(email, password);
+      if(!data.access_token){
+        errEl.style.color = 'var(--forge)';
+        errEl.textContent = 'Account created — check your email to confirm, then sign in.';
+        btn.disabled=false; btn.textContent = authMode==='signin' ? 'Sign In' : 'Create Account';
+        return;
+      }
+      accessToken = data.access_token; currentUser = data.user;
+      saveSession(data);
+      await enterAppAfterAuth();
+    }catch(e){
+      errEl.style.color = 'var(--danger)';
+      errEl.textContent = e.message || 'Something went wrong.';
+      btn.disabled=false; btn.textContent = authMode==='signin' ? 'Sign In' : 'Create Account';
+    }
+  };
+
+  async function enterAppAfterAuth(){
+    try{
+      const cloud = await sbGetProductionData(currentUser.id);
+      if(cloud){
+        if(Array.isArray(cloud.builds)) builds = cloud.builds;
+        if(cloud.draft) current = Object.assign(blankBuild(), cloud.draft);
+        saveLocalStore(false);
+      }
+    }catch(e){ /* offline or table not ready yet — fall back to local data */ }
+    document.getElementById('entry').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('signout-btn').style.display = 'inline-block';
+    setSyncStatus(currentUser.email);
+    await startApp();
+  }
+
+  document.getElementById('signout-btn').addEventListener('click', async ()=>{
+    await sbSignOut();
+    clearSession();
+    currentUser = null; accessToken = null;
+    location.reload();
+  });
+
+  /* ---------- local store (offline cache + fallback when signed out) ---------- */
+  const STORE_KEY = 'ironMindProductionLine_v1';
+  function loadLocalStore(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return {builds:[], draft:null};
+      const parsed = JSON.parse(raw);
+      return { builds: Array.isArray(parsed.builds) ? parsed.builds : [], draft: parsed.draft || null };
+    }catch(e){ return {builds:[], draft:null}; }
+  }
+  function saveLocalStore(sync){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify({builds, draft:current})); }catch(e){}
+    if(sync!==false) scheduleCloudSync();
+  }
+  function scheduleCloudSync(){
+    if(!currentUser) return;
+    setSyncStatus('Syncing…');
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(async ()=>{
+      try{ await sbSaveProductionData(currentUser.id, {builds, draft:current}); setSyncStatus('Synced just now'); }
+      catch(e){ setSyncStatus('Sync failed — will retry'); }
+    }, 1000);
+  }
 
   const FUNNEL_OPTS = [
     {v:'TOF', cls:'', title:'TOF — Top of Funnel', desc:'Broad, still on-throughline, built for reach. Light ask or none.'},
@@ -447,25 +622,19 @@
 
   // ---------- storage helpers ----------
   async function loadBuilds(){
-    try{
-      const r = await window.storage.get('builds', false);
-      builds = r && r.value ? JSON.parse(r.value) : [];
-    }catch(e){ builds = []; }
+    const store = loadLocalStore();
+    builds = store.builds;
   }
   async function persistBuilds(){
-    try{ await window.storage.set('builds', JSON.stringify(builds), false); }catch(e){}
+    saveLocalStore();
   }
   async function loadDraft(){
-    try{
-      const r = await window.storage.get('draft', false);
-      if(r && r.value){ current = Object.assign(blankBuild(), JSON.parse(r.value)); }
-    }catch(e){}
+    const store = loadLocalStore();
+    if(store.draft){ current = Object.assign(blankBuild(), store.draft); }
   }
   function queueDraftSave(){
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(async ()=>{
-      try{ await window.storage.set('draft', JSON.stringify(current), false); }catch(e){}
-    }, 700);
+    saveTimer = setTimeout(()=>{ saveLocalStore(); }, 700);
   }
 
   // ---------- render: choice groups ----------
@@ -784,12 +953,22 @@
     navigator.clipboard.writeText(text).then(()=>showToast('Script copied.')).catch(()=>showToast('Could not copy — select the text manually.'));
   });
 
-  (async function init(){
+  async function startApp(){
     await loadBuilds();
     await loadDraft();
     hydrateForm();
     renderLot();
     window.addEventListener('resize', renderProgress);
+  }
+
+  /* Auto-login: if a session already exists (e.g. signed in via Shadow Lab or
+     Iron Forge on this same browser), skip the sign-in form entirely. */
+  (async function tryAutoLogin(){
+    const session = loadSession();
+    if(session && session.access_token && session.user){
+      accessToken = session.access_token; currentUser = session.user;
+      await enterAppAfterAuth();
+    }
   })();
 
 })();
