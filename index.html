@@ -248,6 +248,13 @@ img{max-width:100%;display:block;}
   margin:1.8rem auto 2.6rem; max-width:560px; line-height:1.7;
   opacity:0; animation:reveal-up 1.2s var(--ease) .8s forwards;
 }
+.hero-quote{
+  font-family:var(--font-display); font-style:italic; font-weight:500;
+  font-size:clamp(1.3rem,2.8vw,1.9rem); color:var(--silver);
+  margin:1.8rem auto 2.6rem; max-width:560px; line-height:1.5;
+  opacity:0; animation:reveal-up 1.2s var(--ease) .8s forwards;
+}
+.hero-quote::before,.hero-quote::after{ content:'"'; color:var(--glow); }
 .hero-btns{ display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;
   opacity:0; animation:reveal-up 1.2s var(--ease) 1.05s forwards; }
 @keyframes reveal-up{ from{opacity:0; transform:translateY(24px);} to{opacity:1; transform:translateY(0);} }
@@ -288,6 +295,22 @@ img{max-width:100%;display:block;}
 .pillar-desc{ position:relative; z-index:1; color:var(--silver); font-weight:300; font-size:13.5px; line-height:1.7; flex:1; }
 .pillar-card .btn{ position:relative; z-index:1; align-self:flex-start; margin-top:auto; }
 
+/* mobile: compress the five pillars into short rows so all five fit on one screen */
+@media (max-width:700px){
+  #pillars.section-pad{ padding-top:3.5rem; padding-bottom:3.5rem; }
+  #pillars .section-title{ font-size:1.6rem; }
+  .pillars-grid{ gap:.6rem; margin-top:1.4rem; }
+  .pillar-card{
+    min-height:unset; padding:.7rem .9rem;
+    flex-direction:row; align-items:center; gap:.7rem;
+  }
+  .pillar-bg,.smoke{ display:none; }
+  .pillar-icon{ width:26px; height:26px; margin-bottom:0; flex-shrink:0; }
+  .pillar-index,.pillar-quote,.pillar-desc,.shadow-topics,.pillar-card .btn{ display:none; }
+  .pillar-expand-hint,.pillar-expand-panel{ display:none; }
+  .pillar-card h3{ font-size:1.05rem; }
+}
+
 /* pillar-specific ambient bgs */
 .bg-mind{ background:
   radial-gradient(circle at 30% 30%, rgba(201,162,75,.18), transparent 55%),
@@ -308,6 +331,28 @@ img{max-width:100%;display:block;}
   radial-gradient(circle at 70% 30%, rgba(40,40,48,.4), transparent 50%);
   animation:smokemove 18s ease-in-out infinite alternate; }
 @keyframes smokemove{ from{ transform:translate(-3%,-2%) scale(1);} to{ transform:translate(3%,2%) scale(1.08);} }
+
+/* click-to-expand ("what this covers") — applies to every pillar card */
+.pillar-expandable{ cursor:pointer; }
+.pillar-expandable.open{
+  transform:scale(1.045); z-index:6;
+  border-color:rgba(201,162,75,.55);
+  box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(201,162,75,.3);
+}
+.pillar-expand-hint{
+  position:relative; z-index:1; margin-top:auto; padding-top:.6rem;
+  display:flex; align-items:center; gap:.4rem; align-self:flex-start;
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--glow);
+}
+.pillar-expand-hint .chevron{ display:inline-block; transition:transform .35s var(--ease); }
+.pillar-expandable.open .pillar-expand-hint .chevron{ transform:rotate(180deg); }
+.pillar-expand-panel{
+  position:relative; z-index:1; max-height:0; opacity:0; overflow:hidden;
+  transition:max-height .4s var(--ease), opacity .3s var(--ease), margin-top .4s var(--ease);
+}
+.pillar-expandable.open .pillar-expand-panel{ max-height:220px; opacity:1; margin-top:.8rem; }
+.pillar-expand-panel .pillar-desc{ flex:none; }
 
 /* shadow topic chips */
 .shadow-topics{ position:relative; z-index:1; display:flex; flex-wrap:wrap; gap:.6rem; }
@@ -436,8 +481,7 @@ img{max-width:100%;display:block;}
    FOOTER
 ============================================================ */
 footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
-.foot-top{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:2.5rem; margin-bottom:3.5rem; }
-@media (max-width:800px){ .foot-top{ grid-template-columns:1fr 1fr; } }
+.foot-top{ max-width:460px; margin-bottom:3.5rem; }
 .foot-brand{ font-family:var(--font-display); font-size:1.4rem; margin-bottom:.8rem; }
 .foot-tag{ color:var(--silver); font-size:13.5px; max-width:280px; font-weight:300; line-height:1.6; }
 .foot-col h5{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--silver-dim); margin-bottom:1rem; }
@@ -516,7 +560,7 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
   <div class="hero-inner">
     <div class="hero-eyebrow">A Modern Brotherhood For Ambitious Men</div>
     <h1 class="hero-title glow-text metallic-gold">IRON MIND<br>COLLECTIVE</h1>
-    <p class="hero-sub">Forge the Mind. Master the Body. Face the Shadow.<br>Build Wealth. Live With Purpose.</p>
+    <p class="hero-quote">Where growth becomes legacy.</p>
     <div class="hero-btns">
       <a href="#pillars" class="btn btn-primary" data-magnetic>Enter The Collective</a>
       <a href="#pillars-mind" class="btn btn-ghost" data-magnetic>Explore The Five Pillars</a>
@@ -534,59 +578,91 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
     </div>
     <div class="pillars-grid">
 
-      <div class="pillar-card glass reveal" id="pillars-mind">
+      <div class="pillar-card glass reveal pillar-expandable" id="pillars-mind" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
         <div class="pillar-bg bg-mind"></div>
         <svg class="pillar-icon" viewBox="0 0 44 44"><path class="p-icon" d="M4 22 C10 10,34 10,40 22 C34 34,10 34,4 22 Z"/><circle class="p-icon" cx="22" cy="22" r="5" fill="var(--glow)"/></svg>
         <div class="pillar-index">I / V — MIND</div>
         <h3>Mind</h3>
         <p class="pillar-quote">"The strongest weapon you own is the mind you train."</p>
-        <p class="pillar-desc">Mental resilience is trained, not inherited. Stoic discipline, cognitive reframing, and habit architecture rebuild the mind into an instrument rather than an obstacle.</p>
+        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+        <div class="pillar-expand-panel">
+          <p class="pillar-desc">Mental resilience is trained, not inherited. Stoic discipline, cognitive reframing, and habit architecture rebuild the mind into an instrument rather than an obstacle.</p>
+        </div>
       </div>
 
-      <div class="pillar-card glass reveal" id="pillars-body">
+      <div class="pillar-card glass reveal pillar-expandable" id="pillars-body" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
         <div class="pillar-bg bg-body"></div>
         <svg class="pillar-icon" viewBox="0 0 44 44"><line class="p-icon" x1="10" y1="22" x2="34" y2="22"/><rect class="p-icon" x="3" y="15" width="7" height="14" rx="1.5"/><rect class="p-icon" x="34" y="15" width="7" height="14" rx="1.5"/><rect class="p-icon" x="10" y="18" width="4" height="8"/><rect class="p-icon" x="30" y="18" width="4" height="8"/></svg>
         <div class="pillar-index">II / V — BODY</div>
         <h3>Body</h3>
         <p class="pillar-quote">"Your body is the armour your mind lives inside."</p>
-        <p class="pillar-desc">Strength, hormonal health, recovery, and nutrition engineered together — the physical evidence of internal discipline.</p>
+        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+        <div class="pillar-expand-panel">
+          <p class="pillar-desc">Strength, hormonal health, recovery, and nutrition engineered together — the physical evidence of internal discipline.</p>
+        </div>
       </div>
 
-      <div class="pillar-card glass reveal" id="pillars-shadow">
+      <div class="pillar-card glass reveal pillar-expandable" id="pillars-shadow" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
         <div class="pillar-bg bg-shadow"></div>
         <div class="smoke"></div>
         <svg class="pillar-icon" viewBox="0 0 44 44"><path class="p-icon" d="M28 6 C18 6 10 14 10 24 C10 34 18 42 28 42 C21 38 17 31 17 24 C17 17 21 10 28 6 Z" fill="var(--glow)" fill-opacity=".18"/></svg>
         <div class="pillar-index">III / V — SHADOW LAB</div>
         <h3>Shadow</h3>
         <p class="pillar-quote">"What you do not bring to consciousness controls your life, and you call it fate."</p>
-        <div class="shadow-topics" style="margin-bottom:0;">
-          <span class="shadow-chip">People Pleasing</span>
-          <span class="shadow-chip">Inner Child</span>
-          <span class="shadow-chip">Self Sabotage</span>
-          <span class="shadow-chip">Shame</span>
-          <span class="shadow-chip">Identity</span>
+        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+        <div class="pillar-expand-panel">
+          <p class="pillar-desc">The parts of yourself you've pushed into the dark don't disappear — they run you from the outside. Shadow work is bringing them back into consciousness, on purpose.</p>
+          <div class="shadow-topics" style="margin-top:.8rem;">
+            <span class="shadow-chip">People Pleasing</span>
+            <span class="shadow-chip">Inner Child</span>
+            <span class="shadow-chip">Self Sabotage</span>
+            <span class="shadow-chip">Shame</span>
+            <span class="shadow-chip">Identity</span>
+          </div>
         </div>
       </div>
 
-      <div class="pillar-card glass reveal" id="pillars-wealth">
+      <div class="pillar-card glass reveal pillar-expandable" id="pillars-wealth" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
         <div class="pillar-bg bg-wealth"></div>
         <svg class="pillar-icon" viewBox="0 0 44 44"><line class="p-icon" x1="6" y1="36" x2="6" y2="25"/><line class="p-icon" x1="16" y1="36" x2="16" y2="19"/><line class="p-icon" x1="26" y1="36" x2="26" y2="13"/><line class="p-icon" x1="36" y1="36" x2="36" y2="7"/></svg>
         <div class="pillar-index">IV / V — WEALTH</div>
         <h3>Wealth</h3>
         <p class="pillar-quote">"Freedom is a skill, purchased with mastery — not luck."</p>
-        <p class="pillar-desc">Business fluency, content creation, leverage, and long-term investing — wealth as a byproduct of mastery, not noise.</p>
+        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+        <div class="pillar-expand-panel">
+          <p class="pillar-desc">Business fluency, content creation, leverage, and long-term investing — wealth as a byproduct of mastery, not noise.</p>
+        </div>
       </div>
 
-      <div class="pillar-card glass reveal" id="pillars-purpose">
+      <div class="pillar-card glass reveal pillar-expandable" id="pillars-purpose" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
         <div class="pillar-bg bg-purpose"></div>
         <svg class="pillar-icon" viewBox="0 0 44 44"><circle class="p-icon" cx="22" cy="22" r="16"/><path class="p-icon" d="M28 13 L19 20 L15 31 L24 24 Z" fill="var(--glow)" fill-opacity=".5"/></svg>
         <div class="pillar-index">V / V — PURPOSE</div>
         <h3>Purpose</h3>
         <p class="pillar-quote">"Every man eventually becomes who he repeatedly chooses to be."</p>
-        <p class="pillar-desc">Meaning is constructed, decision by decision, through responsibility, legacy, and brotherhood — the compass for every other pillar.</p>
+        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+        <div class="pillar-expand-panel">
+          <p class="pillar-desc">Meaning is constructed, decision by decision, through responsibility, legacy, and brotherhood — the compass for every other pillar.</p>
+        </div>
       </div>
 
     </div>
+  </div>
+</section>
+
+<!-- OFFERS (all products, consolidated) -->
+<section id="offers" class="section-pad">
+  <div class="container">
+    <div class="reveal">
+      <div class="eyebrow">Available Now</div>
+      <h2 class="section-title">The Guides.<br>Real Products, Today.</h2>
+    </div>
+    <div class="grid-3">
+      <a href="https://ironmindcollective.gumroad.com/l/grivni" class="card glass reveal gumroad-button" data-magnetic><div class="card-tag">Shadow · Purpose</div><h3>Archetypes of the Male Unconscious</h3><p>A guide to the King, Warrior, Magician, and Lover archetypes, and how each shapes masculine identity.</p><div class="card-meta"><span>PDF Guide</span><span>£14.99+</span></div></a>
+      <a href="https://ironmindcollective.gumroad.com/l/ykslks" class="card glass reveal gumroad-button" data-magnetic><div class="card-tag">Body</div><h3>Testosterone Mastery 1.0</h3><p>A practical, evidence-informed guide to supporting natural testosterone through training, sleep, and nutrition.</p><div class="card-meta"><span>PDF Guide</span><span>£3.99+</span></div></a>
+      <a href="https://ironmindcollective.gumroad.com/l/shfvq" class="card glass reveal gumroad-button" data-magnetic><div class="card-tag">Shadow</div><h3>Trauma Mastery — A Guide to the Shadow</h3><p>A framework for understanding and working with trauma, self-sabotage, and the parts of yourself you've suppressed.</p><div class="card-meta"><span>PDF Guide</span><span>£9.99+</span></div></a>
+    </div>
+
   </div>
 </section>
 
@@ -617,20 +693,10 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
   </div>
 </section>
 
-<!-- OFFERS (all products, consolidated) -->
-<section id="offers" class="section-pad">
+<!-- COMING SOON -->
+<section id="coming-soon" class="section-pad" style="background:var(--charcoal);">
   <div class="container">
     <div class="reveal">
-      <div class="eyebrow">Available Now</div>
-      <h2 class="section-title">The Guides.<br>Real Products, Today.</h2>
-    </div>
-    <div class="grid-3">
-      <a href="https://ironmindcollective.gumroad.com/l/grivni" class="card glass reveal gumroad-button" data-magnetic><div class="card-tag">Shadow · Purpose</div><h3>Archetypes of the Male Unconscious</h3><p>A guide to the King, Warrior, Magician, and Lover archetypes, and how each shapes masculine identity.</p><div class="card-meta"><span>PDF Guide</span><span>£14.99+</span></div></a>
-      <a href="https://ironmindcollective.gumroad.com/l/ykslks" class="card glass reveal gumroad-button" data-magnetic><div class="card-tag">Body</div><h3>Testosterone Mastery 1.0</h3><p>A practical, evidence-informed guide to supporting natural testosterone through training, sleep, and nutrition.</p><div class="card-meta"><span>PDF Guide</span><span>£3.99+</span></div></a>
-      <a href="https://ironmindcollective.gumroad.com/l/shfvq" class="card glass reveal gumroad-button" data-magnetic><div class="card-tag">Shadow</div><h3>Trauma Mastery — A Guide to the Shadow</h3><p>A framework for understanding and working with trauma, self-sabotage, and the parts of yourself you've suppressed.</p><div class="card-meta"><span>PDF Guide</span><span>£9.99+</span></div></a>
-    </div>
-
-    <div class="reveal" style="margin-top:5.5rem;">
       <div class="eyebrow">Coming Soon</div>
       <h2 class="section-title" style="font-size:clamp(1.8rem,4vw,2.8rem);">What's Next For<br>The Collective.</h2>
     </div>
@@ -727,16 +793,6 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
         </a>
       </div>
     </div>
-
-    <div class="resource-block reveal">
-      <div class="resource-block-head">
-        <h3>Coming Soon</h3>
-        <p>Deeper reference material, currently in production.</p>
-      </div>
-      <div class="grid-3">
-        <div class="card glass" style="opacity:.7;"><div class="card-tag">Coming Soon</div><h3>Mental Models Library</h3><p>The decision-making frameworks used across the Five Pillars.</p></div>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -765,30 +821,16 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
     <div>
       <div class="foot-brand">IRON MIND COLLECTIVE</div>
       <p class="foot-tag">A modern brotherhood for ambitious men who refuse mediocrity. Mind. Body. Shadow. Wealth. Purpose.</p>
-      <form class="newsletter" id="newsletter-form">
-        <input type="email" placeholder="Your email" required>
+      <!--
+        Newsletter form — sends submissions to tobyevans05015@gmail.com via Formspree.
+        1. Go to formspree.io, sign up free with tobyevans05015@gmail.com
+        2. Create a new form, copy the form ID it gives you (looks like "xyzabcde")
+        3. Replace YOUR_FORM_ID below (in the action="" attribute) with that ID
+      -->
+      <form class="newsletter" id="newsletter-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <input type="email" name="email" placeholder="Your email" required>
         <button type="submit">Join</button>
       </form>
-    </div>
-    <div class="foot-col">
-      <h5>Explore</h5>
-      <a href="#pillars">The Collective</a>
-      <a href="#pillars-mind">Five Pillars</a>
-      <a href="#offers">Offers</a>
-      <a href="#coaching">Coaching</a>
-    </div>
-    <div class="foot-col">
-      <h5>More</h5>
-      <a href="#resources">Resources</a>
-      <a href="#path">Journal</a>
-      <a href="#founder">About</a>
-    </div>
-    <div class="foot-col">
-      <h5>Legal</h5>
-      <a href="#">Terms of Service</a>
-      <a href="#">Privacy Policy</a>
-      <a href="#">Refund Policy</a>
-      <a href="#">Contact</a>
     </div>
   </div>
   <div class="foot-bottom">
@@ -840,7 +882,7 @@ window.addEventListener('mousemove', e=>{
   ring.style.left = rx+'px'; ring.style.top = ry+'px';
   requestAnimationFrame(loopCursor);
 })();
-document.querySelectorAll('a,button,[data-magnetic]').forEach(el=>{
+document.querySelectorAll('a,button,[data-magnetic],[data-pillar-toggle]').forEach(el=>{
   el.addEventListener('mouseenter', ()=>ring.classList.add('hover'));
   el.addEventListener('mouseleave', ()=>ring.classList.remove('hover'));
 });
@@ -919,8 +961,18 @@ function showToast(msg){
 /* ---------- NEWSLETTER ---------- */
 document.getElementById('newsletter-form').addEventListener('submit', function(e){
   e.preventDefault();
-  showToast('Welcome to the Collective. Check your inbox.');
-  this.reset();
+  const form = this;
+  const data = new FormData(form);
+  fetch(form.action, { method:'POST', body:data, headers:{ 'Accept':'application/json' } })
+    .then(res=>{
+      if(res.ok){
+        showToast('Welcome to the Collective. Check your inbox.');
+        form.reset();
+      } else {
+        showToast('Something went wrong — try again.');
+      }
+    })
+    .catch(()=>{ showToast('Something went wrong — try again.'); });
 });
 
 /* ---------- HERO PARTICLES + PARALLAX ---------- */
@@ -980,6 +1032,21 @@ function drawParticles(){
 }
 resizeCanvas(); initParticles(); drawParticles();
 window.addEventListener('resize', ()=>{ resizeCanvas(); initParticles(); });
+
+/* ---------- PILLAR EXPAND ---------- */
+document.querySelectorAll('[data-pillar-toggle]').forEach(card=>{
+  function toggle(){
+    const open = card.classList.toggle('open');
+    card.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  card.addEventListener('click', toggle);
+  card.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      toggle();
+    }
+  });
+});
 
 /* ---------- SCROLL REVEALS ---------- */
 const revealEls = document.querySelectorAll('.reveal');
