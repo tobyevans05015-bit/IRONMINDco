@@ -269,90 +269,53 @@ img{max-width:100%;display:block;}
 @keyframes scrollpulse{ 0%,100%{opacity:.3;} 50%{opacity:1;} }
 
 /* ============================================================
-   FIVE PILLARS GRID
+   FIVE PILLARS — thin expandable rows (mobile + desktop)
 ============================================================ */
 .pillars-grid{
-  display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr));
-  gap:1.3rem; margin-top:3.5rem;
+  display:flex; flex-direction:column; gap:.9rem; margin-top:3.5rem;
 }
-@media (min-width:1300px){
-  .pillars-grid{ grid-template-columns:repeat(5,1fr); }
-  .pillar-card{ padding:1.8rem 1.4rem; min-height:460px; }
-  .pillar-card h3{ font-size:1.6rem; }
+.pillar-row{
+  position:relative; cursor:pointer; border-radius:26px; padding:1.1rem 1.6rem;
+  transition:transform .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
 }
-.pillar-card{
-  position:relative; overflow:hidden; padding:2.4rem 2.1rem; min-height:420px;
-  display:flex; flex-direction:column; gap:.9rem;
-  transition:transform .45s var(--ease), border-color .45s var(--ease);
-}
-.pillar-card:hover{ transform:translateY(-6px); border-color:rgba(201,162,75,.4); }
-.pillar-bg{ position:absolute; inset:0; z-index:0; opacity:.9; }
-.pillar-icon{ position:relative; z-index:1; width:40px; height:40px; margin-bottom:.4rem; }
-.p-icon{ stroke:var(--glow); stroke-width:1.4; fill:none; stroke-linecap:round; stroke-linejoin:round; }
-.pillar-index{ position:relative; z-index:1; font-family:var(--font-mono); font-size:11px; color:var(--glow); letter-spacing:.18em; }
-.pillar-card h3{ position:relative; z-index:1; font-family:var(--font-display); font-size:clamp(1.8rem,3vw,2.4rem); font-weight:600; letter-spacing:-.01em; }
-.pillar-quote{ position:relative; z-index:1; font-family:var(--font-display); font-style:italic; font-size:1rem; color:var(--silver); line-height:1.5; }
-.pillar-desc{ position:relative; z-index:1; color:var(--silver); font-weight:300; font-size:13.5px; line-height:1.7; flex:1; }
-.pillar-card .btn{ position:relative; z-index:1; align-self:flex-start; margin-top:auto; }
-
-/* mobile: compress the five pillars into short rows so all five fit on one screen */
-@media (max-width:700px){
-  #pillars.section-pad{ padding-top:3.5rem; padding-bottom:3.5rem; }
-  #pillars .section-title{ font-size:1.6rem; }
-  .pillars-grid{ gap:.6rem; margin-top:1.4rem; }
-  .pillar-card{
-    min-height:unset; padding:.7rem .9rem;
-    flex-direction:row; align-items:center; gap:.7rem;
-  }
-  .pillar-bg,.smoke{ display:none; }
-  .pillar-icon{ width:26px; height:26px; margin-bottom:0; flex-shrink:0; }
-  .pillar-index,.pillar-quote,.pillar-desc,.shadow-topics,.pillar-card .btn{ display:none; }
-  .pillar-expand-hint,.pillar-expand-panel{ display:none; }
-  .pillar-card h3{ font-size:1.05rem; }
-}
-
-/* pillar-specific ambient bgs */
-.bg-mind{ background:
-  radial-gradient(circle at 30% 30%, rgba(201,162,75,.18), transparent 55%),
-  radial-gradient(circle at 75% 70%, rgba(255,255,255,.05), transparent 50%); }
-.bg-body{ background:
-  radial-gradient(circle at 70% 25%, rgba(196,178,132,.16), transparent 55%),
-  radial-gradient(circle at 20% 80%, rgba(201,162,75,.1), transparent 50%); }
-.bg-shadow{ background:
-  radial-gradient(ellipse at 50% 50%, rgba(20,20,24,.9), #000 70%); }
-.bg-wealth{ background:
-  radial-gradient(circle at 25% 70%, rgba(201,162,75,.14), transparent 55%),
-  radial-gradient(circle at 80% 20%, rgba(255,255,255,.05), transparent 50%); }
-.bg-purpose{ background:
-  radial-gradient(circle at 50% 40%, rgba(255,255,255,.07), transparent 60%); }
-
-.smoke{ position:absolute; inset:0; opacity:.5; filter:blur(40px); background:
-  radial-gradient(circle at 30% 60%, rgba(80,80,90,.35), transparent 45%),
-  radial-gradient(circle at 70% 30%, rgba(40,40,48,.4), transparent 50%);
-  animation:smokemove 18s ease-in-out infinite alternate; }
-@keyframes smokemove{ from{ transform:translate(-3%,-2%) scale(1);} to{ transform:translate(3%,2%) scale(1.08);} }
-
-/* click-to-expand ("what this covers") — applies to every pillar card */
-.pillar-expandable{ cursor:pointer; }
-.pillar-expandable.open{
-  transform:scale(1.045); z-index:6;
+.pillar-row:hover{ transform:translateY(-2px); border-color:rgba(201,162,75,.4); }
+.pillar-row.open{
   border-color:rgba(201,162,75,.55);
-  box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(201,162,75,.3);
+  box-shadow:0 20px 55px rgba(0,0,0,.5), 0 0 0 1px rgba(201,162,75,.28);
+}
+.pillar-row-head{ display:flex; align-items:center; gap:1rem; }
+.pillar-icon{ width:26px; height:26px; flex-shrink:0; }
+.p-icon{ stroke:var(--glow); stroke-width:1.4; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.pillar-row h3{
+  font-family:var(--font-display); font-size:1.3rem; font-weight:600; letter-spacing:-.01em; margin-right:auto;
 }
 .pillar-expand-hint{
-  position:relative; z-index:1; margin-top:auto; padding-top:.6rem;
-  display:flex; align-items:center; gap:.4rem; align-self:flex-start;
-  font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--glow);
+  display:flex; align-items:center; gap:.4rem; flex-shrink:0;
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--glow);
 }
 .pillar-expand-hint .chevron{ display:inline-block; transition:transform .35s var(--ease); }
-.pillar-expandable.open .pillar-expand-hint .chevron{ transform:rotate(180deg); }
+.pillar-row.open .pillar-expand-hint .chevron{ transform:rotate(180deg); }
 .pillar-expand-panel{
-  position:relative; z-index:1; max-height:0; opacity:0; overflow:hidden;
+  max-height:0; opacity:0; overflow:hidden; padding-left:calc(26px + 1rem);
   transition:max-height .4s var(--ease), opacity .3s var(--ease), margin-top .4s var(--ease);
 }
-.pillar-expandable.open .pillar-expand-panel{ max-height:220px; opacity:1; margin-top:.8rem; }
-.pillar-expand-panel .pillar-desc{ flex:none; }
+.pillar-row.open .pillar-expand-panel{ max-height:220px; opacity:1; margin-top:1rem; }
+.pillar-quote{ font-family:var(--font-display); font-style:italic; font-size:.95rem; color:var(--silver); line-height:1.5; margin-bottom:.5rem; }
+.pillar-desc{ color:var(--silver); font-weight:300; font-size:13.5px; line-height:1.7; }
+
+@media (max-width:640px){
+  #pillars.section-pad{ padding-top:4rem; padding-bottom:4rem; }
+  .pillars-grid{ gap:.6rem; margin-top:1.8rem; }
+  .pillar-row{ padding:.85rem 1.1rem; border-radius:20px; }
+  .pillar-row-head{ gap:.7rem; }
+  .pillar-row h3{ font-size:1.05rem; }
+  .pillar-icon{ width:22px; height:22px; }
+  .pillar-expand-hint{ font-size:9.5px; gap:.25rem; }
+  .pillar-expand-panel{ padding-left:calc(22px + .7rem); }
+}
+@media (max-width:380px){
+  .pillar-expand-hint .hint-text{ display:none; }
+}
 
 /* shadow topic chips */
 .shadow-topics{ position:relative; z-index:1; display:flex; flex-wrap:wrap; gap:.6rem; }
@@ -447,6 +410,9 @@ img{max-width:100%;display:block;}
 .resource-block-head h3{ font-family:var(--font-display); font-size:1.5rem; margin-bottom:.4rem; }
 .resource-block-head p{ color:var(--silver); font-size:14px; font-weight:300; }
 .social-links{ display:flex; gap:1.2rem; flex-wrap:wrap; }
+.hero-socials{ justify-content:center; margin-top:1.6rem;
+  opacity:0; animation:reveal-up 1.2s var(--ease) 1s forwards;
+}
 .social-link{
   display:flex; align-items:center; gap:.9rem; padding:.9rem 1.5rem 1rem 1rem;
   border:1px solid var(--hairline); border-radius:100px;
@@ -565,8 +531,60 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
       <a href="#pillars" class="btn btn-primary" data-magnetic>Enter The Collective</a>
       <a href="#pillars-mind" class="btn btn-ghost" data-magnetic>Explore The Five Pillars</a>
     </div>
+    <div class="social-links hero-socials">
+      <a href="https://www.youtube.com/@therealtobiasevans" class="social-link" target="_blank" rel="noopener" data-magnetic>
+        <span class="social-icon">▶</span>
+        <span class="social-text"><b>YouTube</b><span>@therealtobiasevans</span></span>
+      </a>
+      <a href="https://www.tiktok.com/@nottobyevans?is_from_webapp=1&sender_device=pc" class="social-link" target="_blank" rel="noopener" data-magnetic>
+        <span class="social-icon">♪</span>
+        <span class="social-text"><b>TikTok</b><span>@nottobyevans</span></span>
+      </a>
+      <a href="https://www.instagram.com/nottobyevans?igsi=MWNqZThkb2g5ZTliYQ%3D%3D&utm_source=qr" class="social-link" target="_blank" rel="noopener" data-magnetic>
+        <span class="social-icon">◎</span>
+        <span class="social-text"><b>Instagram</b><span>@nottobyevans</span></span>
+      </a>
+    </div>
   </div>
   <div class="scroll-indicator"><span class="scroll-line"></span>SCROLL</div>
+</section>
+
+<!-- IRON MIND PATH -->
+<section id="path" class="section-pad" style="background:var(--charcoal);">
+  <div class="container">
+    <div class="reveal">
+      <div class="eyebrow">The Iron Mind Path</div>
+      <h2 class="section-title">From Lost To Leader.<br>Five Stages. One Direction.</h2>
+    </div>
+    <div class="path-line" id="path-line">
+      <div class="path-fill" id="path-fill"></div>
+      <div class="path-stage" data-stage>
+        <div class="stage-num">STAGE 01</div>
+        <h3>Lost</h3>
+        <p>Directionless, reactive, and disconnected from an authentic identity — operating on inherited scripts rather than conscious choice.</p>
+      </div>
+      <div class="path-stage" data-stage>
+        <div class="stage-num">STAGE 02</div>
+        <h3>Awaken</h3>
+        <p>The first honest look in the mirror. Patterns are named. The gap between the man you are and the man you could be becomes undeniable.</p>
+      </div>
+      <div class="path-stage" data-stage>
+        <div class="stage-num">STAGE 03</div>
+        <h3>Disciplined</h3>
+        <p>Systems replace motivation. Training, habits, and standards are installed — not as punishment, but as the architecture of self-respect.</p>
+      </div>
+      <div class="path-stage" data-stage>
+        <div class="stage-num">STAGE 04</div>
+        <h3>Integrated</h3>
+        <p>Shadow work brings the suppressed and the disciplined into alignment. Strength and self-honesty stop competing and start reinforcing each other.</p>
+      </div>
+      <div class="path-stage" data-stage>
+        <div class="stage-num">STAGE 05</div>
+        <h3>Leader</h3>
+        <p>Purpose becomes outward-facing. The man who was once lost now holds the door open for the men behind him.</p>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- FIVE PILLARS -->
@@ -578,70 +596,62 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
     </div>
     <div class="pillars-grid">
 
-      <div class="pillar-card glass reveal pillar-expandable" id="pillars-mind" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
-        <div class="pillar-bg bg-mind"></div>
-        <svg class="pillar-icon" viewBox="0 0 44 44"><path class="p-icon" d="M4 22 C10 10,34 10,40 22 C34 34,10 34,4 22 Z"/><circle class="p-icon" cx="22" cy="22" r="5" fill="var(--glow)"/></svg>
-        <div class="pillar-index">I / V — MIND</div>
-        <h3>Mind</h3>
-        <p class="pillar-quote">"The strongest weapon you own is the mind you train."</p>
-        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+      <div class="pillar-row glass reveal" id="pillars-mind" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
+        <div class="pillar-row-head">
+          <svg class="pillar-icon" viewBox="0 0 44 44"><path class="p-icon" d="M4 22 C10 10,34 10,40 22 C34 34,10 34,4 22 Z"/><circle class="p-icon" cx="22" cy="22" r="5" fill="var(--glow)"/></svg>
+          <h3>Mind</h3>
+          <div class="pillar-expand-hint"><span class="hint-text">What this covers</span> <span class="chevron">⌄</span></div>
+        </div>
         <div class="pillar-expand-panel">
+          <p class="pillar-quote">"The strongest weapon you own is the mind you train."</p>
           <p class="pillar-desc">Mental resilience is trained, not inherited. Stoic discipline, cognitive reframing, and habit architecture rebuild the mind into an instrument rather than an obstacle.</p>
         </div>
       </div>
 
-      <div class="pillar-card glass reveal pillar-expandable" id="pillars-body" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
-        <div class="pillar-bg bg-body"></div>
-        <svg class="pillar-icon" viewBox="0 0 44 44"><line class="p-icon" x1="10" y1="22" x2="34" y2="22"/><rect class="p-icon" x="3" y="15" width="7" height="14" rx="1.5"/><rect class="p-icon" x="34" y="15" width="7" height="14" rx="1.5"/><rect class="p-icon" x="10" y="18" width="4" height="8"/><rect class="p-icon" x="30" y="18" width="4" height="8"/></svg>
-        <div class="pillar-index">II / V — BODY</div>
-        <h3>Body</h3>
-        <p class="pillar-quote">"Your body is the armour your mind lives inside."</p>
-        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+      <div class="pillar-row glass reveal" id="pillars-body" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
+        <div class="pillar-row-head">
+          <svg class="pillar-icon" viewBox="0 0 44 44"><line class="p-icon" x1="10" y1="22" x2="34" y2="22"/><rect class="p-icon" x="3" y="15" width="7" height="14" rx="1.5"/><rect class="p-icon" x="34" y="15" width="7" height="14" rx="1.5"/><rect class="p-icon" x="10" y="18" width="4" height="8"/><rect class="p-icon" x="30" y="18" width="4" height="8"/></svg>
+          <h3>Body</h3>
+          <div class="pillar-expand-hint"><span class="hint-text">What this covers</span> <span class="chevron">⌄</span></div>
+        </div>
         <div class="pillar-expand-panel">
+          <p class="pillar-quote">"Your body is the armour your mind lives inside."</p>
           <p class="pillar-desc">Strength, hormonal health, recovery, and nutrition engineered together — the physical evidence of internal discipline.</p>
         </div>
       </div>
 
-      <div class="pillar-card glass reveal pillar-expandable" id="pillars-shadow" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
-        <div class="pillar-bg bg-shadow"></div>
-        <div class="smoke"></div>
-        <svg class="pillar-icon" viewBox="0 0 44 44"><path class="p-icon" d="M28 6 C18 6 10 14 10 24 C10 34 18 42 28 42 C21 38 17 31 17 24 C17 17 21 10 28 6 Z" fill="var(--glow)" fill-opacity=".18"/></svg>
-        <div class="pillar-index">III / V — SHADOW LAB</div>
-        <h3>Shadow</h3>
-        <p class="pillar-quote">"What you do not bring to consciousness controls your life, and you call it fate."</p>
-        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+      <div class="pillar-row glass reveal" id="pillars-shadow" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
+        <div class="pillar-row-head">
+          <svg class="pillar-icon" viewBox="0 0 44 44"><path class="p-icon" d="M28 6 C18 6 10 14 10 24 C10 34 18 42 28 42 C21 38 17 31 17 24 C17 17 21 10 28 6 Z" fill="var(--glow)" fill-opacity=".18"/></svg>
+          <h3>Shadow</h3>
+          <div class="pillar-expand-hint"><span class="hint-text">What this covers</span> <span class="chevron">⌄</span></div>
+        </div>
         <div class="pillar-expand-panel">
+          <p class="pillar-quote">"What you do not bring to consciousness controls your life, and you call it fate."</p>
           <p class="pillar-desc">The parts of yourself you've pushed into the dark don't disappear — they run you from the outside. Shadow work is bringing them back into consciousness, on purpose.</p>
-          <div class="shadow-topics" style="margin-top:.8rem;">
-            <span class="shadow-chip">People Pleasing</span>
-            <span class="shadow-chip">Inner Child</span>
-            <span class="shadow-chip">Self Sabotage</span>
-            <span class="shadow-chip">Shame</span>
-            <span class="shadow-chip">Identity</span>
-          </div>
         </div>
       </div>
 
-      <div class="pillar-card glass reveal pillar-expandable" id="pillars-wealth" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
-        <div class="pillar-bg bg-wealth"></div>
-        <svg class="pillar-icon" viewBox="0 0 44 44"><line class="p-icon" x1="6" y1="36" x2="6" y2="25"/><line class="p-icon" x1="16" y1="36" x2="16" y2="19"/><line class="p-icon" x1="26" y1="36" x2="26" y2="13"/><line class="p-icon" x1="36" y1="36" x2="36" y2="7"/></svg>
-        <div class="pillar-index">IV / V — WEALTH</div>
-        <h3>Wealth</h3>
-        <p class="pillar-quote">"Freedom is a skill, purchased with mastery — not luck."</p>
-        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+      <div class="pillar-row glass reveal" id="pillars-wealth" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
+        <div class="pillar-row-head">
+          <svg class="pillar-icon" viewBox="0 0 44 44"><line class="p-icon" x1="6" y1="36" x2="6" y2="25"/><line class="p-icon" x1="16" y1="36" x2="16" y2="19"/><line class="p-icon" x1="26" y1="36" x2="26" y2="13"/><line class="p-icon" x1="36" y1="36" x2="36" y2="7"/></svg>
+          <h3>Wealth</h3>
+          <div class="pillar-expand-hint"><span class="hint-text">What this covers</span> <span class="chevron">⌄</span></div>
+        </div>
         <div class="pillar-expand-panel">
+          <p class="pillar-quote">"Freedom is a skill, purchased with mastery — not luck."</p>
           <p class="pillar-desc">Business fluency, content creation, leverage, and long-term investing — wealth as a byproduct of mastery, not noise.</p>
         </div>
       </div>
 
-      <div class="pillar-card glass reveal pillar-expandable" id="pillars-purpose" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
-        <div class="pillar-bg bg-purpose"></div>
-        <svg class="pillar-icon" viewBox="0 0 44 44"><circle class="p-icon" cx="22" cy="22" r="16"/><path class="p-icon" d="M28 13 L19 20 L15 31 L24 24 Z" fill="var(--glow)" fill-opacity=".5"/></svg>
-        <div class="pillar-index">V / V — PURPOSE</div>
-        <h3>Purpose</h3>
-        <p class="pillar-quote">"Every man eventually becomes who he repeatedly chooses to be."</p>
-        <div class="pillar-expand-hint">What this covers <span class="chevron">⌄</span></div>
+      <div class="pillar-row glass reveal" id="pillars-purpose" data-pillar-toggle tabindex="0" role="button" aria-expanded="false">
+        <div class="pillar-row-head">
+          <svg class="pillar-icon" viewBox="0 0 44 44"><circle class="p-icon" cx="22" cy="22" r="16"/><path class="p-icon" d="M28 13 L19 20 L15 31 L24 24 Z" fill="var(--glow)" fill-opacity=".5"/></svg>
+          <h3>Purpose</h3>
+          <div class="pillar-expand-hint"><span class="hint-text">What this covers</span> <span class="chevron">⌄</span></div>
+        </div>
         <div class="pillar-expand-panel">
+          <p class="pillar-quote">"Every man eventually becomes who he repeatedly chooses to be."</p>
           <p class="pillar-desc">Meaning is constructed, decision by decision, through responsibility, legacy, and brotherhood — the compass for every other pillar.</p>
         </div>
       </div>
@@ -708,44 +718,6 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
   </div>
 </section>
 
-<!-- IRON MIND PATH -->
-<section id="path" class="section-pad" style="background:var(--charcoal);">
-  <div class="container">
-    <div class="reveal">
-      <div class="eyebrow">The Iron Mind Path</div>
-      <h2 class="section-title">From Lost To Leader.<br>Five Stages. One Direction.</h2>
-    </div>
-    <div class="path-line" id="path-line">
-      <div class="path-fill" id="path-fill"></div>
-      <div class="path-stage" data-stage>
-        <div class="stage-num">STAGE 01</div>
-        <h3>Lost</h3>
-        <p>Directionless, reactive, and disconnected from an authentic identity — operating on inherited scripts rather than conscious choice.</p>
-      </div>
-      <div class="path-stage" data-stage>
-        <div class="stage-num">STAGE 02</div>
-        <h3>Awaken</h3>
-        <p>The first honest look in the mirror. Patterns are named. The gap between the man you are and the man you could be becomes undeniable.</p>
-      </div>
-      <div class="path-stage" data-stage>
-        <div class="stage-num">STAGE 03</div>
-        <h3>Disciplined</h3>
-        <p>Systems replace motivation. Training, habits, and standards are installed — not as punishment, but as the architecture of self-respect.</p>
-      </div>
-      <div class="path-stage" data-stage>
-        <div class="stage-num">STAGE 04</div>
-        <h3>Integrated</h3>
-        <p>Shadow work brings the suppressed and the disciplined into alignment. Strength and self-honesty stop competing and start reinforcing each other.</p>
-      </div>
-      <div class="path-stage" data-stage>
-        <div class="stage-num">STAGE 05</div>
-        <h3>Leader</h3>
-        <p>Purpose becomes outward-facing. The man who was once lost now holds the door open for the men behind him.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- COACHING -->
 <section id="coaching" class="section-pad">
   <div class="container">
@@ -787,9 +759,13 @@ footer{ border-top:1px solid var(--hairline); padding:5rem 6vw 2.5rem; }
           <span class="social-icon">▶</span>
           <span class="social-text"><b>YouTube</b><span>@therealtobiasevans</span></span>
         </a>
-        <a href="https://www.tiktok.com/@therealtobyevans" class="social-link" target="_blank" rel="noopener" data-magnetic>
+        <a href="https://www.tiktok.com/@nottobyevans?is_from_webapp=1&sender_device=pc" class="social-link" target="_blank" rel="noopener" data-magnetic>
           <span class="social-icon">♪</span>
-          <span class="social-text"><b>TikTok</b><span>@therealtobyevans</span></span>
+          <span class="social-text"><b>TikTok</b><span>@nottobyevans</span></span>
+        </a>
+        <a href="https://www.instagram.com/nottobyevans?igsi=MWNqZThkb2g5ZTliYQ%3D%3D&utm_source=qr" class="social-link" target="_blank" rel="noopener" data-magnetic>
+          <span class="social-icon">◎</span>
+          <span class="social-text"><b>Instagram</b><span>@nottobyevans</span></span>
         </a>
       </div>
     </div>
