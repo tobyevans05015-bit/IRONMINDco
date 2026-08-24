@@ -866,7 +866,6 @@ function renderPentagon(){
   const axes = [
     { label:'Gym', value:scores.gym, color:'#c9a24b' },
     { label:'Diet', value:scores.diet, color:'#eccb7a' },
-    { label:'Water', value:scores.water, color:'#a89a7d' },
     { label:'Shadow', value:scores.shadow, color:'#8f6fae' },
     { label:'Purpose', value:scores.purpose, color:'#e5e5e5' }
   ];
@@ -874,7 +873,7 @@ function renderPentagon(){
   const svg = document.getElementById('pentagon-svg');
   svg.innerHTML = '';
   function point(i, r){
-    const angle = (Math.PI * 2 * i / 5) - Math.PI/2;
+    const angle = (Math.PI * 2 * i / axes.length) - Math.PI/2;
     return [cx + r*Math.cos(angle), cy + r*Math.sin(angle)];
   }
   // grid rings
