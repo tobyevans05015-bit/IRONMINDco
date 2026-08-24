@@ -57,6 +57,15 @@ button{ font-family:var(--font-body); cursor:pointer; }
   border-radius:10px; color:var(--white); font-family:var(--font-body); font-size:14px;
 }
 .field input:focus{ outline:none; border-color:var(--glow); }
+.password-wrap{ position:relative; }
+.password-wrap input{ padding-right:3.4rem; }
+.toggle-pw{
+  position:absolute; right:.5rem; top:50%; transform:translateY(-50%);
+  background:none; border:none; color:var(--silver-dim);
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase;
+  cursor:pointer; padding:.3rem .4rem;
+}
+.toggle-pw:hover{ color:var(--glow); }
 .btn{
   display:inline-flex; align-items:center; justify-content:center; width:100%; padding:.95rem 1.4rem;
   border-radius:999px; font-weight:600; font-size:14px; border:none; margin-top:.6rem;
@@ -151,14 +160,14 @@ button{ font-family:var(--font-body); cursor:pointer; }
 
     <form id="form-login">
       <div class="field"><label>Email</label><input type="email" id="login-email" required autocomplete="email"></div>
-      <div class="field"><label>Password</label><input type="password" id="login-password" required autocomplete="current-password"></div>
+      <div class="field"><label>Password</label><div class="password-wrap"><input type="password" id="login-password" required autocomplete="current-password"><button type="button" class="toggle-pw" data-target="login-password" aria-label="Show password">Show</button></div></div>
       <button class="btn btn-primary" type="submit">Sign In</button>
       <div class="auth-error" id="login-error"></div>
     </form>
 
     <form id="form-signup" style="display:none;">
       <div class="field"><label>Email</label><input type="email" id="signup-email" required autocomplete="email"></div>
-      <div class="field"><label>Password</label><input type="password" id="signup-password" required autocomplete="new-password" minlength="6"></div>
+      <div class="field"><label>Password</label><div class="password-wrap"><input type="password" id="signup-password" required autocomplete="new-password" minlength="6"><button type="button" class="toggle-pw" data-target="signup-password" aria-label="Show password">Show</button></div></div>
       <button class="btn btn-primary" type="submit">Create Account</button>
       <div class="auth-error" id="signup-error"></div>
     </form>
@@ -301,23 +310,54 @@ document.getElementById('toggle-to-login').addEventListener('click', ()=>{
   document.getElementById('auth-sub').textContent = 'Sign in to continue your arc.';
 });
 
+document.querySelectorAll('.toggle-pw').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const target = document.getElementById(btn.dataset.target);
+    const showing = target.type === 'text';
+    target.type = showing ? 'password' : 'text';
+    btn.textContent = showing ? 'Show' : 'Hide';
+  });
+});
+
 document.getElementById('form-login').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  const email = document.getElementById('login-email').value;
-  const password = document.getElementById('login-password').value;
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){ document.getElementById('login-error').textContent = error.message; return; }
-  await onAuthed(data.user);
+  const btn = e.target.querySelector('button[type=submit]');
+  const errorEl = document.getElementById('login-error');
+  errorEl.textContent = '';
+  btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Signing In...';
+  try{
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if(error){ errorEl.textContent = error.message; console.error('Sign in error:', error); return; }
+    await onAuthed(data.user);
+  } catch(err){
+    console.error('Sign in exception:', err);
+    errorEl.textContent = 'Something went wrong — check the browser console for details.';
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
+  }
 });
 
 document.getElementById('form-signup').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  const email = document.getElementById('signup-email').value;
-  const password = document.getElementById('signup-password').value;
-  const { data, error } = await sb.auth.signUp({ email, password });
-  if(error){ document.getElementById('signup-error').textContent = error.message; return; }
-  if(data.user){ await onAuthed(data.user); } else {
-    document.getElementById('signup-error').textContent = 'Check your email to confirm your account, then sign in.';
+  const btn = e.target.querySelector('button[type=submit]');
+  const errorEl = document.getElementById('signup-error');
+  errorEl.textContent = '';
+  btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Creating Account...';
+  try{
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if(error){ errorEl.textContent = error.message; console.error('Sign up error:', error); return; }
+    if(data.user && data.session){ await onAuthed(data.user); } else {
+      errorEl.textContent = 'Check your email to confirm your account, then sign in.';
+    }
+  } catch(err){
+    console.error('Sign up exception:', err);
+    errorEl.textContent = 'Something went wrong — check the browser console for details.';
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
   }
 });
 
