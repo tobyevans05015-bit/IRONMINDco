@@ -46,7 +46,7 @@ button{ font-family:var(--font-body); cursor:pointer; }
 .screen.active{ display:block; }
 
 /* ---------- AUTH ---------- */
-#screen-auth{ display:flex; align-items:center; justify-content:center; padding:6vh 5vw; }
+#screen-auth.active{ display:flex; align-items:center; justify-content:center; padding:6vh 5vw; }
 .auth-box{ width:100%; max-width:400px; padding:2.6rem; text-align:center; }
 .auth-box h1{ font-size:1.9rem; color:var(--glow); margin-bottom:.4rem; }
 .auth-box p.sub{ color:var(--silver); font-size:14px; margin-bottom:1.8rem; }
@@ -79,7 +79,7 @@ button{ font-family:var(--font-body); cursor:pointer; }
 .auth-error{ color:#e58; font-size:12.5px; margin-top:.8rem; min-height:1em; }
 
 /* ---------- PAYWALL ---------- */
-#screen-paywall{ display:flex; align-items:center; justify-content:center; padding:6vh 5vw; }
+#screen-paywall.active{ display:flex; align-items:center; justify-content:center; padding:6vh 5vw; }
 .paywall-box{ width:100%; max-width:440px; padding:3rem 2.6rem; text-align:center; }
 .paywall-box .eyebrow{ margin-bottom:.6rem; }
 .paywall-box h1{ font-size:2rem; margin-bottom:1rem; }
@@ -163,6 +163,12 @@ button{ font-family:var(--font-body); cursor:pointer; }
       <div class="field"><label>Password</label><div class="password-wrap"><input type="password" id="login-password" required autocomplete="current-password"><button type="button" class="toggle-pw" data-target="login-password" aria-label="Show password">Show</button></div></div>
       <button class="btn btn-primary" type="submit">Sign In</button>
       <div class="auth-error" id="login-error"></div>
+    </form>
+
+    <form id="form-magic" style="margin-top:1.4rem; padding-top:1.4rem; border-top:1px solid var(--hairline);">
+      <div class="field"><label>Or sign in with a magic link (no password)</label><input type="email" id="magic-email" required autocomplete="email" placeholder="you@email.com"></div>
+      <button class="btn btn-ghost" type="submit">Send Me A Link</button>
+      <div class="auth-error" id="magic-error" style="color:var(--glow);"></div>
     </form>
 
     <form id="form-signup" style="display:none;">
@@ -338,6 +344,27 @@ document.getElementById('form-login').addEventListener('submit', async (e)=>{
     console.log('[WinterArc] onAuthed finished');
   } catch(err){
     console.error('[WinterArc] Sign in exception:', err);
+    errorEl.textContent = 'Something went wrong — check the browser console for details.';
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
+  }
+});
+
+document.getElementById('form-magic').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  const errorEl = document.getElementById('magic-error');
+  errorEl.style.color = 'var(--glow)';
+  errorEl.textContent = '';
+  btn.disabled = true; const originalText = btn.textContent; btn.textContent = 'Sending...';
+  try{
+    const email = document.getElementById('magic-email').value;
+    const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.href } });
+    if(error){ errorEl.style.color = '#e58'; errorEl.textContent = error.message; console.error('[WinterArc] Magic link error:', error); return; }
+    errorEl.textContent = 'Check your email — click the link and you\'ll be signed in automatically.';
+  } catch(err){
+    console.error('[WinterArc] Magic link exception:', err);
+    errorEl.style.color = '#e58';
     errorEl.textContent = 'Something went wrong — check the browser console for details.';
   } finally {
     btn.disabled = false; btn.textContent = originalText;
@@ -559,6 +586,14 @@ function renderCalendar(){
 
 /* ---------- BOOT ---------- */
 console.log('[WinterArc] Script loaded, booting...');
+
+sb.auth.onAuthStateChange((event, session) => {
+  console.log('[WinterArc] Auth state changed:', event, session);
+  if(event === 'SIGNED_IN' && session && session.user){
+    onAuthed(session.user);
+  }
+});
+
 (async function boot(){
   const { data: { session } } = await sb.auth.getSession();
   console.log('[WinterArc] Existing session on load:', session);
