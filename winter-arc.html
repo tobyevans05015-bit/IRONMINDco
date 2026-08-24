@@ -421,8 +421,14 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const STRIPE_CHECKOUT_URL = 'PASTE_YOUR_STRIPE_CHECKOUT_LINK_HERE';
 const OWNER_EMAIL = 'tobyevans05015@gmail.com';
 
-const ARC_START = new Date('2026-09-01T00:00:00');
-const ARC_END   = new Date('2027-04-30T00:00:00');
+const ARC_END = new Date('2027-03-01T00:00:00');
+function getArcStart(){
+  if(currentUser && currentUser.created_at){
+    const d = new Date(currentUser.created_at);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  return new Date(); // fallback before user is loaded
+}
 const WATER_GOAL = 8;
 const LOOKBACK_DAYS = 14; // window used for the pentagon skill scores
 
@@ -810,8 +816,9 @@ function renderStats(){
   const totalXP = dailyXP + shadowXP + skillXP;
   document.getElementById('stat-xp').textContent = totalXP;
 
-  const dayOfArc = Math.max(1, Math.floor((new Date() - ARC_START) / 86400000) + 1);
-  const totalDays = Math.floor((ARC_END - ARC_START) / 86400000) + 1;
+  const arcStart = getArcStart();
+  const dayOfArc = Math.max(1, Math.floor((new Date() - arcStart) / 86400000) + 1);
+  const totalDays = Math.floor((ARC_END - arcStart) / 86400000) + 1;
   document.getElementById('stat-day').textContent = `${dayOfArc}/${totalDays}`;
 
   const fulfillmentVals = dailyLogs.filter(l=>l.fulfillment_rating).map(l=>l.fulfillment_rating);
@@ -904,18 +911,23 @@ function renderCalendar(){
   const container = document.getElementById('calendar-render');
   container.innerHTML = '';
   const tStr = todayStr();
-  let cursor = new Date(ARC_START);
-  while(cursor <= ARC_END){
-    const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-    const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth()+1, 0);
+  const arcStart = getArcStart();
+  let monthCursor = new Date(arcStart.getFullYear(), arcStart.getMonth(), 1);
+  let isFirstMonth = true;
+  while(monthCursor <= ARC_END){
+    const monthEnd = new Date(monthCursor.getFullYear(), monthCursor.getMonth()+1, 0);
+    const startDay = isFirstMonth ? arcStart.getDate() : 1;
+    const firstRenderedDate = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), startDay);
+    if(firstRenderedDate > ARC_END) break;
     const block = document.createElement('div'); block.className = 'month-block';
     const title = document.createElement('div'); title.className = 'month-title';
-    title.textContent = monthStart.toLocaleDateString(undefined,{ month:'long', year:'numeric' });
+    title.textContent = monthCursor.toLocaleDateString(undefined,{ month:'long', year:'numeric' });
     block.appendChild(title);
     const grid = document.createElement('div'); grid.className = 'month-grid';
-    for(let i=0;i<monthStart.getDay();i++){ const e=document.createElement('div'); e.className='day-cell empty'; grid.appendChild(e); }
-    for(let d=1; d<=monthEnd.getDate(); d++){
-      const dateObj = new Date(cursor.getFullYear(), cursor.getMonth(), d);
+    for(let i=0;i<firstRenderedDate.getDay();i++){ const e=document.createElement('div'); e.className='day-cell empty'; grid.appendChild(e); }
+    for(let d=startDay; d<=monthEnd.getDate(); d++){
+      const dateObj = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), d);
+      if(dateObj > ARC_END) break;
       const dStr = dateObj.toISOString().slice(0,10);
       const cell = document.createElement('div'); cell.className = 'day-cell'; cell.textContent = d;
       if(dStr === tStr) cell.classList.add('today');
@@ -927,7 +939,8 @@ function renderCalendar(){
       grid.appendChild(cell);
     }
     block.appendChild(grid); container.appendChild(block);
-    cursor = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1);
+    isFirstMonth = false;
+    monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth()+1, 1);
   }
 }
 
