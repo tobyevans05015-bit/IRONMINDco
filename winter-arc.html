@@ -589,7 +589,7 @@ async function loadApp(){
   dailyLogs = daily || [];
   shadowLogs = shadow || [];
   skillLogs = skills || [];
-  if(prof.data){ profile = { ...profile, ...prof.data }; }
+  if(prof){ profile = { ...profile, ...prof }; }
 
   const existing = dailyLogs.find(l => l.log_date === todayStr());
   today = existing || { training_type:null, gym_rating:null, calories_hit:false, protein_hit:false, diet_rating:null, water_glasses:0, fulfillment_rating:null, savings_amount:null, log_date: todayStr() };
