@@ -373,8 +373,14 @@ document.getElementById('btn-subscribe').addEventListener('click', ()=>{
   window.location.href = STRIPE_CHECKOUT_URL;
 });
 
+const OWNER_EMAIL = 'tobyevans05015@gmail.com'; // always skips the paywall, regardless of subscription status
+
 async function onAuthed(user){
   currentUser = user;
+  if(user.email === OWNER_EMAIL){
+    await loadApp();
+    return;
+  }
   const { data: access } = await sb.from('winter_arc_access').select('subscribed').eq('user_id', user.id).maybeSingle();
   if(access && access.subscribed){
     await loadApp();
