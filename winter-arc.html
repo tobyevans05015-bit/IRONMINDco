@@ -417,11 +417,11 @@ const OWNER_EMAIL = 'tobyevans05015@gmail.com';
 
 const ARC_END = new Date('2027-03-01T00:00:00');
 function getArcStart(){
-  if(currentUser && currentUser.created_at){
-    const d = new Date(currentUser.created_at);
+  if(profile && profile.joined_at){
+    const d = new Date(profile.joined_at);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
-  return new Date(); // fallback before user is loaded
+  return new Date(); // fallback before profile is loaded
 }
 const WATER_GOAL = 8;
 
@@ -438,7 +438,7 @@ let currentUser = null;
 let dailyLogs = [];      // winter_arc_daily rows
 let shadowLogs = [];     // winter_arc_shadow_logs rows
 let skillLogs = [];      // winter_arc_skill_logs rows
-let profile = { north_star:'', skills:[], savings_goal:0, calorie_goal:0, protein_goal:0 };
+let profile = { north_star:'', skills:[], savings_goal:0, calorie_goal:0, protein_goal:0, joined_at:null };
 let today = { training_type:null, gym_rating:null, calories_hit:false, protein_hit:false, diet_rating:null, water_glasses:0, fulfillment_rating:null, savings_amount:null };
 let soundOn = localStorage.getItem('wa_sound') !== 'off';
 
@@ -589,6 +589,11 @@ async function loadApp(){
   shadowLogs = shadow || [];
   skillLogs = skills || [];
   if(prof){ profile = { ...profile, ...prof }; }
+
+  if(!profile.joined_at){
+    profile.joined_at = todayStr();
+    await saveProfile();
+  }
 
   const existing = dailyLogs.find(l => l.log_date === todayStr());
   today = existing || { training_type:null, gym_rating:null, calories_hit:false, protein_hit:false, diet_rating:null, water_glasses:0, fulfillment_rating:null, savings_amount:null, log_date: todayStr() };
@@ -935,6 +940,21 @@ function renderPentagon(){
   legend.innerHTML = axes.map(a=> `<div class="legend-item"><span class="legend-dot" style="background:${a.color};"></span>${a.label} ${a.value}%</div>`).join('');
 }
 
+function dayScore(log){
+  if(!log) return null;
+  const parts = [];
+  if(log.gym_rating != null) parts.push(log.gym_rating);
+  if(log.diet_rating != null) parts.push(log.diet_rating);
+  if(log.fulfillment_rating != null) parts.push(log.fulfillment_rating);
+  const trackedCompletion = log.training_type != null || log.calories_hit || log.protein_hit || (log.water_glasses||0) > 0;
+  if(trackedCompletion){
+    const hits = [log.training_type && log.training_type!=='Rest', log.calories_hit, log.protein_hit, log.water_glasses>=WATER_GOAL].filter(Boolean).length;
+    parts.push((hits/4)*10);
+  }
+  if(parts.length === 0) return null;
+  return parts.reduce((a,b)=>a+b,0) / parts.length;
+}
+
 function renderCalendar(){
   const container = document.getElementById('calendar-render');
   container.innerHTML = '';
@@ -957,12 +977,18 @@ function renderCalendar(){
       const dateObj = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), d);
       if(dateObj > ARC_END) break;
       const dStr = dateObj.toISOString().slice(0,10);
-      const cell = document.createElement('div'); cell.className = 'day-cell'; cell.textContent = d;
+      const cell = document.createElement('div'); cell.className = 'day-cell';
       if(dStr === tStr) cell.classList.add('today');
       const log = dailyLogs.find(l => l.log_date === dStr);
-      if(log){
-        const hits = [log.training_type && log.training_type!=='Rest', log.calories_hit, log.protein_hit, log.water_glasses>=WATER_GOAL].filter(Boolean).length;
-        if(hits >= 4) cell.classList.add('full'); else if(hits > 0) cell.classList.add('partial');
+      const score = dayScore(log);
+      if(score != null){
+        const fillPct = Math.round((score/10)*100);
+        cell.style.background = `linear-gradient(to top, var(--glow) ${fillPct}%, rgba(255,255,255,.03) ${fillPct}%)`;
+        cell.style.color = fillPct > 55 ? '#1a1305' : '';
+        cell.innerHTML = `<span style="font-weight:600;">${d}</span><span style="font-size:7px; opacity:.85;">${score.toFixed(1)}</span>`;
+        cell.style.display = 'flex'; cell.style.flexDirection = 'column'; cell.style.alignItems = 'center'; cell.style.justifyContent = 'center'; cell.style.gap = '1px';
+      } else {
+        cell.textContent = d;
       }
       grid.appendChild(cell);
     }
