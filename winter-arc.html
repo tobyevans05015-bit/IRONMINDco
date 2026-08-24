@@ -321,6 +321,7 @@ document.querySelectorAll('.toggle-pw').forEach(btn=>{
 
 document.getElementById('form-login').addEventListener('submit', async (e)=>{
   e.preventDefault();
+  console.log('[WinterArc] Sign in form submitted');
   const btn = e.target.querySelector('button[type=submit]');
   const errorEl = document.getElementById('login-error');
   errorEl.textContent = '';
@@ -328,11 +329,15 @@ document.getElementById('form-login').addEventListener('submit', async (e)=>{
   try{
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
+    console.log('[WinterArc] Calling signInWithPassword for', email);
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if(error){ errorEl.textContent = error.message; console.error('Sign in error:', error); return; }
+    console.log('[WinterArc] signInWithPassword returned:', { data, error });
+    if(error){ errorEl.textContent = error.message; console.error('[WinterArc] Sign in error:', error); return; }
+    console.log('[WinterArc] Login succeeded, calling onAuthed with user:', data.user);
     await onAuthed(data.user);
+    console.log('[WinterArc] onAuthed finished');
   } catch(err){
-    console.error('Sign in exception:', err);
+    console.error('[WinterArc] Sign in exception:', err);
     errorEl.textContent = 'Something went wrong — check the browser console for details.';
   } finally {
     btn.disabled = false; btn.textContent = originalText;
@@ -376,22 +381,29 @@ document.getElementById('btn-subscribe').addEventListener('click', ()=>{
 const OWNER_EMAIL = 'tobyevans05015@gmail.com'; // always skips the paywall, regardless of subscription status
 
 async function onAuthed(user){
+  console.log('[WinterArc] onAuthed called for', user && user.email);
   currentUser = user;
   if(user.email === OWNER_EMAIL){
+    console.log('[WinterArc] Owner email matched, loading app directly');
     await loadApp();
     return;
   }
-  const { data: access } = await sb.from('winter_arc_access').select('subscribed').eq('user_id', user.id).maybeSingle();
+  console.log('[WinterArc] Checking winter_arc_access for user_id', user.id);
+  const { data: access, error: accessError } = await sb.from('winter_arc_access').select('subscribed').eq('user_id', user.id).maybeSingle();
+  console.log('[WinterArc] Access check result:', { access, accessError });
   if(access && access.subscribed){
     await loadApp();
   } else {
+    console.log('[WinterArc] Not subscribed — showing paywall');
     showScreen('screen-paywall');
   }
 }
 
 /* ---------- APP DATA ---------- */
 async function loadApp(){
-  const { data: logs } = await sb.from('winter_arc_logs').select('*').eq('user_id', currentUser.id);
+  console.log('[WinterArc] loadApp starting');
+  const { data: logs, error: logsError } = await sb.from('winter_arc_logs').select('*').eq('user_id', currentUser.id);
+  console.log('[WinterArc] Logs fetch result:', { logs, logsError });
   allLogs = logs || [];
 
   const todayStr = new Date().toISOString().slice(0,10);
@@ -402,6 +414,7 @@ async function loadApp(){
   renderStats();
   renderCalendar();
   showScreen('screen-app');
+  console.log('[WinterArc] loadApp finished, screen-app should be visible now');
 }
 
 function calcXP(log){
@@ -545,8 +558,10 @@ function renderCalendar(){
 }
 
 /* ---------- BOOT ---------- */
+console.log('[WinterArc] Script loaded, booting...');
 (async function boot(){
   const { data: { session } } = await sb.auth.getSession();
+  console.log('[WinterArc] Existing session on load:', session);
   if(session && session.user){
     await onAuthed(session.user);
   } else {
