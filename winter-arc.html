@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Winter Arc | Iron Mind Collective</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --black:#000000;
+  --charcoal:#0c0c0d;
+  --gunmetal:#18181b;
+  --gunmetal-2:#212124;
+  --white:#f4f4f6;
+  --silver:#a89a7d;
+  --silver-dim:#6b6152;
+  --glow:#c9a24b;
+  --glow-soft:rgba(201,162,75,.35);
+  --hairline:rgba(201,162,75,.14);
+  --font-display:'Cinzel', Georgia, serif;
+  --font-body:'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:'JetBrains Mono', 'Courier New', monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--black); color:var(--white); font-family:var(--font-body);
+  min-height:100vh; -webkit-font-smoothing:antialiased;
+}
+.container{ max-width:900px; margin:0 auto; padding:0 5vw; }
+.glass{
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+  border:1px solid var(--hairline); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border-radius:18px;
+}
+h1,h2,h3{ font-family:var(--font-display); font-weight:600; }
+.eyebrow{ font-family:var(--font-mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--glow); }
+a{ color:var(--glow); text-decoration:none; }
+button{ font-family:var(--font-body); cursor:pointer; }
+
+/* ---------- SCREENS ---------- */
+.screen{ display:none; min-height:100vh; }
+.screen.active{ display:block; }
+
+/* ---------- AUTH ---------- */
+#screen-auth{ display:flex; align-items:center; justify-content:center; padding:6vh 5vw; }
+.auth-box{ width:100%; max-width:400px; padding:2.6rem; text-align:center; }
+.auth-box h1{ font-size:1.9rem; color:var(--glow); margin-bottom:.4rem; }
+.auth-box p.sub{ color:var(--silver); font-size:14px; margin-bottom:1.8rem; }
+.field{ text-align:left; margin-bottom:1rem; }
+.field label{ font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--silver); display:block; margin-bottom:.4rem; }
+.field input{
+  width:100%; padding:.85rem 1rem; background:rgba(255,255,255,.03); border:1px solid var(--hairline);
+  border-radius:10px; color:var(--white); font-family:var(--font-body); font-size:14px;
+}
+.field input:focus{ outline:none; border-color:var(--glow); }
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; width:100%; padding:.95rem 1.4rem;
+  border-radius:999px; font-weight:600; font-size:14px; border:none; margin-top:.6rem;
+  transition:transform .3s var(--ease), opacity .3s var(--ease);
+}
+.btn:hover{ transform:translateY(-2px); }
+.btn-primary{ background:var(--glow); color:#000; }
+.btn-ghost{ background:transparent; border:1px solid var(--hairline); color:var(--white); }
+.auth-toggle{ margin-top:1.4rem; font-size:13px; color:var(--silver); }
+.auth-toggle button{ background:none; border:none; color:var(--glow); font-size:13px; text-decoration:underline; }
+.auth-error{ color:#e58; font-size:12.5px; margin-top:.8rem; min-height:1em; }
+
+/* ---------- PAYWALL ---------- */
+#screen-paywall{ display:flex; align-items:center; justify-content:center; padding:6vh 5vw; }
+.paywall-box{ width:100%; max-width:440px; padding:3rem 2.6rem; text-align:center; }
+.paywall-box .eyebrow{ margin-bottom:.6rem; }
+.paywall-box h1{ font-size:2rem; margin-bottom:1rem; }
+.paywall-box p{ color:var(--silver); font-size:14.5px; line-height:1.7; margin-bottom:1.6rem; }
+.price-tag{ font-family:var(--font-display); font-size:2.6rem; color:var(--glow); margin:1.2rem 0 .3rem; }
+.price-sub{ color:var(--silver-dim); font-size:12px; margin-bottom:1.8rem; }
+.feature-list{ text-align:left; list-style:none; margin-bottom:2rem; }
+.feature-list li{ padding:.5rem 0; color:var(--silver); font-size:13.5px; border-bottom:1px solid var(--hairline); }
+.feature-list li:before{ content:'—'; color:var(--glow); margin-right:.6rem; }
+
+/* ---------- APP SHELL ---------- */
+#screen-app{ padding:3.5rem 0 6rem; }
+.app-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:2.2rem; flex-wrap:wrap; gap:1rem; }
+.app-header h1{ font-size:1.6rem; }
+.rank-pill{
+  display:flex; align-items:center; gap:.6rem; padding:.5rem 1rem; border-radius:999px;
+  border:1px solid var(--hairline); font-family:var(--font-mono); font-size:11px; letter-spacing:.08em;
+}
+.rank-pill .dot{ width:6px; height:6px; border-radius:50%; background:var(--glow); }
+.signout{ background:none; border:none; color:var(--silver-dim); font-size:12px; text-decoration:underline; }
+
+/* stat strip */
+.stat-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; margin-bottom:2.2rem; }
+.stat-card{ padding:1.2rem 1rem; text-align:center; }
+.stat-card .num{ font-family:var(--font-display); font-size:1.7rem; color:var(--glow); }
+.stat-card .label{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--silver-dim); margin-top:.3rem; }
+@media (max-width:640px){ .stat-strip{ grid-template-columns:repeat(2,1fr); } }
+
+/* XP bar */
+.xp-wrap{ margin-bottom:2.2rem; padding:1.1rem 1.4rem; }
+.xp-top{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10.5px; color:var(--silver); margin-bottom:.6rem; letter-spacing:.05em; }
+.xp-track{ height:8px; border-radius:99px; background:rgba(255,255,255,.06); overflow:hidden; }
+.xp-fill{ height:100%; background:linear-gradient(90deg, var(--silver-dim), var(--glow)); transition:width .6s var(--ease); }
+
+/* daily tracker */
+.section-label{ font-family:var(--font-mono); font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--glow); margin:2.4rem 0 1rem; }
+.tracker-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:.9rem; }
+.track-card{ padding:1.2rem 1.3rem; cursor:pointer; transition:border-color .3s var(--ease), transform .3s var(--ease); user-select:none; }
+.track-card:hover{ transform:translateY(-2px); }
+.track-card.done{ border-color:rgba(201,162,75,.55); background:linear-gradient(180deg, rgba(201,162,75,.1), rgba(201,162,75,.02)); }
+.track-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:.5rem; }
+.track-head h3{ font-size:1.05rem; font-weight:600; }
+.check{ width:22px; height:22px; border-radius:50%; border:1.5px solid var(--hairline); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; transition:all .3s var(--ease); }
+.track-card.done .check{ background:var(--glow); border-color:var(--glow); color:#000; }
+.track-desc{ color:var(--silver-dim); font-size:12.5px; }
+
+/* water counter */
+.water-card{ grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.water-glasses{ display:flex; gap:.4rem; flex-wrap:wrap; }
+.glass-dot{ width:26px; height:26px; border-radius:6px; border:1.5px solid var(--hairline); cursor:pointer; transition:all .25s var(--ease); }
+.glass-dot.filled{ background:var(--glow); border-color:var(--glow); }
+
+/* calendar */
+.calendar-wrap{ margin-top:1rem; }
+.month-block{ margin-bottom:1.6rem; }
+.month-title{ font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; color:var(--silver); margin-bottom:.6rem; text-transform:uppercase; }
+.month-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.day-cell{
+  aspect-ratio:1; border-radius:5px; background:rgba(255,255,255,.03); border:1px solid var(--hairline);
+  display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:9px; color:var(--silver-dim);
+}
+.day-cell.today{ border-color:var(--glow); color:var(--glow); }
+.day-cell.partial{ background:rgba(201,162,75,.25); color:var(--white); }
+.day-cell.full{ background:var(--glow); color:#000; font-weight:700; }
+.day-cell.empty{ visibility:hidden; }
+
+.loading, .app-error{ text-align:center; padding:4rem 1rem; color:var(--silver); }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<section id="screen-auth" class="screen active">
+  <div class="auth-box glass">
+    <div class="eyebrow">Iron Mind Collective</div>
+    <h1>Winter Arc</h1>
+    <p class="sub" id="auth-sub">Sign in to continue your arc.</p>
+
+    <form id="form-login">
+      <div class="field"><label>Email</label><input type="email" id="login-email" required autocomplete="email"></div>
+      <div class="field"><label>Password</label><input type="password" id="login-password" required autocomplete="current-password"></div>
+      <button class="btn btn-primary" type="submit">Sign In</button>
+      <div class="auth-error" id="login-error"></div>
+    </form>
+
+    <form id="form-signup" style="display:none;">
+      <div class="field"><label>Email</label><input type="email" id="signup-email" required autocomplete="email"></div>
+      <div class="field"><label>Password</label><input type="password" id="signup-password" required autocomplete="new-password" minlength="6"></div>
+      <button class="btn btn-primary" type="submit">Create Account</button>
+      <div class="auth-error" id="signup-error"></div>
+    </form>
+
+    <div class="auth-toggle">
+      <span id="toggle-to-signup-wrap">New here? <button type="button" id="toggle-to-signup">Create an account</button></span>
+      <span id="toggle-to-login-wrap" style="display:none;">Already have access? <button type="button" id="toggle-to-login">Sign in</button></span>
+    </div>
+  </div>
+</section>
+
+<!-- PAYWALL SCREEN -->
+<section id="screen-paywall" class="screen">
+  <div class="paywall-box glass">
+    <div class="eyebrow">Winter Arc</div>
+    <h1>Turn The Season Into A Game.</h1>
+    <p>One hub for the whole arc — gym, mindset, diet, and water, tracked daily, scored, and mapped across the full September–April run.</p>
+    <div class="price-tag">£9<span style="font-size:1rem;">/month</span></div>
+    <div class="price-sub">Cancel anytime from your account.</div>
+    <ul class="feature-list">
+      <li>Daily tracker — gym, mental health, calories, protein, water</li>
+      <li>XP, streaks, and rank progression</li>
+      <li>Full Sept → April arc calendar at a glance</li>
+      <li>One hub to check your progress, always up to date</li>
+    </ul>
+    <button class="btn btn-primary" id="btn-subscribe">Start The Arc — £9/mo</button>
+    <button class="btn btn-ghost" id="btn-signout-paywall" style="margin-top:.7rem;">Sign Out</button>
+  </div>
+</section>
+
+<!-- APP SCREEN -->
+<section id="screen-app" class="screen">
+  <div class="container">
+    <div class="app-header">
+      <div>
+        <div class="eyebrow">Winter Arc</div>
+        <h1 id="app-date-title">Loading...</h1>
+      </div>
+      <div style="display:flex; align-items:center; gap:1rem;">
+        <div class="rank-pill"><span class="dot"></span><span id="rank-label">Recruit</span></div>
+        <button class="signout" id="btn-signout-app">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="stat-strip">
+      <div class="stat-card glass"><div class="num" id="stat-day">—</div><div class="label">Day Of Arc</div></div>
+      <div class="stat-card glass"><div class="num" id="stat-streak">—</div><div class="label">Current Streak</div></div>
+      <div class="stat-card glass"><div class="num" id="stat-completion">—</div><div class="label">Arc Completion</div></div>
+      <div class="stat-card glass"><div class="num" id="stat-xp">—</div><div class="label">Total XP</div></div>
+    </div>
+
+    <div class="xp-wrap glass">
+      <div class="xp-top"><span id="xp-rank-current">Recruit</span><span id="xp-rank-next">Operative</span></div>
+      <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%;"></div></div>
+    </div>
+
+    <div class="section-label">Today's Categories</div>
+    <div class="tracker-grid">
+      <div class="track-card glass" data-cat="gym">
+        <div class="track-head"><h3>Gym</h3><div class="check"></div></div>
+        <div class="track-desc">Trained today.</div>
+      </div>
+      <div class="track-card glass" data-cat="mental">
+        <div class="track-head"><h3>Mental Health</h3><div class="check"></div></div>
+        <div class="track-desc">Shadow work, journaling, or mindset check-in.</div>
+      </div>
+      <div class="track-card glass" data-cat="calories_hit">
+        <div class="track-head"><h3>Calories</h3><div class="check"></div></div>
+        <div class="track-desc">Hit your calorie target.</div>
+      </div>
+      <div class="track-card glass" data-cat="protein_hit">
+        <div class="track-head"><h3>Protein</h3><div class="check"></div></div>
+        <div class="track-desc">Hit your protein target.</div>
+      </div>
+      <div class="track-card glass water-card">
+        <div>
+          <div class="track-head" style="margin-bottom:.7rem;"><h3>Water</h3><span id="water-count" style="font-family:var(--font-mono); font-size:12px; color:var(--silver);">0 / 8</span></div>
+          <div class="water-glasses" id="water-glasses"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">The Arc — September to April</div>
+    <div class="calendar-wrap glass" style="padding:1.5rem;">
+      <div id="calendar-render"></div>
+    </div>
+  </div>
+</section>
+
+<div id="global-loading" class="loading">Loading Winter Arc...</div>
+
+<script>
+/* ============================================================
+   CONFIG — fill these in from your existing Iron Mind apps
+============================================================ */
+const SUPABASE_URL = 'https://yiadmxoafcyxeqjpvxfq.supabase.co'; // shared Iron Mind Supabase project
+const SUPABASE_ANON_KEY = 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE'; // same anon key used in Shadow Lab / Iron Forge / Iron Lifts
+const STRIPE_CHECKOUT_URL = 'PASTE_YOUR_STRIPE_CHECKOUT_LINK_HERE'; // see setup notes — a Stripe Payment Link is the fastest way to wire this
+
+const ARC_START = new Date('2026-09-01T00:00:00');
+const ARC_END   = new Date('2027-04-30T00:00:00');
+const WATER_GOAL = 8;
+
+const RANKS = [
+  { name:'Recruit',   xp:0    },
+  { name:'Operative', xp:300  },
+  { name:'Veteran',   xp:900  },
+  { name:'Elite',     xp:2000 },
+  { name:'Winter King', xp:4000 }
+];
+const XP_PER_CATEGORY = 20; // gym, mental, calories, protein — 20xp each
+const XP_WATER_GOAL = 20;   // bonus for hitting water goal
+const XP_FULL_DAY_BONUS = 20; // bonus for completing every category in one day
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let todayLog = { gym:false, mental:false, calories_hit:false, protein_hit:false, water_glasses:0 };
+let allLogs = [];
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('global-loading').style.display = 'none';
+}
+
+/* ---------- AUTH ---------- */
+document.getElementById('toggle-to-signup').addEventListener('click', ()=>{
+  document.getElementById('form-login').style.display='none';
+  document.getElementById('form-signup').style.display='block';
+  document.getElementById('toggle-to-signup-wrap').style.display='none';
+  document.getElementById('toggle-to-login-wrap').style.display='inline';
+  document.getElementById('auth-sub').textContent = 'Create your account to start the arc.';
+});
+document.getElementById('toggle-to-login').addEventListener('click', ()=>{
+  document.getElementById('form-signup').style.display='none';
+  document.getElementById('form-login').style.display='block';
+  document.getElementById('toggle-to-login-wrap').style.display='none';
+  document.getElementById('toggle-to-signup-wrap').style.display='inline';
+  document.getElementById('auth-sub').textContent = 'Sign in to continue your arc.';
+});
+
+document.getElementById('form-login').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if(error){ document.getElementById('login-error').textContent = error.message; return; }
+  await onAuthed(data.user);
+});
+
+document.getElementById('form-signup').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('signup-email').value;
+  const password = document.getElementById('signup-password').value;
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if(error){ document.getElementById('signup-error').textContent = error.message; return; }
+  if(data.user){ await onAuthed(data.user); } else {
+    document.getElementById('signup-error').textContent = 'Check your email to confirm your account, then sign in.';
+  }
+});
+
+document.getElementById('btn-signout-paywall').addEventListener('click', signOut);
+document.getElementById('btn-signout-app').addEventListener('click', signOut);
+async function signOut(){ await supabase.auth.signOut(); currentUser = null; location.reload(); }
+
+document.getElementById('btn-subscribe').addEventListener('click', ()=>{
+  if(STRIPE_CHECKOUT_URL.startsWith('PASTE_')){
+    alert('Stripe checkout link not set up yet — see setup notes in the code comments.');
+    return;
+  }
+  window.location.href = STRIPE_CHECKOUT_URL;
+});
+
+async function onAuthed(user){
+  currentUser = user;
+  const { data: access } = await supabase.from('winter_arc_access').select('subscribed').eq('user_id', user.id).maybeSingle();
+  if(access && access.subscribed){
+    await loadApp();
+  } else {
+    showScreen('screen-paywall');
+  }
+}
+
+/* ---------- APP DATA ---------- */
+async function loadApp(){
+  const { data: logs } = await supabase.from('winter_arc_logs').select('*').eq('user_id', currentUser.id);
+  allLogs = logs || [];
+
+  const todayStr = new Date().toISOString().slice(0,10);
+  const existing = allLogs.find(l => l.log_date === todayStr);
+  todayLog = existing || { gym:false, mental:false, calories_hit:false, protein_hit:false, water_glasses:0, log_date: todayStr };
+
+  renderTracker();
+  renderStats();
+  renderCalendar();
+  showScreen('screen-app');
+}
+
+function calcXP(log){
+  let xp = 0;
+  ['gym','mental','calories_hit','protein_hit'].forEach(c=>{ if(log[c]) xp += XP_PER_CATEGORY; });
+  if(log.water_glasses >= WATER_GOAL) xp += XP_WATER_GOAL;
+  if(log.gym && log.mental && log.calories_hit && log.protein_hit && log.water_glasses >= WATER_GOAL) xp += XP_FULL_DAY_BONUS;
+  return xp;
+}
+
+function renderTracker(){
+  document.querySelectorAll('.track-card[data-cat]').forEach(card=>{
+    const cat = card.dataset.cat;
+    card.classList.toggle('done', !!todayLog[cat]);
+  });
+  document.getElementById('water-count').textContent = `${todayLog.water_glasses||0} / ${WATER_GOAL}`;
+  const wrap = document.getElementById('water-glasses');
+  wrap.innerHTML = '';
+  for(let i=1;i<=WATER_GOAL;i++){
+    const dot = document.createElement('div');
+    dot.className = 'glass-dot' + (i <= (todayLog.water_glasses||0) ? ' filled' : '');
+    dot.addEventListener('click', ()=> setWater(i === todayLog.water_glasses ? i-1 : i));
+    wrap.appendChild(dot);
+  }
+  const dateTitle = new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  document.getElementById('app-date-title').textContent = dateTitle;
+}
+
+document.querySelectorAll('.track-card[data-cat]').forEach(card=>{
+  card.addEventListener('click', ()=> toggleCategory(card.dataset.cat));
+});
+
+async function toggleCategory(cat){
+  todayLog[cat] = !todayLog[cat];
+  await saveToday();
+  renderTracker();
+  renderStats();
+  renderCalendar();
+}
+
+async function setWater(count){
+  todayLog.water_glasses = Math.max(0, Math.min(WATER_GOAL, count));
+  await saveToday();
+  renderTracker();
+  renderStats();
+  renderCalendar();
+}
+
+async function saveToday(){
+  const todayStr = new Date().toISOString().slice(0,10);
+  todayLog.log_date = todayStr;
+  const payload = { ...todayLog, user_id: currentUser.id };
+  await supabase.from('winter_arc_logs').upsert(payload, { onConflict:'user_id,log_date' });
+  const idx = allLogs.findIndex(l => l.log_date === todayStr);
+  if(idx >= 0) allLogs[idx] = payload; else allLogs.push(payload);
+}
+
+function renderStats(){
+  const totalXP = allLogs.reduce((sum,l)=> sum + calcXP(l), 0);
+  document.getElementById('stat-xp').textContent = totalXP;
+
+  const today = new Date();
+  const dayOfArc = Math.max(1, Math.floor((today - ARC_START) / 86400000) + 1);
+  const totalDays = Math.floor((ARC_END - ARC_START) / 86400000) + 1;
+  document.getElementById('stat-day').textContent = `${dayOfArc}/${totalDays}`;
+
+  let streak = 0;
+  let cursor = new Date();
+  while(true){
+    const dStr = cursor.toISOString().slice(0,10);
+    const log = allLogs.find(l => l.log_date === dStr);
+    if(log && (log.gym || log.mental || log.calories_hit || log.protein_hit || log.water_glasses > 0)){
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    } else break;
+  }
+  document.getElementById('stat-streak').textContent = streak;
+
+  const completedDays = allLogs.filter(l => l.gym && l.mental && l.calories_hit && l.protein_hit && l.water_glasses >= WATER_GOAL).length;
+  const pct = Math.round((completedDays / totalDays) * 100);
+  document.getElementById('stat-completion').textContent = `${pct}%`;
+
+  let rankIdx = 0;
+  for(let i=0;i<RANKS.length;i++){ if(totalXP >= RANKS[i].xp) rankIdx = i; }
+  const current = RANKS[rankIdx];
+  const next = RANKS[rankIdx+1];
+  document.getElementById('rank-label').textContent = current.name;
+  document.getElementById('xp-rank-current').textContent = current.name;
+  if(next){
+    document.getElementById('xp-rank-next').textContent = next.name;
+    const span = next.xp - current.xp;
+    const progress = Math.min(100, Math.round(((totalXP - current.xp) / span) * 100));
+    document.getElementById('xp-fill').style.width = progress + '%';
+  } else {
+    document.getElementById('xp-rank-next').textContent = 'Max Rank';
+    document.getElementById('xp-fill').style.width = '100%';
+  }
+}
+
+function renderCalendar(){
+  const container = document.getElementById('calendar-render');
+  container.innerHTML = '';
+  const todayStr = new Date().toISOString().slice(0,10);
+  let cursor = new Date(ARC_START);
+  while(cursor <= ARC_END){
+    const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+    const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth()+1, 0);
+    const block = document.createElement('div');
+    block.className = 'month-block';
+    const title = document.createElement('div');
+    title.className = 'month-title';
+    title.textContent = monthStart.toLocaleDateString(undefined,{ month:'long', year:'numeric' });
+    block.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'month-grid';
+    const firstWeekday = monthStart.getDay();
+    for(let i=0;i<firstWeekday;i++){
+      const empty = document.createElement('div');
+      empty.className = 'day-cell empty';
+      grid.appendChild(empty);
+    }
+    for(let d=1; d<=monthEnd.getDate(); d++){
+      const dateObj = new Date(cursor.getFullYear(), cursor.getMonth(), d);
+      const dStr = dateObj.toISOString().slice(0,10);
+      const cell = document.createElement('div');
+      cell.className = 'day-cell';
+      cell.textContent = d;
+      if(dStr === todayStr) cell.classList.add('today');
+      const log = allLogs.find(l => l.log_date === dStr);
+      if(log){
+        const catsHit = ['gym','mental','calories_hit','protein_hit'].filter(c=>log[c]).length + (log.water_glasses >= WATER_GOAL ? 1 : 0);
+        if(catsHit >= 5) cell.classList.add('full');
+        else if(catsHit > 0) cell.classList.add('partial');
+      }
+      grid.appendChild(cell);
+    }
+    block.appendChild(grid);
+    container.appendChild(block);
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth()+1, 1);
+  }
+}
+
+/* ---------- BOOT ---------- */
+(async function boot(){
+  const { data: { session } } = await supabase.auth.getSession();
+  if(session && session.user){
+    await onAuthed(session.user);
+  } else {
+    showScreen('screen-auth');
+  }
+})();
+</script>
+</body>
+</html>
