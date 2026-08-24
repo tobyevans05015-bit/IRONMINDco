@@ -323,14 +323,8 @@ input, select, textarea{ font-family:var(--font-body); }
       <div class="tab-sub">Root emotion, symptoms to release, and the story underneath it.</div>
       <div class="card glass">
         <div class="mini-label">Root Emotion</div>
-        <div class="chip-row" id="root-emotion-row">
-          <button class="chip" data-value="Fear">Fear</button>
-          <button class="chip" data-value="Anger">Anger</button>
-          <button class="chip" data-value="Shame">Shame</button>
-          <button class="chip" data-value="Guilt">Guilt</button>
-          <button class="chip" data-value="Sadness">Sadness</button>
-          <button class="chip" data-value="Disgust">Disgust</button>
-        </div>
+        <div class="chip-row" id="core-emotion-row"></div>
+        <div class="chip-row" id="sub-emotion-row" style="margin-top:.9rem; display:none;"></div>
       </div>
       <div class="card glass">
         <div class="mini-label">Symptoms To Release</div>
@@ -430,7 +424,6 @@ function getArcStart(){
   return new Date(); // fallback before user is loaded
 }
 const WATER_GOAL = 8;
-const LOOKBACK_DAYS = 14; // window used for the pentagon skill scores
 
 const RANKS = [
   { name:'Recruit',   xp:0    },
@@ -664,14 +657,49 @@ document.getElementById('toggle-calories').addEventListener('click', async ()=>{
 document.getElementById('toggle-protein').addEventListener('click', async ()=>{ today.protein_hit = !today.protein_hit; await saveToday(); });
 
 /* ---------- SHADOW TAB ---------- */
-let selectedRootEmotion = null;
 let selectedSymptoms = [];
-document.querySelectorAll('#root-emotion-row .chip').forEach(chip=>{
-  chip.addEventListener('click', ()=>{
-    selectedRootEmotion = chip.dataset.value;
-    document.querySelectorAll('#root-emotion-row .chip').forEach(c=> c.classList.toggle('selected', c === chip));
+const EMOTION_WHEEL = {
+  'Fear': ['Anxious','Worried','Nervous','Insecure','Threatened','Overwhelmed','Panicked','Helpless','Exposed','Vulnerable','Suspicious','Inadequate','Frozen','Dread'],
+  'Anger': ['Frustrated','Irritated','Resentful','Bitter','Jealous','Envious','Betrayed','Disrespected','Humiliated','Hostile','Indignant','Agitated','Contempt'],
+  'Sadness': ['Lonely','Hurt','Disappointed','Grief','Despair','Hopeless','Empty','Rejected','Abandoned','Numb','Heartbroken','Regretful','Discouraged','Isolated'],
+  'Shame': ['Embarrassed','Humiliated','Exposed','Worthless','Inferior','Self-Conscious','Unlovable','Small','Ridiculed','Disgraced','Awkward','Judged','Unworthy'],
+  'Guilt': ['Remorseful','Regretful','Responsible','Sorry','Self-Blaming','Repentant','Culpable','Contrite','Uneasy','Burdened'],
+  'Disgust': ['Repulsed','Revolted','Contemptuous','Nauseated','Appalled','Offended','Distrustful','Disdainful','Judgmental','Averse'],
+  'Anxiety': ['Worry','Dread','Panic','Restlessness','Apprehension','Racing Thoughts','On Edge','Catastrophizing','Overthinking','Tension','Hypervigilance'],
+  'Joy': ['Content','Grateful','Proud','Excited','Relieved','Hopeful','Peaceful','Fulfilled','Loved','Confident','Playful','Inspired']
+};
+let selectedCoreEmotion = null;
+let selectedSubEmotion = null;
+
+(function buildCoreEmotionRow(){
+  const row = document.getElementById('core-emotion-row');
+  Object.keys(EMOTION_WHEEL).forEach(core=>{
+    const chip = document.createElement('button');
+    chip.type = 'button'; chip.className = 'chip'; chip.dataset.value = core; chip.textContent = core;
+    chip.addEventListener('click', ()=>{
+      selectedCoreEmotion = core; selectedSubEmotion = null;
+      document.querySelectorAll('#core-emotion-row .chip').forEach(c=> c.classList.toggle('selected', c === chip));
+      renderSubEmotionRow();
+    });
+    row.appendChild(chip);
   });
-});
+})();
+function renderSubEmotionRow(){
+  const wrap = document.getElementById('sub-emotion-row');
+  wrap.innerHTML = '';
+  if(!selectedCoreEmotion){ wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  EMOTION_WHEEL[selectedCoreEmotion].forEach(sub=>{
+    const chip = document.createElement('button');
+    chip.type = 'button'; chip.className = 'chip'; chip.dataset.value = sub; chip.textContent = sub;
+    chip.addEventListener('click', ()=>{
+      selectedSubEmotion = sub;
+      document.querySelectorAll('#sub-emotion-row .chip').forEach(c=> c.classList.toggle('selected', c === chip));
+    });
+    wrap.appendChild(chip);
+  });
+}
+
 document.querySelectorAll('#symptoms-row .chip').forEach(chip=>{
   chip.addEventListener('click', ()=>{
     const val = chip.dataset.value;
@@ -681,12 +709,14 @@ document.querySelectorAll('#symptoms-row .chip').forEach(chip=>{
 });
 document.getElementById('btn-save-shadow').addEventListener('click', async ()=>{
   const note = document.getElementById('shadow-note').value.trim();
-  if(!selectedRootEmotion && selectedSymptoms.length === 0 && !note) return;
-  const payload = { user_id: currentUser.id, log_date: todayStr(), root_emotion: selectedRootEmotion, symptoms: selectedSymptoms, note };
+  if(!selectedCoreEmotion && selectedSymptoms.length === 0 && !note) return;
+  const rootEmotion = selectedCoreEmotion ? (selectedSubEmotion ? `${selectedCoreEmotion} — ${selectedSubEmotion}` : selectedCoreEmotion) : null;
+  const payload = { user_id: currentUser.id, log_date: todayStr(), root_emotion: rootEmotion, symptoms: selectedSymptoms, note };
   const { data } = await sb.from('winter_arc_shadow_logs').insert(payload).select();
   if(data && data[0]) shadowLogs.unshift(data[0]);
-  selectedRootEmotion = null; selectedSymptoms = [];
-  document.querySelectorAll('#root-emotion-row .chip, #symptoms-row .chip').forEach(c=>c.classList.remove('selected'));
+  selectedCoreEmotion = null; selectedSubEmotion = null; selectedSymptoms = [];
+  document.querySelectorAll('#core-emotion-row .chip, #symptoms-row .chip').forEach(c=>c.classList.remove('selected'));
+  renderSubEmotionRow();
   document.getElementById('shadow-note').value = '';
   renderShadowLog();
 });
@@ -850,23 +880,21 @@ function renderStats(){
 }
 
 /* ---------- PENTAGON CHART ---------- */
-function recentDailyLogs(){
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - LOOKBACK_DAYS);
-  return dailyLogs.filter(l => new Date(l.log_date) >= cutoff);
-}
 function pentagonScores(){
-  const recent = recentDailyLogs();
-  const days = Math.max(1, LOOKBACK_DAYS);
-  const gym = Math.round((recent.filter(l=>l.training_type && l.training_type !== 'Rest').length / days) * 100);
-  const calProt = recent.length ? Math.round((recent.filter(l=>l.calories_hit).length + recent.filter(l=>l.protein_hit).length) / (recent.length*2) * 100) : 0;
-  const water = Math.round((recent.filter(l=>l.water_glasses >= WATER_GOAL).length / days) * 100);
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - LOOKBACK_DAYS);
-  const shadowRecent = shadowLogs.filter(l => new Date(l.log_date) >= cutoff).length;
-  const shadow = Math.min(100, Math.round((shadowRecent / 7) * 100));
-  const skillsRecent = skillLogs.filter(l => new Date(l.log_date) >= cutoff).length;
-  const maxPossibleSkills = (profile.skills || []).length * LOOKBACK_DAYS || 1;
-  const purpose = Math.min(100, Math.round((skillsRecent / maxPossibleSkills) * 100));
-  return { gym, diet:calProt, water, shadow, purpose };
+  const arcStart = getArcStart();
+  const totalArcDays = Math.max(1, Math.floor((ARC_END - arcStart) / 86400000) + 1);
+  const baseIncrement = 100 / totalArcDays; // each completed day nudges a skill forward by this much
+
+  const gymDays = dailyLogs.filter(l => l.training_type && l.training_type !== 'Rest').length;
+  const dietDays = dailyLogs.filter(l => l.calories_hit && l.protein_hit).length;
+  const shadowDays = new Set(shadowLogs.map(l => l.log_date)).size;
+  const purposeDays = new Set(skillLogs.map(l => l.log_date)).size;
+
+  const gym = Math.min(100, Math.round(gymDays * baseIncrement));
+  const diet = Math.min(100, Math.round(dietDays * baseIncrement));
+  const shadow = Math.min(100, Math.round(shadowDays * baseIncrement * 2)); // shadow counts double — rarer to log than gym
+  const purpose = Math.min(100, Math.round(purposeDays * baseIncrement));
+  return { gym, diet, shadow, purpose };
 }
 function renderPentagon(){
   const scores = pentagonScores();
@@ -943,6 +971,16 @@ function renderCalendar(){
     monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth()+1, 1);
   }
 }
+
+/* ---------- MIDNIGHT ROLLOVER ---------- */
+setInterval(()=>{
+  if(!currentUser) return;
+  if(today.log_date !== todayStr()){
+    const existing = dailyLogs.find(l => l.log_date === todayStr());
+    today = existing || { training_type:null, gym_rating:null, calories_hit:false, protein_hit:false, diet_rating:null, water_glasses:0, fulfillment_rating:null, savings_amount:null, log_date: todayStr() };
+    renderAll();
+  }
+}, 30000);
 
 /* ---------- BOOT ---------- */
 sb.auth.onAuthStateChange((event, session) => {
