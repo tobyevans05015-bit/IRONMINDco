@@ -255,7 +255,7 @@ button{ font-family:var(--font-body); cursor:pointer; }
    CONFIG — fill these in from your existing Iron Mind apps
 ============================================================ */
 const SUPABASE_URL = 'https://yiadmxoafcyxeqjpvxfq.supabase.co'; // shared Iron Mind Supabase project
-const SUPABASE_ANON_KEY = 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE'; // same anon key used in Shadow Lab / Iron Forge / Iron Lifts
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpYWRteG9hZmN5eGVxanB2eGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjUwMTgsImV4cCI6MjA5ODMwMTAxOH0.z--MpEskebYS6vVRrqzj3qEnlnYDnBHFFuaJ0uquVmU'; // shared Iron Mind Supabase anon key
 const STRIPE_CHECKOUT_URL = 'PASTE_YOUR_STRIPE_CHECKOUT_LINK_HERE'; // see setup notes — a Stripe Payment Link is the fastest way to wire this
 
 const ARC_START = new Date('2026-09-01T00:00:00');
@@ -273,7 +273,7 @@ const XP_PER_CATEGORY = 20; // gym, mental, calories, protein — 20xp each
 const XP_WATER_GOAL = 20;   // bonus for hitting water goal
 const XP_FULL_DAY_BONUS = 20; // bonus for completing every category in one day
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let todayLog = { gym:false, mental:false, calories_hit:false, protein_hit:false, water_glasses:0 };
@@ -305,7 +305,7 @@ document.getElementById('form-login').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = document.getElementById('login-email').value;
   const password = document.getElementById('login-password').value;
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if(error){ document.getElementById('login-error').textContent = error.message; return; }
   await onAuthed(data.user);
 });
@@ -314,7 +314,7 @@ document.getElementById('form-signup').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = document.getElementById('signup-email').value;
   const password = document.getElementById('signup-password').value;
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await sb.auth.signUp({ email, password });
   if(error){ document.getElementById('signup-error').textContent = error.message; return; }
   if(data.user){ await onAuthed(data.user); } else {
     document.getElementById('signup-error').textContent = 'Check your email to confirm your account, then sign in.';
@@ -323,7 +323,7 @@ document.getElementById('form-signup').addEventListener('submit', async (e)=>{
 
 document.getElementById('btn-signout-paywall').addEventListener('click', signOut);
 document.getElementById('btn-signout-app').addEventListener('click', signOut);
-async function signOut(){ await supabase.auth.signOut(); currentUser = null; location.reload(); }
+async function signOut(){ await sb.auth.signOut(); currentUser = null; location.reload(); }
 
 document.getElementById('btn-subscribe').addEventListener('click', ()=>{
   if(STRIPE_CHECKOUT_URL.startsWith('PASTE_')){
@@ -335,7 +335,7 @@ document.getElementById('btn-subscribe').addEventListener('click', ()=>{
 
 async function onAuthed(user){
   currentUser = user;
-  const { data: access } = await supabase.from('winter_arc_access').select('subscribed').eq('user_id', user.id).maybeSingle();
+  const { data: access } = await sb.from('winter_arc_access').select('subscribed').eq('user_id', user.id).maybeSingle();
   if(access && access.subscribed){
     await loadApp();
   } else {
@@ -345,7 +345,7 @@ async function onAuthed(user){
 
 /* ---------- APP DATA ---------- */
 async function loadApp(){
-  const { data: logs } = await supabase.from('winter_arc_logs').select('*').eq('user_id', currentUser.id);
+  const { data: logs } = await sb.from('winter_arc_logs').select('*').eq('user_id', currentUser.id);
   allLogs = logs || [];
 
   const todayStr = new Date().toISOString().slice(0,10);
@@ -408,7 +408,7 @@ async function saveToday(){
   const todayStr = new Date().toISOString().slice(0,10);
   todayLog.log_date = todayStr;
   const payload = { ...todayLog, user_id: currentUser.id };
-  await supabase.from('winter_arc_logs').upsert(payload, { onConflict:'user_id,log_date' });
+  await sb.from('winter_arc_logs').upsert(payload, { onConflict:'user_id,log_date' });
   const idx = allLogs.findIndex(l => l.log_date === todayStr);
   if(idx >= 0) allLogs[idx] = payload; else allLogs.push(payload);
 }
@@ -500,7 +500,7 @@ function renderCalendar(){
 
 /* ---------- BOOT ---------- */
 (async function boot(){
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await sb.auth.getSession();
   if(session && session.user){
     await onAuthed(session.user);
   } else {
